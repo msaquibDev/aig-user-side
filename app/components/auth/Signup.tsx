@@ -22,18 +22,24 @@ import enLocale from "i18n-iso-countries/langs/en.json";
 
 countries.registerLocale(enLocale);
 
-const schema = z.object({
-  prefix: z.string().min(1, "Required"),
-  fullName: z.string().min(1, "Required"),
-  affiliation: z.string().min(1, "Required"),
-  email: z.string().email(),
-  mobile: z.string().min(10).max(10),
-  country: z.string().min(1, "Required"),
-  password: z.string().min(6),
-  agree: z
-    .boolean()
-    .refine((val) => val, { message: "You must accept Terms & Conditions" }),
-});
+const schema = z
+  .object({
+    prefix: z.string().min(1, "Required"),
+    fullName: z.string().min(1, "Required"),
+    affiliation: z.string().min(1, "Required"),
+    email: z.string().email(),
+    mobile: z.string().min(10).max(10),
+    country: z.string().min(1, "Required"),
+    password: z.string().min(6),
+    confirmPassword: z.string().min(6),
+    agree: z
+      .boolean()
+      .refine((val) => val, { message: "You must accept Terms & Conditions" }),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords do not match",
+    path: ["confirmPassword"],
+  });
 
 type FormData = z.infer<typeof schema>;
 
@@ -83,7 +89,9 @@ export default function Signup() {
           <h2 className="text-2xl font-semibold mb-4">Sign Up</h2>
 
           <div className="grid gap-1">
-            <Label htmlFor="prefix">Prefix</Label>
+            <Label htmlFor="prefix">
+              Prefix<span className="text-red-500">*</span>
+            </Label>
             <Input
               id="prefix"
               placeholder="Eg: Dr, Mr, Ms"
@@ -95,7 +103,9 @@ export default function Signup() {
           </div>
 
           <div className="grid gap-1">
-            <Label htmlFor="fullName">Full Name</Label>
+            <Label htmlFor="fullName">
+              Full Name<span className="text-red-500">*</span>
+            </Label>
             <Input
               id="fullName"
               placeholder="Enter Full Name"
@@ -107,7 +117,9 @@ export default function Signup() {
           </div>
 
           <div className="grid gap-1">
-            <Label htmlFor="affiliation">Affiliation</Label>
+            <Label htmlFor="affiliation">
+              Affiliation<span className="text-red-500">*</span>
+            </Label>
             <Input
               id="affiliation"
               placeholder="Enter Affiliation"
@@ -121,7 +133,9 @@ export default function Signup() {
           </div>
 
           <div className="grid gap-1">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">
+              Email<span className="text-red-500">*</span>
+            </Label>
             <Input
               id="email"
               type="email"
@@ -134,7 +148,9 @@ export default function Signup() {
           </div>
 
           <div className="grid gap-1">
-            <Label htmlFor="mobile">Mobile Number</Label>
+            <Label htmlFor="mobile">
+              Mobile Number<span className="text-red-500">*</span>
+            </Label>
             <Input
               id="mobile"
               placeholder="Enter Mobile Number"
@@ -146,7 +162,9 @@ export default function Signup() {
           </div>
 
           <div className="grid gap-1">
-            <Label htmlFor="country">Country</Label>
+            <Label htmlFor="country">
+              Country<span className="text-red-500">*</span>
+            </Label>
             <Select onValueChange={(value) => setValue("country", value)}>
               <SelectTrigger id="country" className="cursor-pointer">
                 <SelectValue placeholder="Select Country" />
@@ -165,7 +183,9 @@ export default function Signup() {
           </div>
 
           <div className="grid gap-1">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">
+              Password<span className="text-red-500">*</span>
+            </Label>
             <Input
               id="password"
               type="password"
@@ -174,6 +194,23 @@ export default function Signup() {
             />
             {errors.password && (
               <p className="text-sm text-red-600">{errors.password.message}</p>
+            )}
+          </div>
+
+          <div className="grid gap-1">
+            <Label htmlFor="confirmPassword">
+              Confirm Password<span className="text-red-500">*</span>
+            </Label>
+            <Input
+              id="confirmPassword"
+              type="password"
+              placeholder="Confirm Password"
+              {...register("confirmPassword")}
+            />
+            {errors.confirmPassword && (
+              <p className="text-sm text-red-600">
+                {errors.confirmPassword.message}
+              </p>
             )}
           </div>
 
@@ -196,7 +233,7 @@ export default function Signup() {
 
           <Button
             type="submit"
-            className="mt-4 bg-[#003B73] text-white hover:bg-[#00509E]"
+            className="mt-4 bg-[#00509E] text-white hover:bg-[#003B73]"
           >
             Sign Up
           </Button>

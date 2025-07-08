@@ -88,7 +88,7 @@ export default function Login() {
 
           <Button
             type="submit"
-            className="bg-[#003B73] text-white hover:bg-[#00509E]"
+            className="bg-[#00509E] text-white hover:bg-[#003B73]"
           >
             Login
           </Button>

@@ -3,19 +3,24 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Menu, X } from "lucide-react";
+import { useState } from "react";
 
 const navItems = [
-  { label: "Home", href: "/" },
-  { label: "About Us", href: "/about" },
-  { label: "Conferences", href: "/conferences" },
-  { label: "Workshops", href: "/workshops" },
-  { label: "CMEs", href: "/cmes" },
+  { label: "Home", href: "#home" },
+  { label: "Department", href: "#department" },
+  { label: "Conferences", href: "#conferences" },
+  { label: "Workshops", href: "#workshops" },
+  { label: "CMEs", href: "#cmes" },
+  { label: "About Us", href: "#about" },
 ];
 
 export default function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+
   return (
     <header className="w-full bg-gradient-to-r from-[#02075d] to-[#1e3a8a] text-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+      <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/">
           <Image
@@ -26,8 +31,8 @@ export default function Header() {
           />
         </Link>
 
-        {/* Nav Menu */}
-        <nav className="hidden md:flex space-x-8 items-center">
+        {/* Desktop Nav */}
+        <nav className="hidden md:flex items-center space-x-8">
           {navItems.map((item) => (
             <Link
               key={item.href}
@@ -39,17 +44,50 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Login / Sign Up Button */}
-        <Link href="/account/login">
+        {/* Mobile Hamburger */}
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="md:hidden focus:outline-none"
+        >
+          {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </button>
+
+        {/* Login / Signup (Always Visible) */}
+        <Link href="/login" className="hidden md:inline-block">
           <Button
             variant="outline"
-            className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] hover:border-white transition"
+            className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] hover:border-white transition cursor-pointer"
           >
-            Login/ Sign Up
+            Login / Sign Up
           </Button>
         </Link>
       </div>
 
+      {/* Mobile Menu Dropdown */}
+      {menuOpen && (
+        <div className="md:hidden px-6 pb-4 space-y-2">
+          {navItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              onClick={() => setMenuOpen(false)}
+              className="block text-white py-2 border-b border-white/20"
+            >
+              {item.label}
+            </Link>
+          ))}
+          <Link href="/login">
+            <Button
+              variant="outline"
+              className="mt-2 w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68]"
+            >
+              Login / Sign Up
+            </Button>
+          </Link>
+        </div>
+      )}
+
+      {/* Hover underline effect */}
       <style jsx>{`
         .hover-underline::after {
           content: "";

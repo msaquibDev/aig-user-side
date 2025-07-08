@@ -1,0 +1,42 @@
+export const events = [
+  {
+    id: "1",
+    title: "Gut, Liver & Lifelines",
+    date: "1 Jun 2025",
+    location: "Auditorium, AIG Hospitals",
+    image: "/eventImg/event1.png",
+    department: "Gastroenterology",
+  },
+  {
+    id: "2",
+    title: "Tiny Guts, Uncommon Encounters",
+    date: "31 May 2025",
+    location: "Auditorium, AIG Hospitals",
+    image: "/eventImg/event2.jpg",
+    department: "Pediatrics",
+  },
+  {
+    id: "3",
+    title: "AIG IBD Summit 2025",
+    date: "29 Apr 2025 - 27 Apr 2025",
+    location: "HICC Novotel, Hyderabad",
+    image: "/eventImg/event3.png",
+    department: "Nephrology",
+  },
+  {
+    id: "4",
+    title: "Tiny Guts, Uncommon Encounters",
+    date: "31 May 2025",
+    location: "Auditorium, AIG Hospitals",
+    image: "/eventImg/event4.jpg",
+    department: "Cardiology",
+  },
+  {
+    id: "5",
+    title: "AIG IBD Summit 2025",
+    date: "29 Apr 2025 - 27 Apr 2025",
+    location: "HICC Novotel, Hyderabad",
+    image: "/eventImg/event5.jpg",
+    department: "Orthopedics",
+  },
+];
