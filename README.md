@@ -12,6 +12,14 @@ yarn dev
 pnpm dev
 # or
 bun dev
+
+
+  // "scripts": {
+  //   "dev": "next dev",
+  //   "build": "next build",
+  //   "start": "next start",
+  //   "lint": "next lint"
+  // },
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
