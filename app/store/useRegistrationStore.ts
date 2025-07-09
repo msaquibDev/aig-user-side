@@ -1,49 +1,59 @@
+// store/useRegistrationStore.ts
 import { create } from "zustand";
 
-// 🟩 Shared Gender type for strict type checking
-type RegistrationCategory = "member" | "trade" | "student" | "non-member";
-type Gender = "male" | "female" | "other";
-type MealPreference = "veg" | "non-veg" | "jain"; // adjust as needed
+// Types
+export type RegistrationCategory =
+  | "member"
+  | "trade"
+  | "student"
+  | "non-member";
+export type Gender = "male" | "female" | "other";
+export type MealPreference = "veg" | "non-veg" | "jain"; 
 
-type BasicDetails = {
-  prefix: string;
+// Main form type
+export type BasicDetails = {
+  prefix?: string;
   fullName: string;
   email: string;
   phone: string;
   affiliation?: string;
   designation?: string;
-  medicalCouncilRegistration?: string;
-  medicalCouncilState?: string;
-  addressLine1?: string;
+  registration: string;
+  councilState?: string;
+  address?: string;
   country: string;
   state?: string;
   city?: string;
   pincode?: string;
-  mealPreference?: MealPreference;
-  gender: Gender;
+  mealPreference?: MealPreference; // ✅ optional, undefined by default
+  gender?: Gender; // ✅ optional, undefined by default
   registrationCategory: RegistrationCategory;
 };
 
-// ✅ Also use Gender here for consistency
-type AccompanyingPerson = {
+// Accompanying person type
+export type AccompanyingPerson = {
   name: string;
   age: string;
   gender: Gender;
+  relation: string;
+  mealPreference: MealPreference;
 };
 
+// Zustand store shape
 type RegistrationState = {
   currentStep: number;
   basicDetails: BasicDetails;
-  accompanyingPerson?: AccompanyingPerson;
+  accompanyingPersons: AccompanyingPerson[];
   selectedWorkshops: string[];
 
   setStep: (step: number) => void;
   updateBasicDetails: (data: Partial<BasicDetails>) => void;
-  updateAccompanyingPerson: (data: Partial<AccompanyingPerson>) => void;
+  setAccompanyingPersons: (data: AccompanyingPerson[]) => void;
   setSelectedWorkshops: (workshops: string[]) => void;
   resetForm: () => void;
 };
 
+// ✅ Initial values
 const initialBasicDetails: BasicDetails = {
   prefix: "",
   fullName: "",
@@ -51,22 +61,23 @@ const initialBasicDetails: BasicDetails = {
   phone: "",
   affiliation: "",
   designation: "",
-  medicalCouncilRegistration: "",
-  medicalCouncilState: "",
-  addressLine1: "",
+  registration: "",
+  councilState: "",
+  address: "",
   country: "India",
   state: "",
   city: "",
   pincode: "",
-  mealPreference: undefined,
-  gender: "male",
+  mealPreference: undefined, // ✅ must be one of the enum values
+  gender: undefined, // ✅ same here
   registrationCategory: "member",
 };
+
 
 export const useRegistrationStore = create<RegistrationState>((set) => ({
   currentStep: 1,
   basicDetails: initialBasicDetails,
-  accompanyingPerson: undefined,
+  accompanyingPersons: [],
   selectedWorkshops: [],
 
   setStep: (step) => set({ currentStep: step }),
@@ -76,17 +87,7 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
       basicDetails: { ...state.basicDetails, ...data },
     })),
 
-  updateAccompanyingPerson: (data) =>
-    set((state) => ({
-      accompanyingPerson: {
-        ...(state.accompanyingPerson ?? {
-          name: "",
-          age: "",
-          gender: "male", // ✅ Default must match Gender
-        }),
-        ...data,
-      },
-    })),
+  setAccompanyingPersons: (data) => set({ accompanyingPersons: data }),
 
   setSelectedWorkshops: (workshops) => set({ selectedWorkshops: workshops }),
 
@@ -94,7 +95,7 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
     set({
       currentStep: 1,
       basicDetails: initialBasicDetails,
-      accompanyingPerson: undefined,
+      accompanyingPersons: [],
       selectedWorkshops: [],
     }),
 }));

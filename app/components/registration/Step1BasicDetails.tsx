@@ -20,26 +20,35 @@ import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 
+// ✅ Schema for validation
 const schema = z.object({
-  prefix: z.string(),
+  prefix: z.string().optional(),
   fullName: z.string().min(1, "Full Name is required"),
   phone: z.string().min(10, "Phone is required"),
   email: z.string().email("Invalid email"),
   affiliation: z.string().optional(),
   designation: z.string().optional(),
-  registration: z.string().min(1),
+  registration: z.string().min(1, "Registration is required"),
   councilState: z.string().optional(),
   address: z.string().optional(),
-  country: z.string(),
-  state: z.string(),
-  city: z.string(),
-  pincode: z.string(),
-  gender: z.enum(["male", "female", "other"]),
-  mealPreference: z.enum(["veg", "non-veg", "jain"]).optional(),
+  country: z.string().min(1, "Country is required"),
+  state: z.string().optional(),
+  city: z.string().optional(),
+  pincode: z.string().optional(),
+
+  gender: z.enum(["male", "female", "other"], {
+    required_error: "Gender is required",
+  }),
+
+  mealPreference: z.enum(["veg", "non-veg", "jain"], {
+    required_error: "Meal preference is required",
+  }),
+
   registrationCategory: z.enum(["member", "trade", "student", "non-member"], {
     required_error: "Registration category is required",
   }),
 });
+
 
 type FormData = z.infer<typeof schema>;
 
@@ -76,7 +85,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           <Label>Prefix</Label>
           <Select
             onValueChange={(val) => setValue("prefix", val)}
-            defaultValue={basicDetails.prefix}
+            defaultValue={basicDetails.prefix || ""}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Prefix" />
@@ -126,6 +135,11 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         <div className="space-y-1.5">
           <Label>Medical Council Registration</Label>
           <Input {...register("registration")} />
+          {errors.registration && (
+            <p className="text-sm text-red-600">
+              {errors.registration.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -141,6 +155,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         <div className="space-y-1.5">
           <Label>Country</Label>
           <Input {...register("country")} />
+          {errors.country && (
+            <p className="text-sm text-red-600">{errors.country.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -164,7 +181,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             onValueChange={(val) =>
               setValue("mealPreference", val as FormData["mealPreference"])
             }
-            defaultValue={basicDetails.mealPreference}
+            defaultValue={basicDetails.mealPreference || ""}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Meal Preference" />
@@ -183,7 +200,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             onValueChange={(val) =>
               setValue("gender", val as FormData["gender"])
             }
-            defaultValue={basicDetails.gender}
+            defaultValue={basicDetails.gender || ""}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select Gender" />
@@ -194,6 +211,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               <SelectItem value="other">Other</SelectItem>
             </SelectContent>
           </Select>
+          {errors.gender && (
+            <p className="text-sm text-red-600">{errors.gender.message}</p>
+          )}
         </div>
       </div>
 
@@ -210,53 +230,54 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           }
           className="space-y-2"
         >
-          <div className="flex items-center justify-between border rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="member" id="r1" />
-              <Label htmlFor="r1">Member</Label>
+          {[
+            {
+              id: "r1",
+              value: "member",
+              label: "Member",
+              price: "₹ 15,170.00",
+            },
+            {
+              id: "r2",
+              value: "trade",
+              label: "Trade Delegates",
+              price: "₹ 14,000.00",
+            },
+            {
+              id: "r3",
+              value: "student",
+              label: "Technologists/Students",
+              price: "₹ 20,000.00",
+            },
+            {
+              id: "r4",
+              value: "non-member",
+              label: "Non-Member",
+              price: "₹ 28,563.00",
+            },
+          ].map(({ id, value, label, price }) => (
+            <div
+              key={id}
+              className="flex items-center justify-between border rounded-lg p-3"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value={value} id={id} />
+                <Label htmlFor={id}>{label}</Label>
+              </div>
+              <div className="text-right">
+                <p>{price}</p>
+              </div>
             </div>
-            <div className="text-right">
-              <p>₹ 15,170.00</p>
-              <p className="text-sm text-muted-foreground">₹ 0.00</p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between border rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="trade" id="r2" />
-              <Label htmlFor="r2">Trade Delegates</Label>
-            </div>
-            <div className="text-right">
-              <p>₹ 14,000.00</p>
-              <p className="text-sm text-muted-foreground">₹ 14,000.00</p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between border rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="student" id="r3" />
-              <Label htmlFor="r3">Technologists/Students</Label>
-            </div>
-            <div className="text-right">
-              <p>₹ 20,000.00</p>
-              <p className="text-sm text-muted-foreground">₹ 20,000.00</p>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between border rounded-lg p-3">
-            <div className="flex items-center gap-2">
-              <RadioGroupItem value="non-member" id="r4" />
-              <Label htmlFor="r4">Non-Member</Label>
-            </div>
-            <div className="text-right">
-              <p>₹ 28,563.00</p>
-              <p className="text-sm text-muted-foreground">₹ 28,563.00</p>
-            </div>
-          </div>
+          ))}
         </RadioGroup>
+        {errors.registrationCategory && (
+          <p className="text-sm text-red-600">
+            {errors.registrationCategory.message}
+          </p>
+        )}
       </div>
 
-      {/* Submit Button */}
+      {/* Submit */}
       <div className="text-center">
         <Button type="submit" className="bg-[#00509E] hover:bg-[#003B73] px-8">
           Save & Continue
