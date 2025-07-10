@@ -31,9 +31,9 @@ export default function RegistrationStepper({
               className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center z-10 text-sm font-semibold",
                 isCompleted
-                  ? "bg-[#00509E] text-white"
-                  : isActive
                   ? "bg-[#003B73] text-white"
+                  : isActive
+                  ? "bg-[#00509E] text-white"
                   : "bg-gray-200 text-gray-500"
               )}
             >
@@ -45,7 +45,7 @@ export default function RegistrationStepper({
               className={cn(
                 "mt-2 text-center text-xs font-medium",
                 isActive
-                  ? "text-[#003B73]"
+                  ? "text-[#00509E]"
                   : isCompleted
                   ? "text-gray-700"
                   : "text-gray-400"
@@ -61,7 +61,7 @@ export default function RegistrationStepper({
                   className={cn(
                     "h-full transition-all",
                     currentStep > step.id
-                      ? "bg-[#00509E] w-full"
+                      ? "bg-[#003B73] w-full"
                       : "bg-gray-300 w-full"
                   )}
                 />

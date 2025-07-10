@@ -17,13 +17,19 @@ export default function EventsPage() {
 
   return (
     <div className="p-4">
-      <h1 className="text-2xl font-semibold mb-4">My Events</h1>
+      <h1 className="text-2xl font-semibold mb-4 text-[#00509E]">My Events</h1>
 
       <Tabs defaultValue="all" onValueChange={setTab}>
-        <TabsList>
-          <TabsTrigger value="all">All Events</TabsTrigger>
-          <TabsTrigger value="registered">Registered</TabsTrigger>
-          <TabsTrigger value="past">Past Events</TabsTrigger>
+        <TabsList className="flex space-x-6 border-b border-gray-200 mb-4 bg-transparent p-0 cursor-pointer">
+          {[
+            { label: "All Events", value: "all" },
+            { label: "Registered", value: "registered" },
+            { label: "Past Events", value: "past" },
+          ].map(({ label, value }) => (
+            <TabsTrigger key={value} value={value} className="tab-trigger">
+              {label}
+            </TabsTrigger>
+          ))}
         </TabsList>
 
         <TabsContent value={tab}>

@@ -53,6 +53,7 @@ export default function Step2AccompanyingPerson({
     control,
     handleSubmit,
     setValue,
+    watch,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -118,13 +119,14 @@ export default function Step2AccompanyingPerson({
                 Gender
               </Label>
               <Select
-                value={field.gender || ""}
                 onValueChange={(val) =>
                   setValue(`accompanyingPersons.${index}.gender`, val as any)
                 }
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Gender" />
+                <SelectTrigger className="w-full cursor-pointer">
+                  <SelectValue placeholder="Select Gender">
+                    {watch(`accompanyingPersons.${index}.gender`)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="male">Male</SelectItem>
@@ -132,6 +134,7 @@ export default function Step2AccompanyingPerson({
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
+
               {errors.accompanyingPersons?.[index]?.gender && (
                 <p className="text-sm text-red-600">
                   {errors.accompanyingPersons[index]?.gender?.message}
@@ -156,7 +159,6 @@ export default function Step2AccompanyingPerson({
                 Meal Preference
               </Label>
               <Select
-                defaultValue={field.mealPreference}
                 onValueChange={(val) =>
                   setValue(
                     `accompanyingPersons.${index}.mealPreference`,
@@ -164,8 +166,10 @@ export default function Step2AccompanyingPerson({
                   )
                 }
               >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select Meal" />
+                <SelectTrigger className="w-full cursor-pointer">
+                  <SelectValue placeholder="Select Meal">
+                    {watch(`accompanyingPersons.${index}.mealPreference`)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="veg">Veg</SelectItem>
@@ -173,6 +177,7 @@ export default function Step2AccompanyingPerson({
                   <SelectItem value="jain">Jain</SelectItem>
                 </SelectContent>
               </Select>
+
               {errors.accompanyingPersons?.[index]?.mealPreference && (
                 <p className="text-sm text-red-600">
                   {errors.accompanyingPersons[index]?.mealPreference?.message}
@@ -187,7 +192,7 @@ export default function Step2AccompanyingPerson({
               <Button
                 type="button"
                 variant="outline"
-                className="gap-2 text-[#00509E] border-[#00509E] hover:bg-[#003B73] hover:text-white"
+                className="gap-2 text-[#00509E] border-[#00509E] hover:bg-[#003B73] hover:text-white cursor-pointer"
                 onClick={() =>
                   append({
                     name: "",
@@ -208,7 +213,7 @@ export default function Step2AccompanyingPerson({
                 variant="outline"
                 size="sm"
                 onClick={() => remove(index)}
-                className="border-red-600 text-red-600 hover:text-white hover:bg-red-600 gap-2"
+                className="border-red-600 text-red-600 hover:text-white hover:bg-red-600 gap-2 cursor-pointer"
               >
                 <Trash2 className="w-4 h-4" />
                 Remove

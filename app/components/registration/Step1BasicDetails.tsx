@@ -49,7 +49,6 @@ const schema = z.object({
   }),
 });
 
-
 type FormData = z.infer<typeof schema>;
 
 export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
@@ -87,7 +86,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             onValueChange={(val) => setValue("prefix", val)}
             defaultValue={basicDetails.prefix || ""}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full cursor-pointer">
               <SelectValue placeholder="Select Prefix" />
             </SelectTrigger>
             <SelectContent>
@@ -183,7 +182,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             }
             defaultValue={basicDetails.mealPreference || ""}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full cursor-pointer">
               <SelectValue placeholder="Select Meal Preference" />
             </SelectTrigger>
             <SelectContent>
@@ -202,7 +201,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             }
             defaultValue={basicDetails.gender || ""}
           >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full cursor-pointer">
               <SelectValue placeholder="Select Gender" />
             </SelectTrigger>
             <SelectContent>
@@ -260,7 +259,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               key={id}
               className="flex items-center justify-between border rounded-lg p-3"
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 ">
                 <RadioGroupItem value={value} id={id} />
                 <Label htmlFor={id}>{label}</Label>
               </div>

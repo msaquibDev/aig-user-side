@@ -1,15 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRegistrationStore } from "@/app/store/useRegistrationStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
-const workshopMap: Record<string, string> = {
-  ws1: "Pre-Conference Workshop (31 May 2025)",
-  ws2: "Post-Conference Workshop (3 June 2025)",
+const workshopMap: Record<string, { title: string; date: string }> = {
+  ws1: {
+    title: "Lorem ipsum dolor sit amet consectetur.",
+    date: "31 May 2025",
+  },
+  ws2: {
+    title: "Lorem ipsum dolor sit amet consectetur.",
+    date: "3 June 2025",
+  },
 };
+
+type Section = "basic" | "accompany" | "workshop" | null;
 
 export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
   const {
@@ -21,277 +29,258 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
     setSelectedWorkshops,
   } = useRegistrationStore();
 
-  const [editBasic, setEditBasic] = useState(false);
-  const [editAccompany, setEditAccompany] = useState(false);
-  const [editWorkshops, setEditWorkshops] = useState(false);
-
-  const [formData, setFormData] = useState({ ...basicDetails });
-  const [accompanyData, setAccompanyData] = useState(
-    accompanyingPersons[0] || {
-      name: "",
-      age: "",
-      gender: "female",
-      relation: "",
-      mealPreference: "veg",
-    }
+  const initialAccompany = useMemo(
+    () => accompanyingPersons[0] || {},
+    [accompanyingPersons]
   );
 
-  const [workshopData, setWorkshopData] = useState([...selectedWorkshops]);
+  const [editingSection, setEditingSection] = useState<Section>(null);
+  const [tempBasic, setTempBasic] = useState({ ...basicDetails });
+  const [tempAccompany, setTempAccompany] = useState({ ...initialAccompany });
+  const [tempWorkshop, setTempWorkshop] = useState([...selectedWorkshops]);
 
-  const handleBasicSave = () => {
-    updateBasicDetails(formData);
-    setEditBasic(false);
-  };
+  const toggleEdit = (section: Section) => {
+    const isEditing = editingSection === section;
 
-  const handleAccompanySave = () => {
-    setAccompanyingPersons([accompanyData]);
-    setEditAccompany(false);
-  };
-
-  const handleWorkshopSave = () => {
-    setSelectedWorkshops(workshopData);
-    setEditWorkshops(false);
+    if (isEditing) {
+      // Save values
+      if (section === "basic") updateBasicDetails(tempBasic);
+      if (section === "accompany") setAccompanyingPersons([tempAccompany]);
+      if (section === "workshop") setSelectedWorkshops(tempWorkshop);
+      setEditingSection(null);
+    } else {
+      // Reset temp values from store
+      if (section === "basic") setTempBasic({ ...basicDetails });
+      if (section === "accompany") setTempAccompany({ ...initialAccompany });
+      if (section === "workshop") setTempWorkshop([...selectedWorkshops]);
+      setEditingSection(section);
+    }
   };
 
   const handleSubmit = () => {
-    if (
-      !basicDetails.fullName.trim() ||
-      !basicDetails.email.trim() ||
-      !basicDetails.phone.trim()
-    ) {
+    if (!basicDetails.fullName || !basicDetails.email || !basicDetails.phone) {
       toast.error("Please complete all required details before submitting.");
       return;
     }
 
     toast.success("Registration submitted successfully!");
-    console.log({ basicDetails, accompanyingPersons, selectedWorkshops });
+    console.log({
+      basicDetails,
+      accompanyingPersons,
+      selectedWorkshops,
+    });
   };
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-xl font-semibold text-[#003B73]">Review & Confirm</h2>
-
-      {/* Basic Details */}
-      <div className="border rounded p-4 space-y-2">
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold">Basic Details</h3>
-          <Button
-            size="sm"
-            variant={"outline"}
-            className="border-[#00509E] text-[#00509E] hover:bg-[#003B73] hover:text-white cursor-pointer"
-            onClick={() => setEditBasic(!editBasic)}
-          >
-            {editBasic ? "Cancel" : "Edit"}
-          </Button>
-        </div>
-
-        {editBasic ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Input
-              placeholder="Full Name"
-              value={formData.fullName}
-              onChange={(e) =>
-                setFormData({ ...formData, fullName: e.target.value })
-              }
-            />
-            <Input
-              placeholder="Email"
-              value={formData.email}
-              onChange={(e) =>
-                setFormData({ ...formData, email: e.target.value })
-              }
-            />
-            <Input
-              placeholder="Phone"
-              value={formData.phone}
-              onChange={(e) =>
-                setFormData({ ...formData, phone: e.target.value })
-              }
-            />
-            <Input
-              placeholder="Designation"
-              value={formData.designation || ""}
-              onChange={(e) =>
-                setFormData({ ...formData, designation: e.target.value })
-              }
-            />
+    <div className="min-h-screen py-8 px-4">
+      <div className="p-6 space-y-8">
+        {/* Basic Details */}
+        <section>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73]">
+              Basic Details
+            </h3>
             <Button
-              onClick={handleBasicSave}
-              className="col-span-2 w-fit bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
+              size="sm"
+              variant="ghost"
+              className="text-sm text-[#00509E]"
+              onClick={() => toggleEdit("basic")}
             >
-              Save
+              ✎ {editingSection === "basic" ? "Save" : "Edit"}
             </Button>
           </div>
-        ) : (
-          <>
-            <div>
-              <strong>Name:</strong> {basicDetails.fullName}
-            </div>
-            <div>
-              <strong>Email:</strong> {basicDetails.email}
-            </div>
-            <div>
-              <strong>Phone:</strong> {basicDetails.phone}
-            </div>
-            <div>
-              <strong>Designation:</strong> {basicDetails.designation}
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Accompanying Person */}
-      <div className="border rounded p-4 space-y-2">
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold">Accompanying Person</h3>
-          <Button
-            size="sm"
-            variant={"outline"}
-            className="border-[#00509E] text-[#00509E] hover:bg-[#003B73] hover:text-white cursor-pointer"
-            onClick={() => setEditAccompany(!editAccompany)}
-          >
-            {editAccompany ? "Cancel" : "Edit"}
-          </Button>
-        </div>
-
-        {editAccompany ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <Input
-              placeholder="Name"
-              value={accompanyData.name}
-              onChange={(e) =>
-                setAccompanyData({ ...accompanyData, name: e.target.value })
-              }
-            />
-            <Input
-              placeholder="Age"
-              value={accompanyData.age}
-              onChange={(e) =>
-                setAccompanyData({ ...accompanyData, age: e.target.value })
-              }
-            />
-            <Input
-              placeholder="Gender"
-              value={accompanyData.gender}
-              onChange={(e) =>
-                setAccompanyData({
-                  ...accompanyData,
-                  gender: e.target.value as any,
-                })
-              }
-            />
-            <Input
-              placeholder="Relation"
-              value={accompanyData.relation}
-              onChange={(e) =>
-                setAccompanyData({
-                  ...accompanyData,
-                  relation: e.target.value,
-                })
-              }
-            />
-            <Input
-              placeholder="Meal Preference"
-              value={accompanyData.mealPreference}
-              onChange={(e) =>
-                setAccompanyData({
-                  ...accompanyData,
-                  mealPreference: e.target.value as any,
-                })
-              }
-            />
-            <Button
-              onClick={handleAccompanySave}
-              className="col-span-2 w-fit bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
-            >
-              Save
-            </Button>
-          </div>
-        ) : accompanyingPersons.length > 0 ? (
-          <>
-            <div>
-              <strong>Name:</strong> {accompanyingPersons[0].name}
-            </div>
-            <div>
-              <strong>Age:</strong> {accompanyingPersons[0].age}
-            </div>
-            <div>
-              <strong>Gender:</strong> {accompanyingPersons[0].gender}
-            </div>
-            <div>
-              <strong>Relation:</strong> {accompanyingPersons[0].relation}
-            </div>
-            <div>
-              <strong>Meal Preference:</strong>{" "}
-              {accompanyingPersons[0].mealPreference}
-            </div>
-          </>
-        ) : (
-          <div className="text-gray-500">No accompanying person added.</div>
-        )}
-      </div>
-
-      {/* Workshops */}
-      <div className="border rounded p-4 space-y-2">
-        <div className="flex justify-between items-center">
-          <h3 className="font-semibold">Workshops</h3>
-          <Button
-            size="sm"
-            variant={"outline"}
-            className="border-[#00509E] text-[#00509E] hover:bg-[#003B73] hover:text-white cursor-pointer"
-            onClick={() => setEditWorkshops(!editWorkshops)}
-          >
-            {editWorkshops ? "Cancel" : "Edit"}
-          </Button>
-        </div>
-
-        {editWorkshops ? (
-          <div className="space-y-2">
-            {Object.entries(workshopMap).map(([id, label]) => (
-              <label key={id} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={workshopData.includes(id)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            {[
+              "prefix",
+              "fullName",
+              "phone",
+              "email",
+              "affiliation",
+              "designation",
+              "registration",
+              "councilState",
+              "address",
+              "country",
+              "state",
+              "city",
+              "pincode",
+              "mealPreference",
+              "gender",
+            ].map((key) => (
+              <div
+                key={key}
+                className={key === "address" ? "sm:col-span-2" : ""}
+              >
+                <p className="text-gray-600 capitalize">
+                  {key.replace(/([A-Z])/g, " $1")}
+                </p>
+                <Input
+                  value={(tempBasic as any)[key] || ""}
                   onChange={(e) =>
-                    setWorkshopData((prev) =>
-                      e.target.checked
-                        ? [...prev, id]
-                        : prev.filter((wid) => wid !== id)
-                    )
+                    setTempBasic({
+                      ...tempBasic,
+                      [key]: e.target.value,
+                    })
                   }
+                  disabled={editingSection !== "basic"}
+                  className={
+                    editingSection === "basic" ? "ring-1 ring-blue-300" : ""
+                  }
+                  autoComplete="off"
                 />
-                <span>{label}</span>
-              </label>
+              </div>
             ))}
+          </div>
+        </section>
+
+        {/* Accompanying Person */}
+        {accompanyingPersons.length > 0 && (
+          <section>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73]">
+                Accompanying Person
+              </h3>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-sm text-[#00509E]"
+                onClick={() => toggleEdit("accompany")}
+              >
+                ✎ {editingSection === "accompany" ? "Save" : "Edit"}
+              </Button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+              {["name", "relation", "age", "gender", "mealPreference"].map(
+                (key) => (
+                  <div key={key}>
+                    <p className="text-gray-600 capitalize">{key}</p>
+                    <Input
+                      value={(tempAccompany as any)[key] || ""}
+                      onChange={(e) =>
+                        setTempAccompany({
+                          ...tempAccompany,
+                          [key]: e.target.value,
+                        })
+                      }
+                      disabled={editingSection !== "accompany"}
+                      className={
+                        editingSection === "accompany"
+                          ? "ring-1 ring-blue-300"
+                          : ""
+                      }
+                      autoComplete="off"
+                    />
+                  </div>
+                )
+              )}
+            </div>
+          </section>
+        )}
+
+        {/* Workshops */}
+        <section>
+          <div className="flex justify-between items-center mb-2">
+            <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73]">
+              Workshop
+            </h3>
             <Button
-              onClick={handleWorkshopSave}
-              className="col-span-2 w-fit bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
+              size="sm"
+              variant="ghost"
+              className="text-sm text-[#00509E]"
+              onClick={() => toggleEdit("workshop")}
             >
-              Save
+              ✎ {editingSection === "workshop" ? "Save" : "Edit"}
             </Button>
           </div>
-        ) : selectedWorkshops.length > 0 ? (
-          <ul className="list-disc list-inside">
-            {selectedWorkshops.map((id) => (
-              <li key={id}>{workshopMap[id]}</li>
-            ))}
-          </ul>
-        ) : (
-          <div className="text-gray-500">No workshops selected.</div>
-        )}
-      </div>
+          {editingSection === "workshop" ? (
+            <div className="space-y-2">
+              {Object.entries(workshopMap).map(([id, w]) => (
+                <label
+                  key={id}
+                  className="flex items-center justify-between bg-blue-50 p-2 rounded ring-1 ring-blue-200"
+                >
+                  <div>
+                    <p className="text-sm font-medium">
+                      {id === "ws1" ? "Pre" : "Post"} - Conference Workshop (
+                      {w.date})
+                    </p>
+                    <p className="text-gray-500">{w.title}</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={tempWorkshop.includes(id)}
+                    onChange={(e) =>
+                      setTempWorkshop((prev) =>
+                        e.target.checked
+                          ? [...prev, id]
+                          : prev.filter((wid) => wid !== id)
+                      )
+                    }
+                  />
+                </label>
+              ))}
+            </div>
+          ) : (
+            selectedWorkshops.map((id) => {
+              const w = workshopMap[id];
+              if (!w) return null;
+              return (
+                <div
+                  key={id}
+                  className="flex justify-between text-sm py-2 border-b last:border-b-0"
+                >
+                  <span>
+                    {id === "ws1" ? "Pre" : "Post"} - Conference Workshop (
+                    {w.date})
+                  </span>
+                  <div className="text-right">
+                    <p className="text-gray-500">{w.title}</p>
+                    <p className="font-medium">₹ 8,555.00</p>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </section>
 
-      {/* Action Buttons */}
-      <div className="flex justify-center gap-4 pt-4">
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
-        <Button
-          onClick={handleSubmit}
-          className="bg-green-600 text-white hover:bg-green-700"
-        >
-          Confirm & Pay
-        </Button>
+        {/* Order Summary */}
+        <section>
+          <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73] mb-2">
+            Order Summary
+          </h3>
+          <div className="text-sm space-y-1">
+            <div className="flex justify-between">
+              <span>
+                Gut, Liver & Lifelines
+                {accompanyingPersons.length > 0 && (
+                  <>
+                    <br />+ 1 Accompanying Person
+                  </>
+                )}
+              </span>
+              <span>₹ 18,555.00</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Tax</span>
+              <span>₹ 2,000.00</span>
+            </div>
+            <hr />
+            <div className="flex justify-between font-semibold text-base">
+              <span>Total</span>
+              <span>₹ 20,555.00</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Confirm Button */}
+        <div className="text-center pt-4">
+          <Button
+            onClick={handleSubmit}
+            className="bg-[#00509E] hover:bg-[#003B73] text-white px-10"
+          >
+            Confirm & Pay
+          </Button>
+        </div>
       </div>
     </div>
   );
