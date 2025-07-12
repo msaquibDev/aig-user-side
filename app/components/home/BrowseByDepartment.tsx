@@ -73,42 +73,46 @@ export default function BrowseByDepartment() {
       </div>
 
       {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5">
         {sortedEvents.map((event) => (
           <Card
             key={event.id}
-            className="rounded-xl overflow-hidden shadow-md border"
+            className="flex flex-col rounded-xl overflow-hidden shadow-md border w-full mx-auto h-full"
+            style={{ maxWidth: "350px" }}
           >
-            <div className="w-full h-[330px]">
+            {/* Image container - perfectly flush with edges */}
+            <div className="w-full p-0 m-0" style={{ aspectRatio: "1/1.414" }}>
               <img
                 src={event.image}
                 alt={event.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover p-0 m-0 block"
               />
             </div>
 
-            <CardContent className="px-4 py-3 space-y-1">
-              <h3 className="text-base font-semibold text-black leading-snug">
-                {event.title}
-              </h3>
-
-              <div className="flex items-center text-sm text-muted-foreground gap-2">
-                <CalendarDays className="w-4 h-4" />
-                <span>{event.date}</span>
+            {/* Content area with flex-grow to push button down */}
+            <div className="flex flex-col flex-grow px-4 py-3">
+              <div className="flex-grow space-y-2">
+                <h3 className="text-lg font-bold text-black line-clamp-2 leading-tight">
+                  {event.title}
+                </h3>
+                <div className="flex items-center text-sm text-muted-foreground gap-2 mt-1">
+                  <CalendarDays className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{event.date}</span>
+                </div>
+                <div className="flex items-center text-sm text-muted-foreground gap-2">
+                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <span className="truncate">{event.location}</span>
+                </div>
               </div>
 
-              <div className="flex items-center text-sm text-muted-foreground gap-2">
-                <MapPin className="w-4 h-4" />
-                <span>{event.location}</span>
-              </div>
-
+              {/* Button will now always be at the bottom */}
               <Button
                 onClick={() => router.push(`/registration/${event.id}`)}
-                className="mt-3 w-full text-sm py-1.5 bg-[#00509E] text-white hover:bg-[#003B73]"
+                className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors"
               >
                 Register
               </Button>
-            </CardContent>
+            </div>
           </Card>
         ))}
       </div>

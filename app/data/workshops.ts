@@ -22,4 +22,11 @@ export const workshops = [
     location: "HICC Novotel, Hyderabad, India",
     image: "/workshopImg/workshop3.png",
   },
+  {
+    id: "4",
+    title: "AIG IBD Summit 2025",
+    date: "25 Apr 2025 – 27 Apr 2025",
+    location: "HICC Novotel, Hyderabad, India",
+    image: "/workshopImg/workshop3.png",
+  },
 ];

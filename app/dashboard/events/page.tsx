@@ -22,9 +22,9 @@ export default function EventsPage() {
       <Tabs defaultValue="all" onValueChange={setTab}>
         <TabsList className="flex space-x-6 border-b border-gray-200 mb-4 bg-transparent p-0">
           {[
-            { label: "All Events", value: "all" },
             { label: "Registered", value: "registered" },
-            { label: "Past Events", value: "past" },
+            { label: "All", value: "all" },
+            { label: "Past", value: "past" },
           ].map(({ label, value }) => (
             <TabsTrigger
               key={value}
@@ -37,7 +37,7 @@ export default function EventsPage() {
         </TabsList>
 
         <TabsContent value={tab}>
-          <div className="grid gap-4 mt-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 mt-4 ">
             {filteredEvents.map((event) => (
               <EventCard key={event.id} event={event} />
             ))}

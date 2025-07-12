@@ -4,16 +4,32 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
+import { Download, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { getDummyCertificates, Certificate } from "../../data/certificates";
 
 export default function MyCertificates() {
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
   const certificates = getDummyCertificates();
+  const itemsPerPage = 20;
 
   const filtered = certificates.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentItems = filtered.slice(startIndex, endIndex);
+
+  const handlePrevious = () => {
+    if (currentPage > 1) setCurrentPage(currentPage - 1);
+  };
+
+  const handleNext = () => {
+    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
 
   return (
     <div className="p-4">
@@ -30,7 +46,10 @@ export default function MyCertificates() {
           placeholder="Search..."
           className="max-w-sm bg-white"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setCurrentPage(1); // Reset to first page when searching
+          }}
         />
       </div>
 
@@ -41,31 +60,28 @@ export default function MyCertificates() {
               <th className="px-4 py-3">
                 <input type="checkbox" />
               </th>
-              <th className="px-4 py-3">#</th>
+              <th className="px-4 py-3">Number</th>
               <th className="px-4 py-3">Certificate Name</th>
               <th className="px-4 py-3">Event Name</th>
               <th className="px-4 py-3">Date of Issue</th>
-              <th className="px-4 py-3"></th>
+              <th className="px-4 py-3">Download</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((cert, i) => (
+            {currentItems.map((cert, i) => (
               <tr key={cert.id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <input type="checkbox" />
                 </td>
-                <td className="px-4 py-3">{i + 1}</td>
+                <td className="px-4 py-3">{startIndex + i + 1}</td>
                 <td className="px-4 py-3">{cert.name}</td>
                 <td className="px-4 py-3">{cert.event}</td>
                 <td className="px-4 py-3">{cert.date}</td>
                 <td className="px-4 py-3">
-                  <a
-                    href={cert.link}
-                    className="text-blue-600 hover:underline"
-                    download
-                  >
-                    Download
-                  </a>
+                  <Download
+                    size={20}
+                    className="text-blue-600 hover:text-blue-800"
+                  />
                 </td>
               </tr>
             ))}
@@ -74,9 +90,33 @@ export default function MyCertificates() {
 
         <div className="flex items-center justify-between text-sm text-gray-600 px-4 py-2 border-t">
           <span>
-            {filtered.length} of {certificates.length}
+            Showing {startIndex + 1}-{Math.min(endIndex, filtered.length)} of{" "}
+            {filtered.length}
           </span>
-          <span>Rows per page: 10</span>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handlePrevious}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+
+            <span>
+              Page {currentPage} of {totalPages}
+            </span>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleNext}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
