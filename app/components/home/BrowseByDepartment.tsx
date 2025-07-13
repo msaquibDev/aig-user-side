@@ -81,12 +81,18 @@ export default function BrowseByDepartment() {
             style={{ maxWidth: "350px" }}
           >
             {/* Image container - perfectly flush with edges */}
-            <div className="w-full p-0 m-0" style={{ aspectRatio: "1/1.414" }}>
-              <img
-                src={event.image}
-                alt={event.title}
-                className="w-full h-full object-cover p-0 m-0 block"
-              />
+            <div className="group">
+              <div
+                className="w-full p-0 m-0 overflow-hidden"
+                style={{ aspectRatio: "1/1.414" }}
+              >
+                <img
+                  src={event.image}
+                  alt={event.title}
+                  className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
+              </div>
             </div>
 
             {/* Content area with flex-grow to push button down */}

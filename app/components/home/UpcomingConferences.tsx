@@ -25,11 +25,14 @@ export default function UpcomingConferences() {
             style={{ maxWidth: "350px" }}
           >
             {/* Image container - perfectly aligned with card edges */}
-            <div className="w-full p-0 m-0" style={{ aspectRatio: "1/1.414" }}>
+            <div
+              className="group w-full p-0 m-0 overflow-hidden"
+              style={{ aspectRatio: "1/1.414" }}
+            >
               <img
                 src={event.image}
                 alt={event.title}
-                className="w-full h-full object-cover p-0 m-0 block"
+                className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
               />
             </div>
