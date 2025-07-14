@@ -81,10 +81,15 @@ export default function BrowseByDepartment() {
             style={{ maxWidth: "350px" }}
           >
             {/* Image container - perfectly flush with edges */}
-            <div className="w-full p-0 m-0" style={{ aspectRatio: "1/1.414" }}>
+            <div
+              className="aspect-[3/4] w-full"
+              // style={{ aspectRatio: "1/1.414" }}
+            >
               <img
                 src={event.image}
                 alt={event.title}
+                width={400}
+                height={500}
                 className="w-full h-full object-cover p-0 m-0 block"
               />
             </div>

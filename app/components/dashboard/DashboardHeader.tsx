@@ -2,18 +2,32 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export const DashboardHeader = () => {
+export const DashboardHeader = ({
+  onMenuToggle,
+}: {
+  onMenuToggle?: () => void;
+}) => {
   const router = useRouter();
 
   return (
-    <header className="flex items-center justify-between px-6 py-3 bg-gradient-to-r from-[#000d4e] to-[#005aa7] shadow">
-      {/* Left: Logo */}
-      <div className="flex items-center">
+    <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-gradient-to-r from-[#000d4e] to-[#005aa7] shadow sticky top-0 z-50">
+      {/* Left: Logo + Hamburger for mobile */}
+      <div className="flex items-center gap-4">
+        {/* Hamburger on small screens */}
+        <button
+          onClick={onMenuToggle}
+          className="lg:hidden text-white focus:outline-none"
+        >
+          <Menu size={24} />
+        </button>
+
+        {/* Logo */}
         <Image
-          src="/headerImg/logo.png" // <-- adjust path as needed
+          src="/headerImg/logo.png"
           alt="AIG Hospitals Logo"
           width={120}
           height={40}

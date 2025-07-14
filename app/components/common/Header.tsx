@@ -20,7 +20,7 @@ export default function Header() {
 
   return (
     <header className="w-full bg-gradient-to-r from-[#02075d] to-[#1e3a8a] text-white">
-      <div className="mx-auto max-w-7xl px-6 py-4 flex items-center justify-between">
+      <div className="mx-auto max-w-8xl px-8 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/">
           <Image
@@ -32,7 +32,7 @@ export default function Header() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-10">
           {navItems.map((item) => (
             <Link
               key={item.href}
