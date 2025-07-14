@@ -1,106 +1,81 @@
 "use client";
 
-import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
-  ChevronLeft,
+  User,
   Users,
   Hammer,
-  Utensils,
+  UtensilsCrossed,
+  Pencil,
   FileText,
-  ClipboardList,
-  Plane,
-  Bed,
-  Monitor,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
-const subNavMap: Record<
-  string,
-  { label: string; href: string; icon: React.ElementType }[]
-> = {
+type SidebarItem = {
+  label: string;
+  path: string;
+  icon: React.ElementType;
+};
+
+const sidebarMap: Record<string, SidebarItem[]> = {
   registrations: [
     {
       label: "My Registration",
-      href: "/dashboard/registrations/my-registration",
-      icon: FileText,
+      path: "/registration/my-registration",
+      icon: User,
     },
-    {
-      label: "Accompanying",
-      href: "/dashboard/registrations/accompanying",
-      icon: Users,
-    },
-    {
-      label: "Workshop",
-      href: "/dashboard/registrations/workshop",
-      icon: Hammer,
-    },
-    {
-      label: "Banquet",
-      href: "/dashboard/registrations/banquet",
-      icon: Utensils,
-    },
+    { label: "Accompanying", path: "/registration/accompanying", icon: Users },
+    { label: "Workshop", path: "/registration/workshop", icon: Hammer },
+    { label: "Banquet", path: "/registration/banquet", icon: UtensilsCrossed },
   ],
   abstract: [
-    { label: "Abstract", href: "/dashboard/abstract", icon: ClipboardList },
+    { label: "Submit Abstract", path: "/abstract/submit", icon: Pencil },
+    { label: "My Abstracts", path: "/abstract/my-abstracts", icon: FileText },
   ],
-  travel: [{ label: "Travel Details", href: "/dashboard/travel", icon: Plane }],
-  accomodation: [
-    { label: "Accommodation", href: "/dashboard/accomodation", icon: Bed },
-  ],
-  presentation: [
-    { label: "Presentation", href: "/dashboard/presentation", icon: Monitor },
-  ],
+  // Add more...
 };
 
-export const SubSidebar = ({
+export function SubSidebar({
   section,
-  onClose,
+  isOpen,
+  onToggle,
 }: {
   section: string;
-  onClose: () => void;
-}) => {
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
   const pathname = usePathname();
-  const items = subNavMap[section];
-
-  if (!items) return null;
+  const items = sidebarMap[section] || [];
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 fixed top-[80px] left-45 h-[calc(100vh-80px)] z-40 shadow-sm">
-      {/* Top bar with close icon */}
-      <div className="h-[32px] border-b border-blue-200 bg-blue-100 px-3 flex items-center justify-between">
-        <span className="text-sm font-medium text-blue-900 capitalize">
-          {section.replace(/-/g, " ")}
-        </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onClose}
-          className="text-blue-900 hover:bg-blue-200"
-        >
-          <ChevronLeft size={18} />
-        </Button>
-      </div>
-
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {items.map(({ label, href, icon: Icon }) => {
-          const isActive = pathname === href;
+    <aside
+      className={cn(
+        "fixed top-[74px] left-20 h-[calc(100vh-74px)] border-r bg-[#eaf3ff] transition-all duration-300 z-30",
+        isOpen ? "w-64 px-3 py-4" : "w-0 px-0 py-0 overflow-hidden"
+      )}
+    >
+      <nav className="space-y-2">
+        {items.map(({ label, path, icon: Icon }) => {
+          const isActive = pathname === path;
           return (
             <Link
-              key={href}
-              href={href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition cursor-pointer ${
+              key={path}
+              href={path}
+              onClick={onToggle}
+              className={cn(
+                "flex items-center gap-2 text-sm rounded-md px-3 py-2 font-medium transition",
                 isActive
-                  ? "bg-blue-100 text-blue-800 shadow"
-                  : "text-gray-800 hover:bg-blue-50"
-              }`}
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-700 hover:bg-white hover:text-blue-600"
+              )}
             >
-              <Icon size={18} />
-              {label}
+              <Icon size={16} />
+              <span>{label}</span>
             </Link>
           );
         })}
       </nav>
     </aside>
   );
-};
+}

@@ -2,20 +2,29 @@
 
 import { useState } from "react";
 import { CalendarDays, MapPin, Ticket } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import clsx from "clsx";
 
+// Dummy data
 const dummyEvents = [
   {
     id: "1",
     title: "AIG IBD Summit 2025",
     dateRange: "25 Apr 2025 – 27 Apr 2025",
     location: "HICC Novotel, Hyderabad, India",
-    eventType: "In-Person Event",
+    eventType: "CME",
     image: "/eventImg/event1.png",
-    status: "upcoming", // live | past | upcoming
+    status: "upcoming",
     registered: true,
     daysLeft: 2,
   },
@@ -24,7 +33,7 @@ const dummyEvents = [
     title: "Gut, Liver & Lifelines",
     dateRange: "1 Jun 2025",
     location: "Auditorium, AIG Hospitals",
-    eventType: "In-Person Event",
+    eventType: "Workshop",
     image: "/eventImg/event2.jpg",
     status: "live",
     registered: true,
@@ -34,17 +43,18 @@ const dummyEvents = [
     title: "Tiny Guts Symposium",
     dateRange: "1 June 2025",
     location: "Auditorium, AIG Hospitals",
-    eventType: "In-Person Event",
+    eventType: "Conference",
     image: "/eventImg/event3.png",
-    // status: "past",
+    status: "upcoming",
     registered: false,
+    daysLeft: 5,
   },
   {
     id: "4",
-    title: "Tiny Guts Symposium",
-    dateRange: "1 June 2025",
-    location: "Auditorium, AIG Hospitals",
-    eventType: "In-Person Event",
+    title: "Liver Science 2024",
+    dateRange: "15 Mar 2024",
+    location: "AIG Hospitals",
+    eventType: "CME",
     image: "/eventImg/event4.jpg",
     status: "past",
     registered: false,
@@ -52,19 +62,30 @@ const dummyEvents = [
 ];
 
 const TABS = ["Registered", "All", "Past"];
+const FILTERS = ["All", "CME", "Workshop", "Conference"];
 
 export default function EventTabs() {
   const [activeTab, setActiveTab] = useState("Registered");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("All");
 
-  const filteredEvents = dummyEvents.filter((event) => {
-    if (activeTab === "Registered") return event.registered;
-    if (activeTab === "Past") return event.status === "past";
-    return true;
-  });
+  const filteredEvents = dummyEvents
+    .filter((event) => {
+      if (activeTab === "Registered") return event.registered;
+      if (activeTab === "Past") return event.status === "past";
+      return true;
+    })
+    .filter((event) =>
+      event.title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .filter((event) =>
+      filterType === "All" ? true : event.eventType === filterType
+    );
 
   return (
     <section className="px-4 md:px-8 py-8">
       <h1 className="text-2xl font-semibold mb-4 text-[#00509E]">Events</h1>
+
       {/* Tabs */}
       <div className="flex gap-6 text-sm font-medium text-blue-900 border-b border-gray-200 mb-6">
         {TABS.map((tab) => (
@@ -83,16 +104,36 @@ export default function EventTabs() {
         ))}
       </div>
 
+      {/* Search + Filter (shadcn style) */}
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+        <Input
+          placeholder="Search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="w-full md:w-1/3"
+        />
+
+        <Select value={filterType} onValueChange={setFilterType}>
+          <SelectTrigger className="w-48 cursor-pointer">
+            <SelectValue placeholder="Filter by Type" />
+          </SelectTrigger>
+          <SelectContent>
+            {FILTERS.map((type) => (
+              <SelectItem key={type} value={type}>
+                {type}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5">
         {filteredEvents.map((event) => (
           <Card
             key={event.id}
             style={{ maxWidth: "350px" }}
-            className={clsx(
-              "flex flex-col rounded-xl overflow-hidden shadow-md border w-full mx-auto h-full"
-              // event.registered ? "ring-2 ring-blue-500" : ""
-            )}
+            className="flex flex-col rounded-xl overflow-hidden shadow-md border w-full mx-auto h-full"
           >
             {/* Image */}
             <div className="aspect-[3/4] w-full">
@@ -101,7 +142,7 @@ export default function EventTabs() {
                 alt={event.title}
                 width={400}
                 height={500}
-                className="w-full h-full object-cover p-0 m-0 block"
+                className="w-full h-full object-cover"
               />
             </div>
 
@@ -112,20 +153,18 @@ export default function EventTabs() {
                   {event.title}
                 </h4>
                 <div className="flex items-center text-sm text-muted-foreground gap-2 mt-1">
-                  <CalendarDays className="w-4 h-4 flex-shrink-0" />{" "}
+                  <CalendarDays className="w-4 h-4" />
                   <span className="truncate">{event.dateRange}</span>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground gap-2">
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
+                  <MapPin className="w-4 h-4" />
                   <span className="truncate">{event.location}</span>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground gap-2">
-                  <Ticket className="w-4 h-4 flex-shrink-0" />
+                  <Ticket className="w-4 h-4" />
                   <span className="truncate">{event.eventType}</span>
                 </div>
 
-                {/* Footer Badge */}
-                {/* Footer Action or Badge */}
                 <div className="mt-4">
                   {event.status === "live" ? (
                     <div className="w-full bg-green-100 text-green-800 text-xs font-semibold text-center px-3 py-1.5 rounded-md">
