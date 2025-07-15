@@ -21,8 +21,8 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const dummyCredentials = {
-  email: "test@admin.com",
-  password: "password123",
+  email: "user@aig.com",
+  password: "aig@123",
 };
 
 export default function Login() {
