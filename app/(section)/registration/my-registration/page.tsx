@@ -3,11 +3,11 @@
 import { useParams } from "next/navigation";
 import { useEffect } from "react";
 import { useRegistrationStore } from "@/app/store/useRegistrationStore";
-import RegistrationStepper from "@/app/components/registrations/RegistrationStepper";
-import Step1BasicDetails from "@/app/components/registrations/Step1BasicDetails";
-import Step2AccompanyingPerson from "@/app/components/registrations/Step2AccompanyingPerson";
-import Step3SelectWorkshop from "@/app/components/registrations/Step3SelectWorkshop";
-import Step4ConfirmPay from "@/app/components/registrations/Step4ConfirmPay";
+import RegistrationStepper from "@/app/components/registrations/myRegistration/RegistrationStepper";
+import Step1BasicDetails from "@/app/components/registrations/myRegistration/Step1BasicDetails";
+import Step2AccompanyingPerson from "@/app/components/registrations/myRegistration/Step2AccompanyingPerson";
+import Step3SelectWorkshop from "@/app/components/registrations/myRegistration/Step3SelectWorkshop";
+import Step4ConfirmPay from "@/app/components/registrations/myRegistration/Step4ConfirmPay";
 
 export default function RegistrationPage() {
   const { eventId } = useParams<{ eventId: string }>();

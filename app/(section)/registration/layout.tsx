@@ -70,7 +70,7 @@ export default function SectionLayout({
           {/* Scrollable Content */}
           <main
             className={`
-              flex-1 overflow-y-auto w-full bg-gray-100 p-4 transition-all duration-300
+              flex-1 overflow-y-auto w-full bg-white p-4 transition-all duration-300
               ${subSidebarOpen ? "ml-[20rem]" : "ml-[5rem]"}
             `}
           >

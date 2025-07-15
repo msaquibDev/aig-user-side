@@ -12,7 +12,7 @@ type PaymentStatus = "Success" | "Failed" | "Pending";
 export default function PaymentHistoryTable() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 20;
+  const itemsPerPage = 15;
   const allPayments = dummyPayments();
 
   const filteredPayments = allPayments.filter(
@@ -115,7 +115,7 @@ export default function PaymentHistoryTable() {
           </tbody>
         </table>
 
-        <div className="flex items-center justify-between text-sm text-gray-600 px-4 py-2 border-t">
+        <div className="flex items-center justify-between text-sm text-gray-600 px-4 py-2 border-t bg-gray-200">
           <span>
             Showing {startIndex + 1}-
             {Math.min(endIndex, filteredPayments.length)} of{" "}

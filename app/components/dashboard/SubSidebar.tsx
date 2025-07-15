@@ -62,7 +62,7 @@ export function SubSidebar({
             <Link
               key={path}
               href={path}
-              onClick={onToggle}
+              // onClick={onToggle}
               className={cn(
                 "flex items-center gap-2 text-sm rounded-md px-3 py-2 font-medium transition",
                 isActive

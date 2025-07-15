@@ -1,7 +1,20 @@
-import React from 'react'
+"use client";
 
-export default function page() {
+import { useState } from "react";
+import WorkshopFormSidebar from "@/app/components/registrations/workshop/WorkshopFormSidebar";
+import WorkshopTable from "@/app/components/registrations/workshop/WorkshopTable";
+
+export default function WorkshopPage() {
+  const [open, setOpen] = useState(false);
+
   return (
-    <div>page</div>
-  )
+    <>
+      <WorkshopTable
+        onAddClick={() => setOpen(true)}
+        onEditClick={() => setOpen(true)} // You can handle edit separately later
+      />
+
+      <WorkshopFormSidebar open={open} onClose={() => setOpen(false)} />
+    </>
+  );
 }

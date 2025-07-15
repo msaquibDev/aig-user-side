@@ -11,7 +11,7 @@ export default function MyCertificates() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const certificates = getDummyCertificates();
-  const itemsPerPage = 20;
+  const itemsPerPage = 15;
 
   const filtered = certificates.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
@@ -88,7 +88,7 @@ export default function MyCertificates() {
           </tbody>
         </table>
 
-        <div className="flex items-center justify-between text-sm text-gray-600 px-4 py-2 border-t">
+        <div className="flex items-center justify-between text-sm text-gray-600 px-4 py-2 border-t bg-gray-200">
           <span>
             Showing {startIndex + 1}-{Math.min(endIndex, filtered.length)} of{" "}
             {filtered.length}
