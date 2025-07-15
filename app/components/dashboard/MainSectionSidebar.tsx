@@ -47,18 +47,26 @@ export const MainSectionSidebar = ({
   activeSection,
   onBackToggle,
   onSectionClick,
+  isOpen,
 }: {
   activeSection: string;
   onBackToggle: () => void;
   onSectionClick: (key: string, href: string) => void;
+  isOpen: boolean;
 }) => {
   return (
     <aside className="fixed top-[60px] left-0 h-[calc(100vh-60px)] w-20 border-r bg-[#eaf3ff] pt-[36px] pb-4 px-2 flex flex-col items-center z-30">
       <button
-        className="text-sm text-gray-700 flex items-center gap-1 mb-6 hover:text-blue-600"
+        className="text-sm text-gray-700 flex items-center gap-1 mb-6 hover:text-blue-600 transition"
         onClick={onBackToggle}
       >
-        <ArrowLeft size={16} />
+        <ArrowLeft
+          size={16}
+          className={cn(
+            "transform transition-transform duration-300",
+            isOpen ? "rotate-0" : "-rotate-180"
+          )}
+        />
         <span className="hidden lg:inline-block">Back</span>
       </button>
 

@@ -42,7 +42,9 @@ export default function SectionLayout({
         activeSection={activeSection}
         onBackToggle={() => setSubSidebarOpen((prev) => !prev)}
         onSectionClick={handleSectionClick}
+        isOpen={subSidebarOpen}
       />
+
       <SubSidebar
         section={activeSection}
         isOpen={subSidebarOpen}
