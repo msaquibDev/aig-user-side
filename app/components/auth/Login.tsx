@@ -6,9 +6,10 @@ import * as z from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import ReCAPTCHA from "react-google-recaptcha";
-import { useRef } from "react";
+// import ReCAPTCHA from "react-google-recaptcha"; // Temporarily disabled
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react"; // Spinner icon
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email" }),
@@ -19,9 +20,15 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+const dummyCredentials = {
+  email: "test@admin.com",
+  password: "password123",
+};
+
 export default function Login() {
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
+  // const recaptchaRef = useRef<ReCAPTCHA>(null);
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     register,
@@ -32,14 +39,21 @@ export default function Login() {
   });
 
   const onSubmit = (data: FormData) => {
-    const captcha = recaptchaRef.current?.getValue();
-    if (!captcha) {
-      alert("Please verify ReCAPTCHA");
-      return;
-    }
+    setIsLoading(true);
 
-    console.log(data);
-    router.push("/");
+    // Simulate async login delay
+    setTimeout(() => {
+      if (
+        data.email === dummyCredentials.email &&
+        data.password === dummyCredentials.password
+      ) {
+        console.log("Dummy login success:", data);
+        router.push("/dashboard");
+      } else {
+        alert("Invalid dummy credentials.");
+      }
+      setIsLoading(false);
+    }, 1200);
   };
 
   return (
@@ -82,15 +96,26 @@ export default function Login() {
             Forgot Password?
           </a>
 
+          {/* ReCAPTCHA - disabled temporarily */}
+          {/*
           <div className="mb-3">
             <ReCAPTCHA ref={recaptchaRef} sitekey="your_site_key" />
           </div>
+          */}
 
           <Button
             type="submit"
-            className="bg-[#00509E] text-white hover:bg-[#003B73]"
+            className="bg-[#00509E] text-white hover:bg-[#003B73] flex items-center justify-center"
+            disabled={isLoading}
           >
-            Login
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Logging in...
+              </>
+            ) : (
+              "Login"
+            )}
           </Button>
 
           <p className="text-sm mt-2">

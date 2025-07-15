@@ -112,7 +112,7 @@ export default function BrowseByDepartment() {
 
               {/* Button will now always be at the bottom */}
               <Button
-                onClick={() => router.push(`/registration/${event.id}`)}
+                onClick={() => router.push(`/login`)}
                 className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors"
               >
                 Register

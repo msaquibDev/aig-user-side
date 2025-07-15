@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import clsx from "clsx";
+import { useRouter } from "next/navigation";
 
 // Dummy data
 const dummyEvents = [
@@ -68,6 +69,8 @@ export default function EventTabs() {
   const [activeTab, setActiveTab] = useState("Registered");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("All");
+
+  const router = useRouter();
 
   const filteredEvents = dummyEvents
     .filter((event) => {
@@ -181,7 +184,9 @@ export default function EventTabs() {
                   ) : (
                     <Button
                       className="w-full bg-[#00509E] hover:bg-[#003B73] text-white text-xs font-semibold py-2 rounded-md"
-                      onClick={() => alert("Register")}
+                      onClick={() =>
+                        router.push("/registration/my-registration")
+                      }
                     >
                       Register
                     </Button>
