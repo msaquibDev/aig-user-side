@@ -1,11 +1,11 @@
 "use client";
+import { DashboardHeader } from "@/app/components/dashboard/DashboardHeader";
+import { MainSectionSidebar } from "@/app/components/dashboard/MainSectionSidebar";
+import { SubSidebar } from "@/app/components/dashboard/SubSidebar";
 import "@/app/globals.css";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
-import { DashboardHeader } from "../components/dashboard/DashboardHeader";
-import { MainSectionSidebar } from "../components/dashboard/MainSectionSidebar";
-import { SubSidebar } from "../components/dashboard/SubSidebar";
+import { useState } from "react";
 
 export default function SectionLayout({
   children,
@@ -15,18 +15,18 @@ export default function SectionLayout({
   const router = useRouter();
   const pathname = usePathname();
 
-  const [activeSection, setActiveSection] = useState("registrations");
-  const [subSidebarOpen, setSubSidebarOpen] = useState(true);
+  const initialSection = pathname.includes("/abstract")
+    ? "abstract"
+    : pathname.includes("/travel")
+    ? "travel"
+    : pathname.includes("/accomodation")
+    ? "accomodation"
+    : pathname.includes("/presentation")
+    ? "presentation"
+    : "registrations";
 
-  useEffect(() => {
-    if (pathname.includes("/registration")) setActiveSection("registrations");
-    else if (pathname.includes("/abstract")) setActiveSection("abstract");
-    else if (pathname.includes("/travel")) setActiveSection("travel");
-    else if (pathname.includes("/accomodation"))
-      setActiveSection("accomodation");
-    else if (pathname.includes("/presentation"))
-      setActiveSection("presentation");
-  }, [pathname]);
+  const [activeSection, setActiveSection] = useState(initialSection);
+  const [subSidebarOpen, setSubSidebarOpen] = useState(true);
 
   const handleSectionClick = (key: string, path: string) => {
     setActiveSection(key);
@@ -69,12 +69,9 @@ export default function SectionLayout({
           {/* Scrollable Content */}
           <main
             className={`
-    flex-1 overflow-y-auto w-full bg-gray-100 p-4 transition-all duration-300
-    ${subSidebarOpen ? "ml-[20rem]" : "ml-[5rem]"}
-  `}
-            style={{
-              marginTop: 0,
-            }}
+              flex-1 overflow-y-auto w-full bg-gray-100 p-4 transition-all duration-300
+              ${subSidebarOpen ? "ml-[20rem]" : "ml-[5rem]"}
+            `}
           >
             {children}
           </main>
