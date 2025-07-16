@@ -47,8 +47,7 @@ export default function WorkshopFormSidebar({ open, onClose }: Props) {
     0
   );
 
-
-  const totalCount: number = Object.values(selectedWorkshops).filter(
+  const totalCount = Object.values(selectedWorkshops).filter(
     (id) => id !== null
   ).length;
 
@@ -60,13 +59,13 @@ export default function WorkshopFormSidebar({ open, onClose }: Props) {
       >
         <SheetHeader className="flex justify-between items-center px-5 py-4 border-b">
           <SheetTitle>Add Workshop</SheetTitle>
-          {/* <X
-            className="w-5 h-5 text-gray-500 cursor-pointer"
-            onClick={onClose}
-          /> */}
         </SheetHeader>
 
-        <div className="flex-1 overflow-y-auto p-5 space-y-6">
+        {/* Form section */}
+        <form
+          id="workshop-form"
+          className="flex-1 overflow-y-auto p-5 space-y-6"
+        >
           {Object.entries(groupedWorkshops).map(([group, workshops]) => (
             <div key={group} className="space-y-2">
               <h3 className="text-sm font-semibold text-[#00509E]">{group}</h3>
@@ -120,8 +119,9 @@ export default function WorkshopFormSidebar({ open, onClose }: Props) {
               </RadioGroup>
             </div>
           ))}
-        </div>
+        </form>
 
+        {/* Footer section */}
         <div className="border-t p-4">
           <div className="flex items-center justify-between">
             <div className="text-sm">{totalCount}x Workshops</div>
@@ -129,7 +129,11 @@ export default function WorkshopFormSidebar({ open, onClose }: Props) {
               <span className="text-sm font-semibold text-[#00509E]">
                 ₹ {totalPrice.toLocaleString("en-IN")}.00
               </span>
-              <Button className="bg-[#00509E] hover:bg-[#003B73]">
+              <Button
+                type="submit"
+                form="workshop-form"
+                className="bg-[#00509E] hover:bg-[#003B73]"
+              >
                 Checkout
               </Button>
             </div>
