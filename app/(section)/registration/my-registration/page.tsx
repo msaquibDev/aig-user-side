@@ -22,6 +22,20 @@ export default function RegistrationPage() {
 
   return (
     <main className="px-4 sm:px-6 pb-10 relative mt-6">
+      {/* Heading + optional action (if needed in future) */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-[#00509E]">
+          Accompanying Persons
+        </h2>
+        {/* 
+        Optional Add Button here (if you want to allow adding outside the stepper flow)
+        <Button className="bg-[#00509E] hover:bg-[#003B73]">
+          <PlusCircle className="w-4 h-4 mr-2" />
+          Add
+        </Button>
+      */}
+      </div>
+
       <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8">
         {/* Stepper */}
         <RegistrationStepper currentStep={currentStep} />

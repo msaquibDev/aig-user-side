@@ -71,7 +71,7 @@ export default function BanquetTable({ onAddClick, onEditClick }: Props) {
         <h2 className="text-xl font-semibold text-[#00509E]">Banquet</h2>
         <Button
           onClick={onAddClick}
-          className="bg-[#00509E] hover:bg-[#003B73]"
+          className="bg-[#00509E] hover:bg-[#003B73] cursor-pointer"
         >
           <PlusCircle className="w-4 h-4 mr-2" />
           Book Banquet
@@ -147,7 +147,7 @@ export default function BanquetTable({ onAddClick, onEditClick }: Props) {
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-[#00509E] hover:text-[#003B73] px-2"
+                      className="text-[#00509E] hover:text-[#003B73] px-2 cursor-pointer"
                       onClick={() => onEditClick(person.id)}
                     >
                       <Pencil className="w-4 h-4 mr-1" />

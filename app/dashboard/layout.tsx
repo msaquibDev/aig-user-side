@@ -32,6 +32,8 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </main>
           </div>
         </div>
+        {/* Sidebar (responsive) */}
+        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       </body>
     </html>
   );

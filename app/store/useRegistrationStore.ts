@@ -1,4 +1,3 @@
-// store/useRegistrationStore.ts
 import { create } from "zustand";
 
 // Types
@@ -8,7 +7,7 @@ export type RegistrationCategory =
   | "student"
   | "non-member";
 export type Gender = "male" | "female" | "other";
-export type MealPreference = "veg" | "non-veg" | "jain"; 
+export type MealPreference = "veg" | "non-veg" | "jain";
 
 // Main form type
 export type BasicDetails = {
@@ -25,8 +24,8 @@ export type BasicDetails = {
   state?: string;
   city?: string;
   pincode?: string;
-  mealPreference?: MealPreference; // ✅ optional, undefined by default
-  gender?: Gender; // ✅ optional, undefined by default
+  mealPreference?: MealPreference;
+  gender?: Gender;
   registrationCategory: RegistrationCategory;
 };
 
@@ -39,17 +38,28 @@ export type AccompanyingPerson = {
   mealPreference: MealPreference;
 };
 
+// Badge info type for success page
+export type BadgeInfo = {
+  qrCodeUrl: string;
+  name: string;
+  registrationId: string;
+  category: string;
+  workshop?: string;
+};
+
 // Zustand store shape
 type RegistrationState = {
   currentStep: number;
   basicDetails: BasicDetails;
   accompanyingPersons: AccompanyingPerson[];
   selectedWorkshops: string[];
+  badgeInfo: BadgeInfo | null;
 
   setStep: (step: number) => void;
   updateBasicDetails: (data: Partial<BasicDetails>) => void;
   setAccompanyingPersons: (data: AccompanyingPerson[]) => void;
   setSelectedWorkshops: (workshops: string[]) => void;
+  setBadgeInfo: (info: BadgeInfo) => void;
   resetForm: () => void;
 };
 
@@ -68,17 +78,17 @@ const initialBasicDetails: BasicDetails = {
   state: "",
   city: "",
   pincode: "",
-  mealPreference: undefined, // ✅ must be one of the enum values
-  gender: undefined, // ✅ same here
+  mealPreference: undefined,
+  gender: undefined,
   registrationCategory: "member",
 };
-
 
 export const useRegistrationStore = create<RegistrationState>((set) => ({
   currentStep: 1,
   basicDetails: initialBasicDetails,
   accompanyingPersons: [],
   selectedWorkshops: [],
+  badgeInfo: null,
 
   setStep: (step) => set({ currentStep: step }),
 
@@ -91,11 +101,14 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
 
   setSelectedWorkshops: (workshops) => set({ selectedWorkshops: workshops }),
 
+  setBadgeInfo: (info) => set({ badgeInfo: info }),
+
   resetForm: () =>
     set({
       currentStep: 1,
       basicDetails: initialBasicDetails,
       accompanyingPersons: [],
       selectedWorkshops: [],
+      badgeInfo: null,
     }),
 }));

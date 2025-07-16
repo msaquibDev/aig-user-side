@@ -6,11 +6,11 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-export const DashboardHeader = ({
+export function DashboardHeader({
   onMenuToggle,
 }: {
-  onMenuToggle?: () => void;
-}) => {
+  onMenuToggle: () => void;
+}) {
   const router = useRouter();
 
   // Replace with dynamic values if needed
@@ -52,13 +52,13 @@ export const DashboardHeader = ({
           <AvatarFallback>U</AvatarFallback>
         </Avatar>
         <Button
-          onClick={() => router.push("/auth/login")}
+          onClick={() => router.push("/login")}
           variant="outline"
-          className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2"
+          className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
         >
           Logout
         </Button>
       </div>
     </header>
   );
-};
+}

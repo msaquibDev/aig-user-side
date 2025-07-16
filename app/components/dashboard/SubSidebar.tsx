@@ -7,8 +7,9 @@ import {
   Users,
   Hammer,
   UtensilsCrossed,
-  Pencil,
   FileText,
+  Notebook,
+  UserPen,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -30,8 +31,8 @@ const sidebarMap: Record<string, SidebarItem[]> = {
     { label: "Banquet", path: "/registration/banquet", icon: UtensilsCrossed },
   ],
   abstract: [
-    { label: "Submit Abstract", path: "/abstract/submit", icon: Pencil },
-    { label: "My Abstracts", path: "/abstract/my-abstracts", icon: FileText },
+    { label: "My Abstract", path: "/abstract/my-abstracts", icon: Notebook },
+    { label: "Authors", path: "/abstract/authors", icon: UserPen },
   ],
   // Add more...
 };
@@ -51,7 +52,7 @@ export function SubSidebar({
   return (
     <aside
       className={cn(
-        "fixed top-[74px] left-20 h-[calc(100vh-74px)] border-r bg-[#eaf3ff] transition-all duration-300 z-30",
+        "fixed top-[74px] left-25 h-[calc(100vh-74px)] border-r bg-[#eaf3ff] transition-all duration-300 z-30",
         isOpen ? "w-64 px-3 py-4" : "w-0 px-0 py-0 overflow-hidden"
       )}
     >

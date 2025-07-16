@@ -37,7 +37,9 @@ export default function SectionLayout({
 
   return (
     <>
-      <DashboardHeader />
+      <DashboardHeader onMenuToggle={function (): void {
+        throw new Error("Function not implemented.");
+      } } />
       <MainSectionSidebar
         activeSection={activeSection}
         onBackToggle={() => setSubSidebarOpen((prev) => !prev)}

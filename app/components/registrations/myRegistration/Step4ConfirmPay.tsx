@@ -5,6 +5,7 @@ import { useRegistrationStore } from "@/app/store/useRegistrationStore";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 const workshopMap: Record<string, { title: string; date: string }> = {
   ws1: {
@@ -20,6 +21,7 @@ const workshopMap: Record<string, { title: string; date: string }> = {
 type Section = "basic" | "accompany" | "workshop" | null;
 
 export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
+  const router = useRouter();
   const {
     basicDetails,
     accompanyingPersons,
@@ -64,11 +66,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
     }
 
     toast.success("Registration submitted successfully!");
-    console.log({
-      basicDetails,
-      accompanyingPersons,
-      selectedWorkshops,
-    });
+    router.push("/registration/success");
   };
 
   return (
