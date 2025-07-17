@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+
 
 const workshopMap: Record<string, { title: string; date: string }> = {
   ws1: {
@@ -21,6 +23,7 @@ const workshopMap: Record<string, { title: string; date: string }> = {
 type Section = "basic" | "accompany" | "workshop" | null;
 
 export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
   const {
     basicDetails,
@@ -65,8 +68,14 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
       return;
     }
 
-    toast.success("Registration submitted successfully!");
-    router.push("/registration/success");
+    setLoading(true);
+
+    // Simulate dummy loading delay
+    setTimeout(() => {
+      toast.success("Registration submitted successfully!");
+      router.push("/registration/success");
+      setLoading(false);
+    }, 1500); // 1.5 seconds delay
   };
 
   return (
@@ -274,9 +283,17 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
         <div className="text-center pt-4">
           <Button
             onClick={handleSubmit}
-            className="bg-[#00509E] hover:bg-[#003B73] text-white px-10"
+            disabled={loading}
+            className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200"
           >
-            Confirm & Pay
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              "Confirm & Pay"
+            )}
           </Button>
         </div>
       </div>

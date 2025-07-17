@@ -19,7 +19,7 @@ export default function SuccessRedirectPage() {
     // Redirect to actual QR page after delay
     const timeout = setTimeout(() => {
       router.push("/registration/success/badge");
-    }, 4000);
+    }, 3000);
 
     return () => clearTimeout(timeout);
   }, [basicDetails.fullName, router]);

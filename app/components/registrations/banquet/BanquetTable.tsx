@@ -145,12 +145,12 @@ export default function BanquetTable({ onAddClick, onEditClick }: Props) {
                   </TableCell>
                   <TableCell className="px-6 py-3 text-right">
                     <Button
-                      variant="ghost"
+                      variant="link"
                       size="sm"
-                      className="text-[#00509E] hover:text-[#003B73] px-2 cursor-pointer"
+                      className="text-blue-600 cursor-pointer"
                       onClick={() => onEditClick(person.id)}
                     >
-                      <Pencil className="w-4 h-4 mr-1" />
+                      {/* <Pencil className="w-4 h-4 mr-1" /> */}
                       Edit
                     </Button>
                   </TableCell>

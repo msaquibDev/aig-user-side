@@ -11,9 +11,10 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import { Funnel, Eye, Pencil, Trash2, PlusCircle } from "lucide-react";
-import { useAbstractStore } from "@/app/store/useAbstractStore";
-import AbstractFormSidebar from "./AbstractFormSidebar";
+import { Funnel, PlusCircle } from "lucide-react";
+
+import { useAuthorStore } from "@/app/store/useAuthorStore";
+import AuthorFormSidebar from "./AuthorFormSidebar";
 
 type Props = {
   onEdit: (id: number) => void;
@@ -21,15 +22,15 @@ type Props = {
 };
 
 export default function MyAbstractTable({ onEdit, onView }: Props) {
-  const { abstracts, deleteAbstract } = useAbstractStore();
+  const { authors, deleteAuthor, getAuthorById } = useAuthorStore();
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<number | null>(null);
 
   const itemsPerPage = 10;
-  const filtered = abstracts.filter((abs) =>
-    abs.title.toLowerCase().includes(search.toLowerCase())
+  const filtered = authors.filter((author) =>
+    author.name.toLowerCase().includes(search.toLowerCase())
   );
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -49,26 +50,18 @@ export default function MyAbstractTable({ onEdit, onView }: Props) {
     setCurrentPage(1);
   }, [search]);
 
-  const renderStatus = (status: string) => {
-    const map: Record<string, string> = {
-      DRAFT: "text-gray-500",
-      SUBMITTED: "text-black",
-      ACCEPTED: "text-green-600 font-semibold",
-      REJECTED: "text-red-600 font-semibold",
-    };
-    return <span className={map[status] || ""}>{status}</span>;
-  };
+  const defaultData = editId ? getAuthorById(editId) : null;
 
   return (
     <div className="p-6">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-[#00509E]">My Abstracts</h2>
+        <h2 className="text-xl font-semibold text-[#00509E]">My Authors</h2>
         <Button
           className="bg-[#00509E] hover:bg-[#003B73] cursor-pointer"
           onClick={() => setOpen(true)}
         >
-          <PlusCircle className="w-4 h-4 mr-2" /> Add Abstract
+          <PlusCircle className="w-4 h-4 mr-2" /> Add Author
         </Button>
       </div>
 
@@ -90,47 +83,33 @@ export default function MyAbstractTable({ onEdit, onView }: Props) {
           <TableHeader className="bg-gray-100">
             <TableRow>
               <TableHead className="px-4 py-2">#</TableHead>
-              <TableHead>ID</TableHead>
-              <TableHead>Abstract Title</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Author</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Last Modified</TableHead>
+              <TableHead>Author Name</TableHead>
+              <TableHead>Department</TableHead>
+              <TableHead>Institution</TableHead>
+              <TableHead>Email ID</TableHead>
+              <TableHead>Phone No</TableHead>
+              <TableHead>Abstract Assigned</TableHead>
               <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {currentItems.length ? (
-              currentItems.map((abs, index) => (
-                <TableRow key={abs.id}>
+              currentItems.map((author, index) => (
+                <TableRow key={author.id}>
                   <TableCell>{startIndex + index + 1}</TableCell>
-                  <TableCell>{abs.abstractId}</TableCell>
-                  <TableCell>{abs.title}</TableCell>
-                  <TableCell>{abs.type}</TableCell>
-                  <TableCell>{abs.category}</TableCell>
-                  <TableCell>
-                    {abs.authors.split("\n").map((a, i) => (
-                      <div key={i}>{a}</div>
-                    ))}
-                  </TableCell>
-                  <TableCell>{renderStatus(abs.status)}</TableCell>
-                  <TableCell>{formatDate(abs.lastModified)}</TableCell>
+                  <TableCell>{author.name}</TableCell>
+                  <TableCell>{author.department}</TableCell>
+                  <TableCell>{author.institution}</TableCell>
+                  <TableCell>{author.email}</TableCell>
+                  <TableCell>{author.phone}</TableCell>
+                  <TableCell>{author.abstractAssigned}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="link"
                         size="sm"
-                        onClick={() => onView(abs.id)}
-                        className="text-blue-600 cursor-pointer"
-                      >
-                        View
-                      </Button>
-                      <Button
-                        variant="link"
-                        size="sm"
                         onClick={() => {
-                          setEditId(abs.id);
+                          setEditId(author.id);
                           setOpen(true);
                         }}
                         className="text-blue-600 cursor-pointer"
@@ -140,7 +119,7 @@ export default function MyAbstractTable({ onEdit, onView }: Props) {
                       <Button
                         variant="link"
                         size="sm"
-                        onClick={() => deleteAbstract(abs.id)}
+                        onClick={() => deleteAuthor(author.id)}
                         className="text-blue-600 cursor-pointer"
                       >
                         Delete
@@ -155,7 +134,7 @@ export default function MyAbstractTable({ onEdit, onView }: Props) {
                   colSpan={9}
                   className="text-center py-4 text-gray-500"
                 >
-                  No abstracts found.
+                  No authors found.
                 </TableCell>
               </TableRow>
             )}
@@ -193,13 +172,13 @@ export default function MyAbstractTable({ onEdit, onView }: Props) {
         </div>
       </div>
 
-      <AbstractFormSidebar
+      <AuthorFormSidebar
         open={open}
         onClose={() => {
           setOpen(false);
           setEditId(null);
         }}
-        editId={editId}
+        defaultData={defaultData}
       />
     </div>
   );

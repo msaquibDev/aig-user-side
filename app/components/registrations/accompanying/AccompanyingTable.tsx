@@ -13,10 +13,11 @@ import {
 } from "@/components/ui/table";
 import {
   Funnel,
-  Pencil,
   ChevronLeft,
   ChevronRight,
   PlusCircle,
+  ChevronsUp,
+  ChevronsDown,
 } from "lucide-react";
 import { useAccompanyingStore } from "@/app/store/useAccompanyingStore";
 
@@ -30,22 +31,63 @@ export default function AccompanyingTable({ onAddClick, onEditClick }: Props) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
-  const itemsPerPage = 10;
-  const filtered = people.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase())
-  );
+  // Sorting state
+  const [sortBy, setSortBy] = useState<"index" | "name" | null>(null);
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const toggleSort = (column: "index" | "name") => {
+    if (sortBy === column) {
+      setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setSortBy(column);
+      setSortOrder("asc");
+    }
+  };
+
+  const getSortedPeople = () => {
+    let filtered = people.filter((p) =>
+      p.name.toLowerCase().includes(search.toLowerCase())
+    );
+
+    if (sortBy) {
+      filtered = [...filtered].sort((a, b) => {
+        if (sortBy === "name") {
+          const nameA = a.name.toLowerCase();
+          const nameB = b.name.toLowerCase();
+          return sortOrder === "asc"
+            ? nameA.localeCompare(nameB)
+            : nameB.localeCompare(nameA);
+        } else if (sortBy === "index") {
+          // Sort by original array position to match displayed row numbers
+          const indexA = people.findIndex((p) => p.id === a.id);
+          const indexB = people.findIndex((p) => p.id === b.id);
+          return sortOrder === "asc" ? indexA - indexB : indexB - indexA;
+        }
+        return 0;
+      });
+    }
+
+    return filtered;
+  };
+
+  const sortedPeople = getSortedPeople();
+  const itemsPerPage = 10;
+  const totalPages = Math.ceil(sortedPeople.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentItems = filtered.slice(startIndex, endIndex);
+  const currentItems = sortedPeople.slice(startIndex, endIndex);
 
   const handlePrev = () => setCurrentPage((p) => Math.max(p - 1, 1));
   const handleNext = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
 
   useEffect(() => {
-    setCurrentPage(1); // Reset on search
-  }, [search]);
+    setCurrentPage(1); // Reset on search or sort change
+  }, [search, sortBy, sortOrder]);
+
+  const getSortIcon = (column: "index" | "name") => {
+    if (sortBy !== column) return <ChevronsUp className="opacity-30" />;
+    return sortOrder === "asc" ? <ChevronsUp /> : <ChevronsDown />;
+  };
 
   return (
     <div className="p-6">
@@ -80,8 +122,28 @@ export default function AccompanyingTable({ onAddClick, onEditClick }: Props) {
         <Table>
           <TableHeader className="bg-gray-100">
             <TableRow>
-              <TableHead className="px-6 py-3 text-left">#</TableHead>
-              <TableHead className="px-6 py-3 text-left">Name</TableHead>
+              <TableHead className="px-6 py-3 text-left">
+                <span
+                  className="flex items-center cursor-pointer hover:text-gray-800"
+                  onClick={() => toggleSort("index")}
+                >
+                  #
+                  <span className="flex flex-col ml-1">
+                    {getSortIcon("index")}
+                  </span>
+                </span>
+              </TableHead>
+              <TableHead className="px-6 py-3 text-left">
+                <span
+                  className="flex items-center cursor-pointer hover:text-gray-800"
+                  onClick={() => toggleSort("name")}
+                >
+                  Name
+                  <span className="flex flex-col ml-1">
+                    {getSortIcon("name")}
+                  </span>
+                </span>
+              </TableHead>
               <TableHead className="px-6 py-3 text-left">Relation</TableHead>
               <TableHead className="px-6 py-3 text-left">Age</TableHead>
               <TableHead className="px-6 py-3 text-left">Gender</TableHead>
@@ -114,12 +176,11 @@ export default function AccompanyingTable({ onAddClick, onEditClick }: Props) {
                   </TableCell>
                   <TableCell className="px-6 py-3 text-right align-middle">
                     <Button
-                      variant="ghost"
+                      variant="link"
                       size="sm"
-                      className="text-[#00509E] hover:text-[#003B73] px-2 cursor-pointer"
+                      className="text-blue-600 cursor-pointer"
                       onClick={() => onEditClick(person.id)}
                     >
-                      <Pencil className="w-4 h-4 mr-1" />
                       Edit
                     </Button>
                   </TableCell>
@@ -141,8 +202,8 @@ export default function AccompanyingTable({ onAddClick, onEditClick }: Props) {
         {/* Pagination */}
         <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t text-sm text-gray-600">
           <span>
-            Showing {startIndex + 1}-{Math.min(endIndex, filtered.length)} of{" "}
-            {filtered.length}
+            Showing {startIndex + 1}-{Math.min(endIndex, sortedPeople.length)}{" "}
+            of {sortedPeople.length}
           </span>
           <div className="flex items-center gap-2">
             <Button
