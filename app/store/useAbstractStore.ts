@@ -1,26 +1,36 @@
 import { create } from "zustand";
 
 export type AbstractStatus = "DRAFT" | "SUBMITTED" | "ACCEPTED" | "REJECTED";
+export type AbstractType = "Poster" | "Presentation";
 
 export type Abstract = {
   id: number;
   abstractId: string;
   title: string;
-  type: "Poster" | "Presentation";
+  type: AbstractType;
   category: string;
   authors: string;
   status: AbstractStatus;
-  lastModified: string; // ISO string or formatted
+  lastModified: string;
 };
 
 type AbstractStore = {
   abstracts: Abstract[];
-  addAbstract: (newAbstract: Abstract) => void;
-  updateAbstract: (id: number, updated: Abstract) => void;
+  isSidebarOpen: boolean;
+  selectedAbstract: Abstract | null;
+
+  addAbstract: (
+    newAbstract: Omit<Abstract, "id" | "abstractId" | "status" | "lastModified">
+  ) => void;
+  updateAbstract: (id: number, updated: Partial<Abstract>) => void;
   deleteAbstract: (id: number) => void;
+  getAbstractById: (id: number) => Abstract | undefined;
+
+  openSidebar: (id?: number) => void;
+  closeSidebar: () => void;
 };
 
-export const useAbstractStore = create<AbstractStore>((set) => ({
+export const useAbstractStore = create<AbstractStore>((set, get) => ({
   abstracts: [
     {
       id: 1,
@@ -63,16 +73,53 @@ export const useAbstractStore = create<AbstractStore>((set) => ({
       lastModified: "2025-05-07T16:00:00",
     },
   ],
-  addAbstract: (newAbstract) =>
-    set((state) => ({
-      abstracts: [...state.abstracts, newAbstract],
-    })),
+  isSidebarOpen: false,
+  selectedAbstract: null,
+
+  addAbstract: (data) =>
+    set((state) => {
+      const newId = state.abstracts.length
+        ? Math.max(...state.abstracts.map((a) => a.id)) + 1
+        : 1;
+      const abstractId = `IBD${String(newId).padStart(3, "0")}`;
+      return {
+        abstracts: [
+          ...state.abstracts,
+          {
+            ...data,
+            id: newId,
+            abstractId,
+            status: "DRAFT",
+            lastModified: new Date().toISOString(),
+          },
+        ],
+        isSidebarOpen: false,
+        selectedAbstract: null,
+      };
+    }),
+
   updateAbstract: (id, updated) =>
     set((state) => ({
-      abstracts: state.abstracts.map((abs) => (abs.id === id ? updated : abs)),
+      abstracts: state.abstracts.map((abs) =>
+        abs.id === id
+          ? { ...abs, ...updated, lastModified: new Date().toISOString() }
+          : abs
+      ),
+      isSidebarOpen: false,
+      selectedAbstract: null,
     })),
+
   deleteAbstract: (id) =>
     set((state) => ({
       abstracts: state.abstracts.filter((abs) => abs.id !== id),
     })),
+
+  getAbstractById: (id) => get().abstracts.find((abs) => abs.id === id),
+
+  openSidebar: (id) => {
+    const selected = id ? get().getAbstractById(id) ?? null : null;
+    set({ selectedAbstract: selected, isSidebarOpen: true });
+  },
+
+  closeSidebar: () => set({ isSidebarOpen: false, selectedAbstract: null }),
 }));

@@ -1,32 +1,45 @@
 "use client";
 
 import AbstractFormSidebar from "@/app/components/abstract/myAbstract/AbstractFormSidebar";
-import MyAbstractTable from "@/app/components/abstract/myAbstract/MyAbstractTable";
+import { AbstractTable } from "@/app/components/abstract/myAbstract/MyAbstractTable";
+import { useAbstractStore } from "@/app/store/useAbstractStore";
 import { useState } from "react";
 
-export default function MyAbstractsPage() {
-  const [open, setOpen] = useState(false);
+export default function MyAbstractPage() {
+  const { openSidebar, closeSidebar, isSidebarOpen, deleteAbstract } =
+    useAbstractStore();
   const [editId, setEditId] = useState<number | null>(null);
 
-  const handleEditClick = (id: number) => {
-    setEditId(id);
-    setOpen(true);
+  const handleAdd = () => {
+    setEditId(null);
+    openSidebar(); // open without id means "Add"
   };
 
-  const handleViewClick = (id: number) => {
-    // Logic for viewing the abstract details (could be a modal or page redirection)
-    console.log("Viewing abstract:", id);
+  const handleEdit = (id: string) => {
+    const numId = Number(id);
+    setEditId(numId);
+    openSidebar(numId);
+  };
+
+  const handleDelete = (id: string) => {
+    const numId = Number(id);
+    if (confirm("Are you sure you want to delete this abstract?")) {
+      deleteAbstract(numId);
+    }
   };
 
   return (
     <>
-      <MyAbstractTable onEdit={handleEditClick} onView={handleViewClick} />
+      <AbstractTable
+        onAddAbstract={handleAdd}
+        onEditAbstract={handleEdit}
+        onDeleteAbstract={handleDelete}
+      />
 
-      {/* Abstract Form Sidebar (Add/Edit) */}
       <AbstractFormSidebar
-        open={open}
+        open={isSidebarOpen}
         onClose={() => {
-          setOpen(false);
+          closeSidebar();
           setEditId(null);
         }}
         editId={editId}

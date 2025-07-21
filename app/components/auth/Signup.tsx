@@ -28,17 +28,34 @@ const schema = z
     fullName: z.string().min(1, "Required"),
     affiliation: z.string().min(1, "Required"),
     email: z.string().email(),
-    mobile: z.string().min(10).max(10),
+    mobile: z
+      .string()
+      .regex(/^\d{10}$/, { message: "Mobile must be 10 digits" }),
     country: z.string().min(1, "Required"),
-    password: z.string().min(6),
-    confirmPassword: z.string().min(6),
+    password: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters" })
+      .regex(/[A-Z]/, {
+        message: "Password must contain at least one uppercase letter",
+      })
+      .regex(/[a-z]/, {
+        message: "Password must contain at least one lowercase letter",
+      })
+      .regex(/[0-9]/, { message: "Password must contain at least one number" })
+      .regex(/[@$!%*?&#]/, {
+        message: "Password must contain at least one special character",
+      }),
+
+    confirmPassword: z
+      .string()
+      .min(6, { message: "Please confirm your password" }),
     agree: z
       .boolean()
       .refine((val) => val, { message: "You must accept Terms & Conditions" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
+    path: ["confirmPassword"], // this targets confirmPassword only
     message: "Passwords do not match",
-    path: ["confirmPassword"],
   });
 
 type FormData = z.infer<typeof schema>;
@@ -57,14 +74,17 @@ export default function Signup() {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    defaultValues: {
+      agree: false,
+      // ...other defaults like name, email etc
+    },
   });
 
   useEffect(() => {
     const countryNames = countries.getNames("en", { select: "official" });
-    const mapped = Object.entries(countryNames).map(([code, name]) => ({
-      code,
-      name,
-    }));
+    const mapped = Object.entries(countryNames)
+      .map(([code, name]) => ({ code, name }))
+      .sort((a, b) => a.name.localeCompare(b.name)); // ✅ sort alphabetically
     setCountryList(mapped);
   }, []);
 
@@ -76,11 +96,12 @@ export default function Signup() {
     }
 
     console.log(data);
+    recaptchaRef.current?.reset(); // ✅ Reset CAPTCHA
     router.push("/account/login");
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-[#edf1f5] to-[#ffffff] px-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-[rgb(237,241,245)] to-[#ffffff] px-6">
       <div className="grid md:grid-cols-2 rounded-lg overflow-hidden shadow-lg w-full max-w-5xl bg-white">
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -153,6 +174,7 @@ export default function Signup() {
             </Label>
             <Input
               id="mobile"
+              type="tel"
               placeholder="Enter Mobile Number"
               {...register("mobile")}
             />
@@ -166,12 +188,12 @@ export default function Signup() {
               Country<span className="text-red-500">*</span>
             </Label>
             <Select onValueChange={(value) => setValue("country", value)}>
-              <SelectTrigger id="country" className="cursor-pointer">
+              <SelectTrigger id="country" className="w-full cursor-pointer">
                 <SelectValue placeholder="Select Country" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="w-full">
                 {countryList.map((country) => (
-                  <SelectItem key={country.code} value={country.name}>
+                  <SelectItem key={country.code} value={country.code}>
                     {country.name}
                   </SelectItem>
                 ))}
@@ -218,15 +240,23 @@ export default function Signup() {
             <ReCAPTCHA ref={recaptchaRef} sitekey="your_site_key" />
           </div>
 
-          <div className="flex items-center space-x-2 mt-2">
-            <Checkbox id="agree" {...register("agree")} />
-            <label htmlFor="agree" className="text-sm">
+          <label
+            htmlFor="agree"
+            className="flex items-center space-x-2 mt-2 cursor-pointer"
+          >
+            <Checkbox
+              id="agree"
+              {...register("agree")}
+              className="data-[state=checked]:bg-[#00509E] data-[state=checked]:border-[#00509E] hover:border-[#00509E] cursor-pointer"
+            />
+            <span className="text-sm">
               I agree to all{" "}
-              <a href="#" className="text-blue-600 underline">
+              <a href="#" className="text-[#00509E] underline">
                 Terms & Conditions
               </a>
-            </label>
-          </div>
+            </span>
+          </label>
+
           {errors.agree && (
             <p className="text-sm text-red-600">{errors.agree.message}</p>
           )}
