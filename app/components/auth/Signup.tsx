@@ -247,7 +247,7 @@ export default function Signup() {
             <Checkbox
               id="agree"
               {...register("agree")}
-              className="data-[state=checked]:bg-[#00509E] data-[state=checked]:border-[#00509E] hover:border-[#00509E] cursor-pointer"
+              className="cursor-pointer"
             />
             <span className="text-sm">
               I agree to all{" "}

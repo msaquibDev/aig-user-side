@@ -1,12 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -20,10 +19,13 @@ import {
 import { useAbstractStore } from "@/app/store/useAbstractStore";
 import type { AbstractType } from "@/app/store/useAbstractStore";
 
+import SlateEditor from "@/components/ui/SlateEditor";
+import { Descendant, Node as SlateNode } from "slate";
+
 type AbstractFormValues = {
   type: AbstractType;
   title: string;
-  body: string;
+  body: Descendant[];
   authors: string;
   coAuthors: string;
   videoUrl?: string;
@@ -52,12 +54,18 @@ export default function AbstractFormSidebar() {
     setValue,
     watch,
     getValues,
+    control,
     formState: { errors },
   } = useForm<AbstractFormValues>({
     defaultValues: {
       type: "Poster",
       title: "",
-      body: "",
+      body: [
+        {
+          type: "paragraph",
+          children: [{ text: "" }],
+        } as Descendant,
+      ],
       authors: "",
       coAuthors: "",
       videoUrl: "",
@@ -96,7 +104,7 @@ export default function AbstractFormSidebar() {
 
   return (
     <Dialog open={isSidebarOpen} onOpenChange={closeSidebar}>
-      <DialogContent className="mt-10 max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-md animate-in fade-in-90 slide-in-from-top-10">
+      <DialogContent className="mt-10 w-full max-w-[80vw] sm:max-w-[700px] lg:max-w-[800px] max-h-[90vh] overflow-y-auto rounded-md animate-in fade-in-90 slide-in-from-top-10">
         <div className="border-b pb-4 mb-4">
           <DialogTitle className="text-xl font-semibold">
             Abstract Submission
@@ -114,7 +122,7 @@ export default function AbstractFormSidebar() {
             <>
               {/* Abstract Type and Category */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-2">
                   <Label>Abstract Type</Label>
                   <Select
                     onValueChange={(val) =>
@@ -122,7 +130,7 @@ export default function AbstractFormSidebar() {
                     }
                     defaultValue="Poster"
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full cursor-pointer">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
@@ -134,13 +142,13 @@ export default function AbstractFormSidebar() {
                   </Select>
                 </div>
 
-                <div>
+                <div className="space-y-2">
                   <Label>Abstract Category</Label>
                   <Select
                     onValueChange={(val) => setValue("category", val)}
                     defaultValue=""
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="w-full cursor-pointer">
                       <SelectValue placeholder="Select" />
                     </SelectTrigger>
                     <SelectContent>
@@ -151,8 +159,8 @@ export default function AbstractFormSidebar() {
                 </div>
               </div>
 
-              {/* Abstract Title */}
-              <div>
+              {/* Title */}
+              <div className="space-y-2">
                 <Label>Abstract Title</Label>
                 <Input
                   {...register("title", { required: true })}
@@ -161,19 +169,32 @@ export default function AbstractFormSidebar() {
               </div>
 
               {/* Abstract Body */}
-              <div>
+              <div className="space-y-2">
                 <Label>Abstract Body (*3000 characters limit)</Label>
-                <Textarea
-                  {...register("body", { required: true, maxLength: 3000 })}
-                  rows={5}
+                <Controller
+                  name="body"
+                  control={control}
+                  rules={{
+                    required: true,
+                    validate: (value) =>
+                      SlateNode.string({ children: value }).length <= 3000 ||
+                      "Abstract exceeds 3000 character limit",
+                  }}
+                  render={({ field }) => (
+                    <SlateEditor
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
                 />
                 <p className="text-xs text-muted-foreground">
-                  {body?.length || 0} / 3000 characters
+                  {SlateNode.string({ children: body }).length} / 3000
+                  characters
                 </p>
               </div>
 
               {/* Upload File */}
-              <div>
+              <div className="space-y-2">
                 <Label>Upload Abstract File (Doc & PDF only)</Label>
                 <Input
                   type="file"
@@ -187,21 +208,21 @@ export default function AbstractFormSidebar() {
 
               {/* Authors */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
+                <div className="space-y-2">
                   <Label>Presenting Author</Label>
                   <Input
                     {...register("authors", { required: true })}
-                    placeholder="Select"
+                    placeholder="Dr Khan (Presenting Author)"
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label>Co-Author(s)</Label>
                   <Input {...register("coAuthors")} placeholder="Dr John Doe" />
                 </div>
               </div>
 
               {/* Video URL */}
-              <div>
+              <div className="space-y-2">
                 <Label>Enter Video URL (For video presentations)</Label>
                 <Input
                   {...register("videoUrl")}
@@ -209,18 +230,26 @@ export default function AbstractFormSidebar() {
                 />
               </div>
 
-              {/* Step 2 - Confirmation */}
+              {/* Confirmation */}
               <div className="space-y-4">
-                <div className="flex items-start space-x-2">
-                  <Checkbox
-                    id="confirmAccuracy"
-                    {...register("confirmAccuracy", { required: true })}
-                  />
-                  <Label htmlFor="confirmAccuracy">
-                    All authors have read and accepted the contents of the
-                    manuscript and vouch for its authenticity
-                  </Label>
-                </div>
+                <Controller
+                  name="confirmAccuracy"
+                  control={control}
+                  defaultValue={false}
+                  render={({ field }) => (
+                    <div className="flex items-start space-x-2">
+                      <Checkbox
+                        id="confirmAccuracy"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                      <Label htmlFor="confirmAccuracy">
+                        All authors have read and accepted the contents of the
+                        manuscript and vouch for its authenticity
+                      </Label>
+                    </div>
+                  )}
+                />
 
                 <div>
                   <Label>
@@ -254,12 +283,21 @@ export default function AbstractFormSidebar() {
                 )}
               </div>
 
-              {/* Footer Buttons */}
+              {/* Navigation */}
               <div className="flex justify-between border-t pt-4 mt-6">
-                <Button type="button" variant="outline" onClick={closeSidebar}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={closeSidebar}
+                  className="text-[#00509E] hover:text-[#00509E] border-[#00509E]"
+                >
                   Cancel
                 </Button>
-                <Button type="button" onClick={goToNext}>
+                <Button
+                  type="button"
+                  onClick={goToNext}
+                  className="bg-[#00509E] text-white hover:bg-[#003B73]"
+                >
                   Next
                 </Button>
               </div>
@@ -268,73 +306,50 @@ export default function AbstractFormSidebar() {
             <>
               <div className="space-y-4 text-sm">
                 <p>
-                  <strong>Abstract Type</strong> - {values.type}
+                  <strong>Abstract Type</strong> – {values.type}
                 </p>
                 <p>
-                  <strong>Abstract Category</strong> - {values.category}
+                  <strong>Category</strong> – {values.category}
                 </p>
                 <p>
-                  <strong>Abstract Title</strong> - {values.title}
+                  <strong>Title</strong> – {values.title}
                 </p>
 
                 <div>
                   <strong>Abstract Body</strong>
-                  <p className="text-muted-foreground mt-1">{values.body}</p>
+                  <div className="text-muted-foreground mt-1 whitespace-pre-line">
+                    {SlateNode.string({ children: values.body })}
+                  </div>
                 </div>
 
                 <p>
-                  <strong>Abstract File</strong> -{" "}
-                  {file ? (
-                    <a href="#" className="text-blue-600 underline">
-                      {file.name}
-                    </a>
-                  ) : (
-                    "No file uploaded"
-                  )}
+                  <strong>Abstract File</strong> –{" "}
+                  {file ? file.name : "No file uploaded"}
                 </p>
 
                 <p>
-                  <strong>Presenting Author</strong> – {values.authors}{" "}
-                  (Presenting Author)
+                  <strong>Presenting Author</strong> – {values.authors}
                 </p>
                 <p>
-                  <strong>Co-Author(s)</strong> – {values.coAuthors}
+                  <strong>Co-Authors</strong> – {values.coAuthors}
                 </p>
-
                 <p>
-                  <strong>Video URL</strong> –{" "}
-                  {values.videoUrl ? (
-                    <a
-                      href={values.videoUrl}
-                      target="_blank"
-                      className="text-blue-600 underline"
-                      rel="noopener noreferrer"
-                    >
-                      {values.videoUrl}
-                    </a>
-                  ) : (
-                    "N/A"
-                  )}
+                  <strong>Video URL</strong> – {values.videoUrl || "N/A"}
                 </p>
 
                 <div className="flex items-center space-x-2 mt-4">
                   <input
                     type="checkbox"
-                    checked={values.confirmAccuracy}
+                    checked={!!values.confirmAccuracy}
                     readOnly
                   />
                   <label className="text-sm">
-                    All authors have read and accepted the contents of the
-                    manuscript and vouch for its authenticity
+                    All authors confirm manuscript authenticity
                   </label>
                 </div>
 
                 <div className="mt-2">
-                  <p className="mb-1">
-                    If an intervention has been carried out on human subjects,
-                    appropriate institutional ethical clearance has been
-                    obtained
-                  </p>
+                  <p className="mb-1">If intervention carried out:</p>
                   <div className="flex gap-4 items-center">
                     <label className="flex items-center gap-2">
                       <input
@@ -356,7 +371,7 @@ export default function AbstractFormSidebar() {
                 </div>
 
                 <p className="text-xs text-muted-foreground mt-4">
-                  <strong>Date & Time of Submission – </strong>
+                  <strong>Submission Date & Time: </strong>
                   {new Date().toLocaleString("en-IN", {
                     day: "2-digit",
                     month: "short",
@@ -371,14 +386,28 @@ export default function AbstractFormSidebar() {
               </div>
 
               <div className="flex justify-between border-t pt-4 mt-6">
-                <Button type="button" variant="outline" onClick={goBack}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={goBack}
+                  className="text-[#00509E] hover:text-[#00509E] border-[#00509E]"
+                >
                   Back
                 </Button>
-                <div className="space-x-2">
-                  <Button type="button" variant="secondary">
+                <div className="space-x-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="text-[#00509E] hover:text-[#00509E] border-[#00509E]"
+                  >
                     Save as Draft
                   </Button>
-                  <Button type="submit">Submit</Button>
+                  <Button
+                    type="submit"
+                    className="bg-[#00509E] text-white hover:bg-[#003B73]"
+                  >
+                    Submit
+                  </Button>
                 </div>
               </div>
             </>

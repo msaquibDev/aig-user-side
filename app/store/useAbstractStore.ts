@@ -10,6 +10,7 @@ export type Abstract = {
   type: AbstractType;
   category: string;
   authors: string;
+  confirmAccuracy: boolean;
   status: AbstractStatus;
   lastModified: string;
 };
@@ -39,6 +40,7 @@ export const useAbstractStore = create<AbstractStore>((set, get) => ({
       type: "Poster",
       category: "Brachytherapy",
       authors: "Dr Venugopal Iyer\nDr Subhash",
+      confirmAccuracy: false,
       status: "DRAFT",
       lastModified: "2025-05-07T15:00:00",
     },
@@ -49,6 +51,7 @@ export const useAbstractStore = create<AbstractStore>((set, get) => ({
       type: "Presentation",
       category: "Brachytherapy",
       authors: "Dr Venugopal Iyer",
+      confirmAccuracy: false,
       status: "SUBMITTED",
       lastModified: "2025-05-07T16:00:00",
     },
@@ -59,6 +62,7 @@ export const useAbstractStore = create<AbstractStore>((set, get) => ({
       type: "Poster",
       category: "Brachytherapy",
       authors: "Dr Venugopal Iyer\nDr Subhash",
+      confirmAccuracy: false,
       status: "ACCEPTED",
       lastModified: "2025-05-07T15:00:00",
     },
@@ -69,6 +73,7 @@ export const useAbstractStore = create<AbstractStore>((set, get) => ({
       type: "Presentation",
       category: "Brachytherapy",
       authors: "Dr Venugopal Iyer",
+      confirmAccuracy: false,
       status: "REJECTED",
       lastModified: "2025-05-07T16:00:00",
     },
@@ -91,6 +96,7 @@ export const useAbstractStore = create<AbstractStore>((set, get) => ({
             abstractId,
             status: "DRAFT",
             lastModified: new Date().toISOString(),
+            confirmAccuracy: data.confirmAccuracy ?? false,
           },
         ],
         isSidebarOpen: false,
@@ -102,7 +108,15 @@ export const useAbstractStore = create<AbstractStore>((set, get) => ({
     set((state) => ({
       abstracts: state.abstracts.map((abs) =>
         abs.id === id
-          ? { ...abs, ...updated, lastModified: new Date().toISOString() }
+          ? {
+              ...abs,
+              ...updated,
+              lastModified: new Date().toISOString(),
+              confirmAccuracy:
+                typeof updated.confirmAccuracy === "boolean"
+                  ? updated.confirmAccuracy
+                  : abs.confirmAccuracy, // ✅ persist checkbox
+            }
           : abs
       ),
       isSidebarOpen: false,

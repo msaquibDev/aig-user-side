@@ -14,12 +14,6 @@ import { Badge } from "@/components/ui/badge";
 import {
   ChevronLeft,
   ChevronRight,
-  Eye,
-  Pencil,
-  Trash,
-  Search,
-  ChevronsUp,
-  ChevronsDown,
   PlusCircle,
   Funnel,
 } from "lucide-react";
@@ -130,14 +124,14 @@ export const AbstractTable = ({
 
         {/* Table */}
         <Table>
-          <TableHeader className="bg-gray-100">
+          <TableHeader className="bg-gray-100 uppercase">
             <TableRow>
               <TableHead>#</TableHead>
               <TableHead>ID</TableHead>
-              <TableHead>Title</TableHead>
+              <TableHead>abstract title</TableHead>
               <TableHead>Type</TableHead>
               <TableHead>Category</TableHead>
-              <TableHead>Author</TableHead>
+              <TableHead>presenting author</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Last Modified</TableHead>
               <TableHead className="text-center">Actions</TableHead>
