@@ -83,6 +83,8 @@ export default function Step2AccompanyingPerson({
     onNext();
   };
 
+  const { skipAccompanyingPersons } = useRegistrationStore();
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       {fields.map((field, index) => (
@@ -234,6 +236,18 @@ export default function Step2AccompanyingPerson({
         </Button>
         <Button type="submit" className="bg-[#00509E] hover:bg-[#003B73]">
           Continue
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => {
+            skipAccompanyingPersons(); // <-- New store function
+            toast.info("Accompanying section skipped");
+            onNext();
+          }}
+          className="text-[#00509E] underline hover:text-[#003B73]"
+        >
+          Skip
         </Button>
       </div>
     </form>

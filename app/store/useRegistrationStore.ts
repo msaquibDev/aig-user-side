@@ -55,13 +55,20 @@ type RegistrationState = {
   selectedWorkshops: string[];
   badgeInfo: BadgeInfo | null;
 
+  // NEW SKIP FLAGS
+  skippedAccompanying: boolean;
+  skippedWorkshops: boolean;
+
   setStep: (step: number) => void;
   updateBasicDetails: (data: Partial<BasicDetails>) => void;
   setAccompanyingPersons: (data: AccompanyingPerson[]) => void;
+  skipAccompanyingPersons: () => void;
   setSelectedWorkshops: (workshops: string[]) => void;
+  skipWorkshops: () => void;
   setBadgeInfo: (info: BadgeInfo) => void;
   resetForm: () => void;
 };
+
 
 // ✅ Initial values
 const initialBasicDetails: BasicDetails = {
@@ -90,6 +97,10 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
   selectedWorkshops: [],
   badgeInfo: null,
 
+  // SKIP FLAGS INIT
+  skippedAccompanying: false,
+  skippedWorkshops: false,
+
   setStep: (step) => set({ currentStep: step }),
 
   updateBasicDetails: (data) =>
@@ -97,9 +108,16 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
       basicDetails: { ...state.basicDetails, ...data },
     })),
 
-  setAccompanyingPersons: (data) => set({ accompanyingPersons: data }),
+  setAccompanyingPersons: (data) =>
+    set({ accompanyingPersons: data, skippedAccompanying: false }),
 
-  setSelectedWorkshops: (workshops) => set({ selectedWorkshops: workshops }),
+  skipAccompanyingPersons: () =>
+    set({ accompanyingPersons: [], skippedAccompanying: true }),
+
+  setSelectedWorkshops: (workshops) =>
+    set({ selectedWorkshops: workshops, skippedWorkshops: false }),
+
+  skipWorkshops: () => set({ selectedWorkshops: [], skippedWorkshops: true }),
 
   setBadgeInfo: (info) => set({ badgeInfo: info }),
 
@@ -110,5 +128,8 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
       accompanyingPersons: [],
       selectedWorkshops: [],
       badgeInfo: null,
+      skippedAccompanying: false,
+      skippedWorkshops: false,
     }),
 }));
+

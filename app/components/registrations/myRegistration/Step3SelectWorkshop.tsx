@@ -84,6 +84,8 @@ export default function Step3SelectWorkshop({
     onNext();
   };
 
+  const { skipWorkshops } = useRegistrationStore();
+
   return (
     <div className="space-y-8">
       {/* Pre-Conference */}
@@ -164,6 +166,18 @@ export default function Step3SelectWorkshop({
           className="bg-[#00509E] text-white hover:bg-[#003B73]"
         >
           Next
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => {
+            skipWorkshops(); // <-- New store function
+            toast.info("Workshop selection skipped");
+            onNext();
+          }}
+          className="text-[#00509E] underline hover:text-[#003B73]"
+        >
+          Skip
         </Button>
       </div>
     </div>
