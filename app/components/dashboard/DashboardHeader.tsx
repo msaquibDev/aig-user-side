@@ -47,10 +47,15 @@ export function DashboardHeader({
 
       {/* Right: Avatar + Logout */}
       <div className="flex items-center gap-4">
-        <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
-          <AvatarImage src="/authImg/user.png" />
-          <AvatarFallback>U</AvatarFallback>
-        </Avatar>
+        <div
+          onClick={() => router.push("/dashboard/profile")}
+          className="cursor-pointer"
+        >
+          <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
+            <AvatarImage src="/authImg/user.png" />
+            <AvatarFallback>U</AvatarFallback>
+          </Avatar>
+        </div>
         <Button
           onClick={() => router.push("/login")}
           variant="outline"

@@ -54,8 +54,6 @@ type RegistrationState = {
   accompanyingPersons: AccompanyingPerson[];
   selectedWorkshops: string[];
   badgeInfo: BadgeInfo | null;
-
-  // NEW SKIP FLAGS
   skippedAccompanying: boolean;
   skippedWorkshops: boolean;
 

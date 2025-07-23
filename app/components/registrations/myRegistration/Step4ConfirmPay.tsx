@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-
 const workshopMap: Record<string, { title: string; date: string }> = {
   ws1: {
     title: "Lorem ipsum dolor sit amet consectetur.",
@@ -32,6 +31,8 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
     updateBasicDetails,
     setAccompanyingPersons,
     setSelectedWorkshops,
+    skippedAccompanying,
+    skippedWorkshops,
   } = useRegistrationStore();
 
   const initialAccompany = useMemo(
@@ -185,70 +186,72 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
         )}
 
         {/* Workshops */}
-        <section>
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73]">
-              Workshop
-            </h3>
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-sm text-[#00509E]"
-              onClick={() => toggleEdit("workshop")}
-            >
-              ✎ {editingSection === "workshop" ? "Save" : "Edit"}
-            </Button>
-          </div>
-          {editingSection === "workshop" ? (
-            <div className="space-y-2">
-              {Object.entries(workshopMap).map(([id, w]) => (
-                <label
-                  key={id}
-                  className="flex items-center justify-between bg-blue-50 p-2 rounded ring-1 ring-blue-200"
-                >
-                  <div>
-                    <p className="text-sm font-medium">
+        {!skippedWorkshops && (
+          <section>
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73]">
+                Workshop
+              </h3>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-sm text-[#00509E]"
+                onClick={() => toggleEdit("workshop")}
+              >
+                ✎ {editingSection === "workshop" ? "Save" : "Edit"}
+              </Button>
+            </div>
+            {editingSection === "workshop" ? (
+              <div className="space-y-2">
+                {Object.entries(workshopMap).map(([id, w]) => (
+                  <label
+                    key={id}
+                    className="flex items-center justify-between bg-blue-50 p-2 rounded ring-1 ring-blue-200"
+                  >
+                    <div>
+                      <p className="text-sm font-medium">
+                        {id === "ws1" ? "Pre" : "Post"} - Conference Workshop (
+                        {w.date})
+                      </p>
+                      <p className="text-gray-500">{w.title}</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={tempWorkshop.includes(id)}
+                      onChange={(e) =>
+                        setTempWorkshop((prev) =>
+                          e.target.checked
+                            ? [...prev, id]
+                            : prev.filter((wid) => wid !== id)
+                        )
+                      }
+                    />
+                  </label>
+                ))}
+              </div>
+            ) : (
+              selectedWorkshops.map((id) => {
+                const w = workshopMap[id];
+                if (!w) return null;
+                return (
+                  <div
+                    key={id}
+                    className="flex justify-between text-sm py-2 border-b last:border-b-0"
+                  >
+                    <span>
                       {id === "ws1" ? "Pre" : "Post"} - Conference Workshop (
                       {w.date})
-                    </p>
-                    <p className="text-gray-500">{w.title}</p>
+                    </span>
+                    <div className="text-right">
+                      <p className="text-gray-500">{w.title}</p>
+                      <p className="font-medium">₹ 8,555.00</p>
+                    </div>
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={tempWorkshop.includes(id)}
-                    onChange={(e) =>
-                      setTempWorkshop((prev) =>
-                        e.target.checked
-                          ? [...prev, id]
-                          : prev.filter((wid) => wid !== id)
-                      )
-                    }
-                  />
-                </label>
-              ))}
-            </div>
-          ) : (
-            selectedWorkshops.map((id) => {
-              const w = workshopMap[id];
-              if (!w) return null;
-              return (
-                <div
-                  key={id}
-                  className="flex justify-between text-sm py-2 border-b last:border-b-0"
-                >
-                  <span>
-                    {id === "ws1" ? "Pre" : "Post"} - Conference Workshop (
-                    {w.date})
-                  </span>
-                  <div className="text-right">
-                    <p className="text-gray-500">{w.title}</p>
-                    <p className="font-medium">₹ 8,555.00</p>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </section>
+                );
+              })
+            )}
+          </section>
+        )}
 
         {/* Order Summary */}
         <section>
@@ -259,7 +262,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
             <div className="flex justify-between">
               <span>
                 Gut, Liver & Lifelines
-                {accompanyingPersons.length > 0 && (
+                {!skippedAccompanying && accompanyingPersons.length > 0 && (
                   <>
                     <br />+ 1 Accompanying Person
                   </>
