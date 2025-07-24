@@ -7,9 +7,9 @@ import {
   Users,
   Hammer,
   UtensilsCrossed,
-  FileText,
   Notebook,
   UserPen,
+  Presentation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +33,13 @@ const sidebarMap: Record<string, SidebarItem[]> = {
   abstract: [
     { label: "My Abstract", path: "/abstract/my-abstracts", icon: Notebook },
     { label: "Authors", path: "/abstract/authors", icon: UserPen },
+  ],
+  presentation: [
+    {
+      label: "My Presentation",
+      path: "/presentation/my-presentations",
+      icon: Presentation,
+    },
   ],
   // Add more...
 };

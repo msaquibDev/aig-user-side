@@ -39,7 +39,9 @@ export default function SectionLayout({
       <body className="h-screen overflow-hidden">
         {/* Fixed Header */}
         <div className="fixed top-0 left-0 right-0 z-50">
-          <DashboardHeader />
+          <DashboardHeader onMenuToggle={function (): void {
+            throw new Error("Function not implemented.");
+          } } />
         </div>
 
         {/* Below Header Layout */}
@@ -70,8 +72,8 @@ export default function SectionLayout({
           {/* Scrollable Content */}
           <main
             className={`
-              flex-1 overflow-y-auto w-full bg-gray-100 p-4 transition-all duration-300
-              ${subSidebarOpen ? "ml-[20rem]" : "ml-[5rem]"}
+              flex-1 overflow-y-auto w-full bg-white p-4 transition-all duration-300
+              ${subSidebarOpen ? "ml-[22rem]" : "ml-[5rem]"}
             `}
           >
             {children}

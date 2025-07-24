@@ -162,22 +162,27 @@ export const AbstractTable = ({
                       >
                         View
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onEditAbstract(a.id.toString())}
-                        className="text-green-600 hover:text-green-800 cursor-pointer"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => onDeleteAbstract?.(a.id.toString())}
-                        className="text-red-600 hover:text-red-800 cursor-pointer"
-                      >
-                        Delete
-                      </Button>
+
+                      {["DRAFT", "SUBMITTED"].includes(a.status) && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onEditAbstract(a.id.toString())}
+                            className="text-green-600 hover:text-green-800 cursor-pointer"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => onDeleteAbstract?.(a.id.toString())}
+                            className="text-red-600 hover:text-red-800 cursor-pointer"
+                          >
+                            Delete
+                          </Button>
+                        </>
+                      )}
                     </div>
                   </TableCell>
                 </TableRow>

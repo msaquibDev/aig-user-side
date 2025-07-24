@@ -18,9 +18,8 @@ import {
 
 import { useAbstractStore } from "@/app/store/useAbstractStore";
 import type { AbstractType } from "@/app/store/useAbstractStore";
-
-import SlateEditor from "@/components/ui/SlateEditor";
 import { Descendant, Node as SlateNode } from "slate";
+import SlateEditor from "./SlateEditor";
 
 type AbstractFormValues = {
   type: AbstractType;
@@ -177,7 +176,7 @@ export default function AbstractFormSidebar() {
                   rules={{
                     required: true,
                     validate: (value) =>
-                      SlateNode.string({ children: value }).length <= 3000 ||
+                      value.map(SlateNode.string).join("\n").length <= 3000 ||
                       "Abstract exceeds 3000 character limit",
                   }}
                   render={({ field }) => (
@@ -188,7 +187,7 @@ export default function AbstractFormSidebar() {
                   )}
                 />
                 <p className="text-xs text-muted-foreground">
-                  {SlateNode.string({ children: body }).length} / 3000
+                  {body.map(SlateNode.string).join("\n").length} / 3000
                   characters
                 </p>
               </div>
@@ -318,7 +317,7 @@ export default function AbstractFormSidebar() {
                 <div>
                   <strong>Abstract Body</strong>
                   <div className="text-muted-foreground mt-1 whitespace-pre-line">
-                    {SlateNode.string({ children: values.body })}
+                    {values.body.map(SlateNode.string).join("\n")}
                   </div>
                 </div>
 

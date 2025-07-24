@@ -4,8 +4,6 @@ import {
   ArrowLeft,
   FileText,
   FileSignature,
-  Plane,
-  Home,
   MonitorPlay,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,21 +21,21 @@ const sections = [
     icon: FileSignature,
     key: "abstract",
   },
-  {
-    label: "Travel",
-    href: "/travel/plan",
-    icon: Plane,
-    key: "travel",
-  },
-  {
-    label: "Accomodation",
-    href: "/accomodation",
-    icon: Home,
-    key: "accomodation",
-  },
+  // {
+  //   label: "Travel",
+  //   href: "/travel/plan",
+  //   icon: Plane,
+  //   key: "travel",
+  // },
+  // {
+  //   label: "Accomodation",
+  //   href: "/accomodation",
+  //   icon: Home,
+  //   key: "accomodation",
+  // },
   {
     label: "Presentation",
-    href: "/presentation",
+    href: "/presentation/my-presentations",
     icon: MonitorPlay,
     key: "presentation",
   },

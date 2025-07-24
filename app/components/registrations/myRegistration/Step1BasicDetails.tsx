@@ -81,7 +81,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
       {/* Grid of Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1.5">
-          <Label>Prefix</Label>
+          {/* <Label>Prefix</Label>
           <Select
             onValueChange={(val) => setValue("prefix", val)}
             defaultValue={basicDetails.prefix || ""}
@@ -94,7 +94,16 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               <SelectItem value="Ms">Ms</SelectItem>
               <SelectItem value="Dr">Dr</SelectItem>
             </SelectContent>
-          </Select>
+          </Select> */}
+          <Label htmlFor="prefix">Prefix</Label>
+          <Input
+            id="prefix"
+            placeholder="Eg: Dr, Mr, Ms"
+            {...register("prefix")}
+          />
+          {errors.prefix && (
+            <p className="text-sm text-red-600">{errors.prefix.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
