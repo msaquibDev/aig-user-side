@@ -30,7 +30,7 @@ export default function MyAbstractTable({ onEdit, onView }: Props) {
 
   const itemsPerPage = 10;
   const filtered = authors.filter((author) =>
-    author.name.toLowerCase().includes(search.toLowerCase())
+    author.authorName.toLowerCase().includes(search.toLowerCase())
   );
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
@@ -84,6 +84,7 @@ export default function MyAbstractTable({ onEdit, onView }: Props) {
             <TableRow>
               <TableHead className="px-4 py-2">#</TableHead>
               <TableHead>Author Name</TableHead>
+              <TableHead>Author Type</TableHead>
               <TableHead>Department</TableHead>
               <TableHead>Institution</TableHead>
               <TableHead>Email ID</TableHead>
@@ -97,7 +98,8 @@ export default function MyAbstractTable({ onEdit, onView }: Props) {
               currentItems.map((author, index) => (
                 <TableRow key={author.id}>
                   <TableCell>{startIndex + index + 1}</TableCell>
-                  <TableCell>{author.name}</TableCell>
+                  <TableCell>{author.authorName}</TableCell>
+                  <TableCell>{author.authorType}</TableCell>
                   <TableCell>{author.department}</TableCell>
                   <TableCell>{author.institution}</TableCell>
                   <TableCell>{author.email}</TableCell>

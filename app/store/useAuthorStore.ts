@@ -2,7 +2,8 @@ import { create } from "zustand";
 
 export type Author = {
   id: number;
-  name: string;
+  authorName: string;
+  authorType: string;
   department: string;
   institution: string;
   email: string;
@@ -24,7 +25,8 @@ export const useAuthorStore = create<AuthorState>((set, get) => ({
   authors: [
     {
       id: 1,
-      name: "Dr. A. Sharma",
+      authorName: "Dr. A. Sharma",
+      authorType: "Presenting Author",
       department: "Radiation Oncology",
       institution: "AIIMS Delhi",
       email: "asharma@example.com",
@@ -33,7 +35,8 @@ export const useAuthorStore = create<AuthorState>((set, get) => ({
     },
     {
       id: 2,
-      name: "Dr. N. Rao",
+      authorName: "Dr. N. Rao",
+      authorType: "Co-Author",
       department: "Medical Physics",
       institution: "Tata Memorial Hospital",
       email: "nrao@example.com",
@@ -42,7 +45,8 @@ export const useAuthorStore = create<AuthorState>((set, get) => ({
     },
     {
       id: 3,
-      name: "Dr. R. Patel",
+      authorName: "Dr. R. Patel",
+      authorType: "Presenting Author",
       department: "Radiology",
       institution: "PGI Chandigarh",
       email: "rpatel@example.com",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Author, useAuthorStore } from "@/app/store/useAuthorStore";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { PlusCircle } from "lucide-react";
 
 type Props = {
   open: boolean;
@@ -24,32 +32,54 @@ export default function AuthorFormSidebar({
   onClose,
   defaultData,
 }: Props) {
-  const { addAuthor, updateAuthor, authors } = useAuthorStore();
+  const { addAuthor, updateAuthor } = useAuthorStore();
 
   const {
     register,
+    control,
     handleSubmit,
     reset,
     setValue,
+    watch,
     formState: { errors },
-  } = useForm<Author>();
+  } = useForm<{ authors: Author[] }>({
+    defaultValues: {
+      authors: [
+        {
+          id: 0,
+          authorName: "",
+          authorType: "",
+          department: "",
+          institution: "",
+          email: "",
+          phone: "",
+          abstractAssigned: "",
+        },
+      ],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "authors",
+  });
 
   useEffect(() => {
     if (defaultData) {
-      Object.entries(defaultData).forEach(([key, value]) => {
-        setValue(key as keyof Author, value);
-      });
+      reset({ authors: [defaultData] });
     } else {
       reset();
     }
-  }, [defaultData, setValue, reset]);
+  }, [defaultData, reset]);
 
-  const onSubmit = (data: Author) => {
-    if (defaultData) {
-      updateAuthor(data.id, data);
-    } else {
-      addAuthor(data);
-    }
+  const onSubmit = (data: { authors: Author[] }) => {
+    data.authors.forEach((author) => {
+      if (defaultData) {
+        updateAuthor(author.id, author);
+      } else {
+        addAuthor(author);
+      }
+    });
     onClose();
   };
 
@@ -61,96 +91,146 @@ export default function AuthorFormSidebar({
       >
         <SheetHeader className="border-b px-6 py-4">
           <SheetTitle className="text-[#00509E] text-lg font-semibold text-center">
-            {defaultData ? "Edit Author" : "Add Author"}
+            {defaultData ? "Edit Author" : "Add Author(s)"}
           </SheetTitle>
         </SheetHeader>
 
-        {/* Form Body */}
         <form
           onSubmit={handleSubmit(onSubmit)}
-          className="p-6 space-y-4 flex-1 overflow-y-auto"
+          className="p-6 space-y-6 flex-1 overflow-y-auto"
+          id="author-form"
         >
-          {/* <div className="grid grid-cols-1 sm:grid-cols-2 gap-4"> */}
-          <div className="space-y-2">
-            <Label htmlFor="name">Full Name</Label>
-            <Input
-              id="name"
-              {...register("name", { required: "Name is required" })}
-            />
-            {errors.name && (
-              <p className="text-sm text-red-500 mt-1">{errors.name.message}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="department">Department</Label>
-            <Input
-              id="department"
-              {...register("department", {
-                required: "Department is required",
-              })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="institution">Institution</Label>
-            <Input
-              id="institution"
-              {...register("institution", {
-                required: "Institution is required",
-              })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              {...register("email", { required: "Email is required" })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="phone">Phone</Label>
-            <Input
-              id="phone"
-              type="tel"
-              {...register("phone", { required: "Phone is required" })}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="abstractAssigned">Abstract Assigned</Label>
-            <Input
-              id="abstractAssigned"
-              {...register("abstractAssigned", { required: "Required" })}
-            />
-          </div>
-          {/* </div> */}
-
-          {/* Spacer to avoid footer overlap */}
-          <div className="h-24" />
-        </form>
-
-        {/* Fixed Footer */}
-        {/* <div className="border-t border-gray-200 pt-4 bg-white sticky bottom-0 mt-auto"> */}
-          <div className="border-t px-6 py-4">
-            {/* <p className="text-sm text-muted-foreground">
-              Total Authors:{" "}
-              <span className="font-medium text-[#00509E]">
-                {authors.length}
-              </span>
-            </p> */}
-            <Button
-              type="submit"
-              form="author-form"
-              className="w-full bg-[#00509E] hover:bg-[#003B73]"
+          {fields.map((field, idx) => (
+            <div
+              key={field.id}
+              className="border p-4 rounded-md relative space-y-4"
             >
-              {defaultData ? "Update Author" : "Save & Proceed"}
+              <div className="flex justify-between items-center mb-2">
+                <p className="font-medium text-[#00509E]">Author {idx + 1}</p>
+                {fields.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => remove(idx)}
+                    className="text-red-600 text-lg font-bold leading-none"
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor={`authors.${idx}.authorName`}>Author Name</Label>
+                <Input
+                  id={`authors.${idx}.authorName`}
+                  {...register(`authors.${idx}.authorName`, {
+                    required: "Author Name is required",
+                  })}
+                />
+                {errors.authors?.[idx]?.authorName && (
+                  <p className="text-sm text-red-500">
+                    {errors.authors[idx].authorName?.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Author Type</Label>
+                <Select
+                  onValueChange={(val) =>
+                    setValue(`authors.${idx}.authorType`, val)
+                  }
+                  value={watch(`authors.${idx}.authorType`)}
+                >
+                  <SelectTrigger className="w-full cursor-pointer">
+                    <SelectValue placeholder="Select Author Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Presenting Author">
+                      Presenting Author
+                    </SelectItem>
+                    <SelectItem value="Co Author">Co Author</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.authors?.[idx]?.authorType && (
+                  <p className="text-sm text-red-500">
+                    {errors.authors[idx].authorType?.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Department</Label>
+                <Input
+                  {...register(`authors.${idx}.department`, { required: true })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Institution</Label>
+                <Input
+                  {...register(`authors.${idx}.institution`, {
+                    required: true,
+                  })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Email</Label>
+                <Input
+                  type="email"
+                  {...register(`authors.${idx}.email`, { required: true })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Phone</Label>
+                <Input
+                  type="tel"
+                  {...register(`authors.${idx}.phone`, { required: true })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Abstract Assigned</Label>
+                <Input
+                  {...register(`authors.${idx}.abstractAssigned`, {
+                    required: true,
+                  })}
+                />
+              </div>
+            </div>
+          ))}
+
+          {!defaultData && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-[#00509E] text-[#00509E] hover:bg-[#003B73] hover:text-white gap-2"
+              onClick={() =>
+                append({
+                  id: Date.now(), // Generate temporary ID
+                  authorName: "",
+                  authorType: "",
+                  department: "",
+                  institution: "",
+                  email: "",
+                  phone: "",
+                  abstractAssigned: "",
+                })
+              }
+            >
+              <PlusCircle className="h-4 w-4" />
+              Add More Author
             </Button>
-          </div>
-        {/* </div> */}
+          )}
+
+          <Button
+            type="submit"
+            className="w-full bg-[#00509E] hover:bg-[#003B73]"
+          >
+            {defaultData ? "Update Author" : "Save All Authors"}
+          </Button>
+        </form>
       </SheetContent>
     </Sheet>
   );
