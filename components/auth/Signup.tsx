@@ -63,6 +63,7 @@ type FormData = z.infer<typeof schema>;
 export default function Signup() {
   //const recaptchaRef = useRef<ReCAPTCHA>(null);
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [countryList, setCountryList] = useState<
     { code: string; name: string }[]
   >([]);
@@ -88,16 +89,41 @@ export default function Signup() {
     setCountryList(mapped);
   }, []);
 
-  const onSubmit = (data: FormData) => {
-    // const captcha = recaptchaRef.current?.getValue();
-    // if (!captcha) {
-    //   alert("Please verify ReCAPTCHA");
-    //   return;
-    // }
+  const onSubmit = async (data: FormData) => {
+    const payload = {
+      prefix: data.prefix,
+      fullname: data.fullName, // Match backend model field
+      affiliation: data.affiliation,
+      email: data.email,
+      mobile: data.mobile,
+      country: data.country,
+      password: data.password,
+    };
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
 
-    console.log(data);
-   // recaptchaRef.current?.reset(); // ✅ Reset CAPTCHA
-    router.push("/login");
+      const result = await res.json();
+
+      if (!res.ok) {
+        alert(result.error || "Something went wrong");
+        return;
+      }
+
+      alert(result.message);
+      router.push("/login");
+    } catch (error) {
+      alert("Server error");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -264,8 +290,9 @@ export default function Signup() {
           <Button
             type="submit"
             className="mt-4 bg-[#00509E] text-white hover:bg-[#003B73]"
+            disabled={loading}
           >
-            Sign Up
+            {loading ? "Signing up..." : "Sign Up"}
           </Button>
 
           <p className="text-sm mt-2">
