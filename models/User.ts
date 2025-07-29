@@ -10,6 +10,8 @@ export interface IUser extends Document {
   country: string;
   password: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
+  resetPasswordToken?: string;
+  resetPasswordExpire?: Date;
 }
 
 const userSchema = new Schema<IUser>(
@@ -44,7 +46,16 @@ const userSchema = new Schema<IUser>(
       required: [true, 'Password is required'],
       select: false, // Prevent password from being returned by default
     },
+    resetPasswordToken: {
+      type: String,
+      select: false,
+    },
+    resetPasswordExpire: {
+      type: Date,
+      select: false,
+    },
   },
+
   {
     timestamps: true, // Adds createdAt and updatedAt
   }
