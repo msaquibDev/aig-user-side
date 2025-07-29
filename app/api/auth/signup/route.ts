@@ -1,16 +1,21 @@
-import { connectDB } from '@/lib/mongodb';
-import User from '@/models/User';
 import { NextResponse } from 'next/server';
+import { connectDB } from "@/lib/mongodb";
+import User from '@/models/User';
 
 export async function POST(req: Request) {
-  await connectDB();
-  const data = await req.json();
+  try {
+    await connectDB();
+    const body = await req.json();
+    const { email } = body;
 
-  const { email, password, fullname, prefix, affiliation, country, mobile } = data;
+    const userExists = await User.findOne({ email });
+    if (userExists) return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
 
-  const existingUser = await User.findOne({ email });
-  if (existingUser) return NextResponse.json({ error: 'User already exists' }, { status: 400 });
+    const newUser = new User(body);
+    await newUser.save();
 
-  const newUser = await User.create({ email, password, fullname, prefix, affiliation, country, mobile });
-  return NextResponse.json({ message: 'Signup successful' }, { status: 201 });
+    return NextResponse.json({ message: 'User registered successfully' }, { status: 201 });
+  } catch (error) {
+    return NextResponse.json({ error: 'Server error' }, { status: 500 });
+  }
 }

@@ -1,11 +1,6 @@
-import { withAuth } from 'next-auth/middleware';
-
-export default withAuth({
-  pages: {
-    signIn: '/login',
-  },
-});
+export { default } from 'next-auth/middleware';
 
 export const config = {
-  matcher: ['/profile'], // add protected routes here
+  matcher: ['/app/profile', '/api/user/profile'],
 };
+

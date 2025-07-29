@@ -1,20 +1,25 @@
-import { connectDB } from '@/lib/mongodb';
-import User from '@/models/User';
 import { NextResponse } from 'next/server';
-import sendEmail from '@/utils/sendEmail';
+import { connectDB } from "@/lib/mongodb";
+import User from '@/models/User';
+import crypto from 'crypto';
+import { sendEmail } from '@/lib/sendEmail';
 
 export async function POST(req: Request) {
-  await connectDB();
   const { email } = await req.json();
+  await connectDB();
 
   const user = await User.findOne({ email });
-  if (!user) return NextResponse.json({ error: 'No user found' }, { status: 404 });
+  if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 });
 
-  const resetToken = user.getResetPasswordToken();
-  await user.save({ validateBeforeSave: false });
+  const token = crypto.randomBytes(20).toString('hex');
+  const resetToken = crypto.createHash('sha256').update(token).digest('hex');
 
-  const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password/${resetToken}`;
-  await sendEmail({ to: email, subject: 'Reset Password', text: `Reset your password: ${resetUrl}` });
+  user.resetPasswordToken = resetToken;
+  user.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  await user.save();
+
+  const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
+  await sendEmail(user.email, 'Password Reset', `<p>Reset your password: <a href="${resetUrl}">Click here</a></p>`);
 
   return NextResponse.json({ message: 'Reset email sent' });
 }
