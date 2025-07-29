@@ -9,12 +9,12 @@ export async function POST(req: Request) {
     const { email } = body;
 
     const userExists = await User.findOne({ email });
-    if (userExists) return NextResponse.json({ error: 'Email already in use' }, { status: 400 });
+    if (userExists) return NextResponse.json({ error: 'Email Already Exist' }, { status: 400 });
 
     const newUser = new User(body);
     await newUser.save();
 
-    return NextResponse.json({ message: 'User registered successfully' }, { status: 201 });
+    return NextResponse.json({ message: 'User Registered successfully ' }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
