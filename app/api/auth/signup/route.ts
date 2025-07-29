@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     const newUser = new User(body);
     await newUser.save();
 
-    return NextResponse.json({ message: 'User registered successfully' }, { status: 201 });
+    return NextResponse.json({ message: 'User Registered successfully ' }, { status: 201 });
   } catch (error) {
     return NextResponse.json({ error: 'Server error' }, { status: 500 });
   }
