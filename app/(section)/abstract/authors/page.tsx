@@ -1,9 +1,10 @@
 "use client";
 
-import AuthorFormSidebar from "@/app/components/abstract/authors/AuthorFormSidebar";
-import MyAuthorsTable from "@/app/components/abstract/authors/MyAuthorsTable";
+
 import { useState } from "react";
 import { useAuthorStore } from "@/app/store/useAuthorStore";
+import MyAuthorsTable from "@/components/abstract/authors/MyAuthorsTable";
+import AuthorFormSidebar from "@/components/abstract/authors/AuthorFormSidebar";
 
 export default function MyAuthorsPage() {
   const [open, setOpen] = useState(false);

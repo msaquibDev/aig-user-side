@@ -1,7 +1,7 @@
 "use client";
 
-import AccompanyingFormSidebar from "@/app/components/registrations/accompanying/AccompanyingFormSidebar";
-import AccompanyingTable from "@/app/components/registrations/accompanying/AccompanyingTable";
+import AccompanyingFormSidebar from "@/components/registrations/accompanying/AccompanyingFormSidebar";
+import AccompanyingTable from "@/components/registrations/accompanying/AccompanyingTable";
 import { useState } from "react";
 
 export default function AccompanyingPage() {

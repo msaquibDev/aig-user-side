@@ -1,4 +1,4 @@
-import Signup from "@/app/components/auth/Signup";
+import Signup from "@/components/auth/Signup";
 import React from "react";
 import "../../globals.css";
 

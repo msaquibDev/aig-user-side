@@ -1,8 +1,9 @@
 "use client";
 
+import WorkshopFormSidebar from "@/components/registrations/workshop/WorkshopFormSidebar";
+import WorkshopTable from "@/components/registrations/workshop/WorkshopTable";
 import { useState } from "react";
-import WorkshopFormSidebar from "@/app/components/registrations/workshop/WorkshopFormSidebar";
-import WorkshopTable from "@/app/components/registrations/workshop/WorkshopTable";
+
 
 export default function WorkshopPage() {
   const [open, setOpen] = useState(false);

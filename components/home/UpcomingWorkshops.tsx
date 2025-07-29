@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays, MapPin } from "lucide-react";
-import { workshops } from "../../data/workshops";
+import { workshops } from "@/app/data/workshops"; // Assuming you have a data file for workshops
 
 export default function UpcomingWorkshops() {
   return (
