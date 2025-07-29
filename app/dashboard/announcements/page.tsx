@@ -1,5 +1,5 @@
-import AnnouncementCard from "@/app/components/dashboard/Announcement";
 import { dummyAnnouncements, type Announcement } from "@/app/data/announcement";
+import AnnouncementCard from "@/components/dashboard/Announcement";
 
 export default function AnnouncementsPage() {
   const announcements = dummyAnnouncements();

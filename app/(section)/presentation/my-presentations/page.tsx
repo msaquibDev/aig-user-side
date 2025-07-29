@@ -1,4 +1,4 @@
-import PresentationsTable from "@/app/components/persentations/PresentationsTable";
+import PresentationsTable from "@/components/persentations/PresentationsTable";
 
 export default function Page() {
   return (

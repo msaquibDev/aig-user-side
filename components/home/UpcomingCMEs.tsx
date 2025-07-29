@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays, MapPin } from "lucide-react";
-import { cmes } from "../../data/cmes";
+import { cmes } from "@/app/data/cmes"; // Assuming you have a data file for CMEs
 
 export default function UpcomingCMEs() {
   return (

@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useRegistrationStore } from "@/app/store/useRegistrationStore";
-import BadgeCard from "@/app/components/registrations/myRegistration/BadgeCard";
+import BadgeCard from "@/components/registrations/myRegistration/BadgeCard";
 
 // Generate a dummy registration number
 function getDummyRegNo() {

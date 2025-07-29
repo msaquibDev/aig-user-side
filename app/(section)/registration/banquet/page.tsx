@@ -1,7 +1,8 @@
 "use client";
 
-import BanquetFormSidebar from "@/app/components/registrations/banquet/BanquetFormSidebar";
-import BanquetTable from "@/app/components/registrations/banquet/BanquetTable";
+
+import BanquetFormSidebar from "@/components/registrations/banquet/BanquetFormSidebar";
+import BanquetTable from "@/components/registrations/banquet/BanquetTable";
 import { useState } from "react";
 
 

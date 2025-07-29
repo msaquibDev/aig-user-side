@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { departments } from "../../data/departments";
-import { events } from "../../data/events";
+
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +14,8 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { CalendarDays, MapPin } from "lucide-react";
+import { events } from "@/app/data/events";
+import { departments } from "@/app/data/departments";
 
 export default function BrowseByDepartment() {
   const [selectedDept, setSelectedDept] = useState<string>("");
