@@ -1,10 +1,11 @@
+import AboutUs from "@/components/home/AboutUs";
+import BrowseByDepartment from "@/components/home/BrowseByDepartment";
+import HeroSection from "@/components/home/HeroSection";
+import UpcomingCMEs from "@/components/home/UpcomingCMEs";
+import UpcomingConferences from "@/components/home/UpcomingConferences";
+import UpcomingWorkshops from "@/components/home/UpcomingWorkshops";
 import React from "react";
-import HeroSection from "../components/home/HeroSection";
-import BrowseByDepartment from "../components/home/BrowseByDepartment";
-import UpcomingConferences from "../components/home/UpcomingConferences";
-import UpcomingWorkshops from "../components/home/UpcomingWorkshops";
-import UpcomingCMEs from "../components/home/UpcomingCMEs";
-import AboutUs from "../components/home/AboutUs";
+
 
 export default function HomePage() {
   return (

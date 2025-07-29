@@ -1,9 +1,10 @@
 // app/(section)/[section]/layout.tsx
 "use client";
 
-import { DashboardHeader } from "@/app/components/dashboard/DashboardHeader";
-import { MainSectionSidebar } from "@/app/components/dashboard/MainSectionSidebar";
-import { SubSidebar } from "@/app/components/dashboard/SubSidebar";
+
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { MainSectionSidebar } from "@/components/dashboard/MainSectionSidebar";
+import { SubSidebar } from "@/components/dashboard/SubSidebar";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 

@@ -1,9 +1,10 @@
 // /app/dashboard/layout.tsx
 "use client";
 import "@/app/globals.css";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ReactNode, useState } from "react";
-import { Sidebar } from "@/app/components/dashboard/Sidebar";
-import { DashboardHeader } from "@/app/components/dashboard/DashboardHeader";
+
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);

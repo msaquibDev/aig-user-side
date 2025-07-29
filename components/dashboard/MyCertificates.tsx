@@ -5,7 +5,8 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Download, Filter, ChevronLeft, ChevronRight } from "lucide-react";
-import { getDummyCertificates, Certificate } from "../../data/certificates";
+import { getDummyCertificates } from "@/app/data/certificates";
+
 
 export default function MyCertificates() {
   const [search, setSearch] = useState("");

@@ -1,8 +1,9 @@
 "use client";
-import { DashboardHeader } from "@/app/components/dashboard/DashboardHeader";
-import { MainSectionSidebar } from "@/app/components/dashboard/MainSectionSidebar";
-import { SubSidebar } from "@/app/components/dashboard/SubSidebar";
+
 import "@/app/globals.css";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { MainSectionSidebar } from "@/components/dashboard/MainSectionSidebar";
+import { SubSidebar } from "@/components/dashboard/SubSidebar";
 
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";

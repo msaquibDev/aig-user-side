@@ -1,8 +1,9 @@
 "use client";
 
-import AbstractFormSidebar from "@/app/components/abstract/myAbstract/AbstractFormSidebar";
-import { AbstractTable } from "@/app/components/abstract/myAbstract/MyAbstractTable";
+
 import { useAbstractStore } from "@/app/store/useAbstractStore";
+import AbstractFormSidebar from "@/components/abstract/myAbstract/AbstractFormSidebar";
+import { AbstractTable } from "@/components/abstract/myAbstract/MyAbstractTable";
 import { useState } from "react";
 
 export default function MyAbstractPage() {

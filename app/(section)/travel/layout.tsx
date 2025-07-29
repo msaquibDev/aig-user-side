@@ -1,8 +1,9 @@
 "use client";
-import { DashboardHeader } from "@/app/components/dashboard/DashboardHeader";
-import { MainSectionSidebar } from "@/app/components/dashboard/MainSectionSidebar";
-import { SubSidebar } from "@/app/components/dashboard/SubSidebar";
+
 import "@/app/globals.css";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { MainSectionSidebar } from "@/components/dashboard/MainSectionSidebar";
+import { SubSidebar } from "@/components/dashboard/SubSidebar";
 
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
@@ -39,7 +40,9 @@ export default function SectionLayout({
       <body className="h-screen overflow-hidden">
         {/* Fixed Header */}
         <div className="fixed top-0 left-0 right-0 z-50">
-          <DashboardHeader />
+          <DashboardHeader onMenuToggle={function (): void {
+            throw new Error("Function not implemented.");
+          } } />
         </div>
 
         {/* Below Header Layout */}

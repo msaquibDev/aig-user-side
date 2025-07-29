@@ -1,6 +1,6 @@
 // /app/dashboard/profile/page.tsx
 import { getDummyProfile } from "@/app/data/profile";
-import MyProfileForm from "@/app/components/dashboard/MyProfileForm";
+import MyProfileForm from "@/components/dashboard/MyProfileForm";
 
 export default function ProfilePage() {
   const profile = getDummyProfile();
