@@ -6,10 +6,12 @@ import * as z from "zod";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-// import ReCAPTCHA from "react-google-recaptcha"; // Temporarily disabled
-import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react"; // Spinner icon
+import { useState } from "react";
+import { Loader2 } from "lucide-react";
+import Link from "next/link";
+import toast from "react-hot-toast";
+import { signIn } from "next-auth/react";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email" }),
@@ -20,13 +22,7 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const dummyCredentials = {
-  email: "user@aig.com",
-  password: "aig@123",
-};
-
 export default function Login() {
-  // const recaptchaRef = useRef<ReCAPTCHA>(null);
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
@@ -41,43 +37,25 @@ export default function Login() {
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
 
-    try {
-      const res = await fetch("http://localhost:4000/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
+    const result = await signIn("credentials", {
+      redirect: false,
+      email: data.email,
+      password: data.password,
+    });
 
-      const result = await res.json();
+    setIsLoading(false);
 
-      if (res.ok && result.status === true) {
-        console.log("Login Success:", result);
-
-        // Save token to localStorage or cookies
-        localStorage.setItem("token", result.token);
-
-        // Optional: store user info
-        localStorage.setItem("user", JSON.stringify(result.data));
-
-        // Navigate to dashboard
-        router.push("/dashboard");
-      } else {
-        alert(result.message || "Invalid credentials");
-      }
-    } catch (error) {
-      console.error("Login error:", error);
-      alert("Something went wrong. Please try again.");
-    } finally {
-      setIsLoading(false);
+    if (result?.ok) {
+      toast.success("Login successful!");
+      router.push("/dashboard");
+    } else {
+      toast.error(result?.error || "Invalid credentials");
     }
   };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-r from-[#edf1f5] to-[#ffffff] px-6">
       <div className="grid md:grid-cols-2 rounded-lg overflow-hidden shadow-lg w-full max-w-3xl bg-white">
-        {/* Left Form Panel */}
         <form
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-3 px-8 py-10"
@@ -89,7 +67,7 @@ export default function Login() {
             <Input
               id="email"
               type="email"
-              placeholder="Enter Email id"
+              placeholder="Enter your email"
               {...register("email")}
             />
             {errors.email && (
@@ -102,7 +80,7 @@ export default function Login() {
             <Input
               id="password"
               type="password"
-              placeholder="Enter Password"
+              placeholder="Enter your password"
               {...register("password")}
             />
             {errors.password && (
@@ -110,41 +88,29 @@ export default function Login() {
             )}
           </div>
 
-          <a href="#" className="text-sm text-blue-600 underline -mt-1 mb-3">
+          <Link
+            href="/forgot-password"
+            className="text-sm text-blue-600 underline -mt-1 mb-3"
+          >
             Forgot Password?
-          </a>
-
-          {/* ReCAPTCHA - disabled temporarily */}
-          {/*
-          <div className="mb-3">
-            <ReCAPTCHA ref={recaptchaRef} sitekey="your_site_key" />
-          </div>
-          */}
+          </Link>
 
           <Button
             type="submit"
-            className="bg-[#00509E] text-white hover:bg-[#003B73] flex items-center justify-center"
+            className="mt-4 bg-[#00509E] text-white hover:bg-[#003B73]"
             disabled={isLoading}
           >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                Logging in...
-              </>
-            ) : (
-              "Login"
-            )}
+            {isLoading ? "Logging in..." : "Login"}
           </Button>
 
           <p className="text-sm mt-2">
             Don’t have an account?{" "}
-            <a href="/signup" className="text-blue-600 underline">
+            <Link href="/signup" className="text-blue-600 underline">
               Sign up now
-            </a>
+            </Link>
           </p>
         </form>
 
-        {/* Right Image Panel */}
         <div className="hidden md:block">
           <img
             src="/authImg/login.png"
