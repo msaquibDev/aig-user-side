@@ -7,8 +7,10 @@ export default function AuthLayout({
 }) {
   return (
     <html lang="en">
-      <Toaster position="top-right" />
-      <body>{children}</body>
+      <body>
+        <Toaster position="top-right" />
+        {children}
+      </body>
     </html>
   );
 }

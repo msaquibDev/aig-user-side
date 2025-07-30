@@ -111,6 +111,7 @@ export default function Signup() {
       const result = await res.json();
       toast.success(result.message || "User registered successfully");
       reset(); // optionally clear form
+      router.push("/login");
     } catch (error: any) {
       console.error(error);
       toast.error("Something went wrong");
