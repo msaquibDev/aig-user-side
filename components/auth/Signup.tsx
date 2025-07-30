@@ -19,13 +19,14 @@ import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
+import toast from "react-hot-toast";
 
 countries.registerLocale(enLocale);
 
 const schema = z
   .object({
     prefix: z.string().min(1, "Required"),
-    fullName: z.string().min(1, "Required"),
+    fullname: z.string().min(1, "Required"),
     affiliation: z.string().min(1, "Required"),
     email: z.string().email(),
     mobile: z
@@ -73,6 +74,7 @@ export default function Signup() {
     handleSubmit,
     setValue,
     formState: { errors },
+    reset,
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -89,38 +91,29 @@ export default function Signup() {
     setCountryList(mapped);
   }, []);
 
-  const onSubmit = async (data: FormData) => {
-    const payload = {
-      prefix: data.prefix,
-      fullname: data.fullName, // Match backend model field
-      affiliation: data.affiliation,
-      email: data.email,
-      mobile: data.mobile,
-      country: data.country,
-      password: data.password,
-    };
-    setLoading(true);
+  const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
+      setLoading(true);
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(data),
       });
 
-      const result = await res.json();
-
       if (!res.ok) {
-        alert(result.error || "Something went wrong");
+        const errorData = await res.json();
+        toast.error(errorData.message || "Something went wrong");
         return;
       }
 
-      alert(result.message);
-      router.push("/login");
-    } catch (error) {
-      alert("Server error");
+      const result = await res.json();
+      toast.success(result.message || "User registered successfully");
+      reset(); // optionally clear form
+    } catch (error: any) {
       console.error(error);
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -150,16 +143,16 @@ export default function Signup() {
           </div>
 
           <div className="grid gap-1">
-            <Label htmlFor="fullName">
+            <Label htmlFor="fullname">
               Full Name<span className="text-red-500">*</span>
             </Label>
             <Input
-              id="fullName"
+              id="fullname"
               placeholder="Enter Full Name"
-              {...register("fullName")}
+              {...register("fullname")}
             />
-            {errors.fullName && (
-              <p className="text-sm text-red-600">{errors.fullName.message}</p>
+            {errors.fullname && (
+              <p className="text-sm text-red-600">{errors.fullname.message}</p>
             )}
           </div>
 
@@ -219,7 +212,7 @@ export default function Signup() {
               </SelectTrigger>
               <SelectContent className="w-full">
                 {countryList.map((country) => (
-                  <SelectItem key={country.code} value={country.code}>
+                  <SelectItem key={country.code} value={country.name}>
                     {country.name}
                   </SelectItem>
                 ))}

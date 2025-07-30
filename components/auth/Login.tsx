@@ -38,22 +38,40 @@ export default function Login() {
     resolver: zodResolver(schema),
   });
 
-  const onSubmit = (data: FormData) => {
+  const onSubmit = async (data: FormData) => {
     setIsLoading(true);
 
-    // Simulate async login delay
-    setTimeout(() => {
-      if (
-        data.email === dummyCredentials.email &&
-        data.password === dummyCredentials.password
-      ) {
-        console.log("Dummy login success:", data);
+    try {
+      const res = await fetch("http://localhost:4000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+
+      if (res.ok && result.status === true) {
+        console.log("Login Success:", result);
+
+        // Save token to localStorage or cookies
+        localStorage.setItem("token", result.token);
+
+        // Optional: store user info
+        localStorage.setItem("user", JSON.stringify(result.data));
+
+        // Navigate to dashboard
         router.push("/dashboard");
       } else {
-        alert("Invalid dummy credentials.");
+        alert(result.message || "Invalid credentials");
       }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Something went wrong. Please try again.");
+    } finally {
       setIsLoading(false);
-    }, 1200);
+    }
   };
 
   return (
