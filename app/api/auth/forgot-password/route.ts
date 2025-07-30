@@ -19,7 +19,14 @@ export async function POST(req: Request) {
   await user.save();
 
   const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
-  await sendEmail(user.email, 'Password Reset', `<p>Reset your password: <a href="${resetUrl}">Click here</a></p>`);
+  const message = `
+        <h3>Hello ${user.fullname},</h3>
+        <p>You requested to reset your password.</p>
+        <p><a href="${resetUrl}">Click here to reset your password</a></p>
+        <p>This link expires in 15 minutes.</p>
+    `;
 
-  return NextResponse.json({ message: 'Reset email sent' });
+  await sendEmail(user.email, 'AIG Hospital Password Reset Request', message);
+
+  return NextResponse.json({ message: 'Reset password email sent' });
 }

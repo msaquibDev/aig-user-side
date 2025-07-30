@@ -20,5 +20,5 @@ export async function POST(req: Request) {
   user.resetPasswordExpire = undefined;
   await user.save();
 
-  return NextResponse.json({ message: 'Password reset successfully' });
+  return NextResponse.json({ message: 'Password has been reset successfully' });
 }
