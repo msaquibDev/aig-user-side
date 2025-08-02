@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import toast from "react-hot-toast";
+import { Eye, EyeOff } from "lucide-react";
 
 countries.registerLocale(enLocale);
 
@@ -68,6 +69,7 @@ export default function Signup() {
   const [countryList, setCountryList] = useState<
     { code: string; name: string }[]
   >([]);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -228,12 +230,21 @@ export default function Signup() {
             <Label htmlFor="password">
               Password<span className="text-red-500">*</span>
             </Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter Password"
-              {...register("password")}
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter Password"
+                {...register("password")}
+                className="pr-10" // gives space for the icon
+              />
+              <div
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-black"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </div>
+            </div>
             {errors.password && (
               <p className="text-sm text-red-600">{errors.password.message}</p>
             )}

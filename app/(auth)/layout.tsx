@@ -1,3 +1,4 @@
+import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
 
 export default function AuthLayout({
@@ -9,7 +10,7 @@ export default function AuthLayout({
     <html lang="en">
       <body>
         <Toaster position="top-right" />
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </body>
     </html>
   );

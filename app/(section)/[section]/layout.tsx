@@ -1,13 +1,12 @@
 // app/(section)/[section]/layout.tsx
 "use client";
 
-
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MainSectionSidebar } from "@/components/dashboard/MainSectionSidebar";
 import { SubSidebar } from "@/components/dashboard/SubSidebar";
+import { SessionProvider } from "next-auth/react";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
 
 export default function SectionLayout({
   children,
@@ -38,9 +37,11 @@ export default function SectionLayout({
 
   return (
     <>
-      <DashboardHeader onMenuToggle={function (): void {
-        throw new Error("Function not implemented.");
-      } } />
+      <DashboardHeader
+        onMenuToggle={function (): void {
+          throw new Error("Function not implemented.");
+        }}
+      />
       <MainSectionSidebar
         activeSection={activeSection}
         onBackToggle={() => setSubSidebarOpen((prev) => !prev)}
@@ -56,7 +57,7 @@ export default function SectionLayout({
       <main
         className={`ml-[${subSidebarOpen ? "20rem" : "5rem"}] mt-[60px] p-6`}
       >
-        {children}
+        <SessionProvider>{children}</SessionProvider>
       </main>
     </>
   );
