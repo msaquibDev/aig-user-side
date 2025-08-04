@@ -6,7 +6,6 @@ import UpcomingConferences from "@/components/home/UpcomingConferences";
 import UpcomingWorkshops from "@/components/home/UpcomingWorkshops";
 import React from "react";
 
-
 export default function HomePage() {
   return (
     <>
