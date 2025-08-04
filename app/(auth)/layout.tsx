@@ -1,5 +1,5 @@
 // app/layout.tsx
-import { SessionProvider } from "next-auth/react";
+// import { SessionProvider } from "next-auth/react";
 import { Toaster } from "react-hot-toast";
 
 export default function RootLayout({
@@ -11,7 +11,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Toaster position="top-right" />
-        <SessionProvider>{children}</SessionProvider>
+        {/* <SessionProvider>{children}</SessionProvider> */}
       </body>
     </html>
   );
