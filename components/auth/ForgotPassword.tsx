@@ -21,7 +21,6 @@ export default function ForgotPassword() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Something went wrong");
-
       toast.success("Reset email sent successfully");
       setEmail("");
     } catch (err: any) {
