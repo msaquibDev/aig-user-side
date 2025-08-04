@@ -1,6 +1,4 @@
 // app/(section)/[section]/layout.tsx
-"use client";
-
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MainSectionSidebar } from "@/components/dashboard/MainSectionSidebar";
 import { SubSidebar } from "@/components/dashboard/SubSidebar";
@@ -57,7 +55,7 @@ export default function SectionLayout({
       <main
         className={`ml-[${subSidebarOpen ? "20rem" : "5rem"}] mt-[60px] p-6`}
       >
-        <SessionProvider>{children}</SessionProvider>
+        {/* <SessionProvider>{children}</SessionProvider> */}
       </main>
     </>
   );
