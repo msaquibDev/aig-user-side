@@ -83,7 +83,6 @@ export default function ResetPassword() {
       </p>
     );
   }
-
   return (
     <div className="max-w-md mx-auto mt-20 p-6 border rounded-lg shadow bg-white">
       <h2 className="text-xl font-semibold mb-4 text-center">Reset Password</h2>
