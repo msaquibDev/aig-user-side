@@ -11,7 +11,7 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <Toaster position="top-right" />
-        {/* <SessionProvider>{children}</SessionProvider> */}
+        <main>{children}</main>
       </body>
     </html>
   );
