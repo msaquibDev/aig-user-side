@@ -19,9 +19,41 @@ export default function MyProfileForm({
   initialData: Profile;
 }) {
   const [formData, setFormData] = useState(initialData);
+  const [photoError, setPhotoError] = useState("");
 
   const handleChange = (field: keyof Profile, value: string) => {
     setFormData({ ...formData, [field]: value });
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/gif",
+      "image/webp",
+      "image/jpg",
+    ];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
+    if (!validTypes.includes(file.type)) {
+      setPhotoError("Unsupported file type. Use JPG, JPEG, PNG, GIF, or WEBP.");
+      return;
+    }
+
+    if (file.size > maxSize) {
+      setPhotoError("File size exceeds 5MB. Please choose a smaller file.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData((prev) => ({ ...prev, photo: reader.result as string }));
+      setPhotoError("");
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -29,9 +61,9 @@ export default function MyProfileForm({
       {/* Profile Photo */}
       <div className="flex items-center gap-4 mb-6">
         <img
-          src={formData.photo}
+          src={formData.photo || "/default-avatar.png"}
           alt="Profile"
-          className="w-16 h-16 rounded-full object-cover border border-gray-300"
+          className="w-16 h-16 rounded-full object-cover border border-gray-300 cursor-pointer"
         />
         <div>
           <Label
@@ -40,10 +72,20 @@ export default function MyProfileForm({
           >
             Select Photo
           </Label>
+          <input
+            type="file"
+            id="photo"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            className="hidden"
+          />
           <p className="text-xs text-gray-500">
             File size: Up to 5MB <br />
             Supported file types: JPG, JPEG, PNG, GIF, WEBP
           </p>
+          {photoError && (
+            <p className="text-sm text-red-500 mt-1">{photoError}</p>
+          )}
         </div>
       </div>
 
@@ -89,7 +131,6 @@ export default function MyProfileForm({
           value={formData.email}
           onChange={(v) => handleChange("email", v)}
         />
-
         <SelectField
           label="Country"
           value={formData.country}
