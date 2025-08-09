@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   ArrowLeft,
@@ -7,22 +7,22 @@ import {
   MonitorPlay,
   ChevronLeft,
   ChevronRight,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import BackButton from "../common/BackButton";
+} from 'lucide-react'
+import { cn } from '@/lib/utils'
+import BackButton from '../common/BackButton'
 
 const sections = [
   {
-    label: "Registrations",
-    href: "/registration/my-registration",
+    label: 'Registrations',
+    href: '/registration/my-registration',
     icon: FileText,
-    key: "registrations",
+    key: 'registrations',
   },
   {
-    label: "Abstract",
-    href: "/abstract/my-abstracts",
+    label: 'Abstract',
+    href: '/abstract/my-abstracts',
     icon: FileSignature,
-    key: "abstract",
+    key: 'abstract',
   },
   // {
   //   label: "Travel",
@@ -37,12 +37,12 @@ const sections = [
   //   key: "accomodation",
   // },
   {
-    label: "Presentation",
-    href: "/presentation/my-presentations",
+    label: 'Presentation',
+    href: '/presentation/my-presentations',
     icon: MonitorPlay,
-    key: "presentation",
+    key: 'presentation',
   },
-];
+]
 
 export const MainSectionSidebar = ({
   activeSection,
@@ -51,20 +51,20 @@ export const MainSectionSidebar = ({
   onToggle,
   isOpen,
 }: {
-  activeSection: string;
-  onBackToggle: () => void;
-  onToggle?: () => void;
-  onSectionClick: (key: string, href: string) => void;
-  isOpen: boolean;
+  activeSection: string
+  onBackToggle: () => void
+  onToggle?: () => void
+  onSectionClick: (key: string, href: string) => void
+  isOpen: boolean
 }) => {
   return (
     <aside className="fixed top-[60px] left-0 h-[calc(100vh-60px)] w-25 border-r bg-[#eaf3ff] pt-[36px] pb-4 px-2 flex flex-col items-center z-30">
-      <BackButton open={isOpen} onToggle={onToggle} />
+      <BackButton onToggle={onToggle} />
 
       <button
         onClick={onBackToggle}
         className={cn(
-          'absolute right-[-20px] z-40 bg-white border border-blue-200 shadow rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-blue-50',
+          'absolute right-[-20px] z-40 bg-white border border-blue-200 shadow rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-blue-50 cursor-pointer',
           !isOpen && 'border-gray-300'
         )}
         style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
@@ -99,4 +99,4 @@ export const MainSectionSidebar = ({
       </nav>
     </aside>
   )
-};
+}
