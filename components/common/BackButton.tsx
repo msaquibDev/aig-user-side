@@ -16,6 +16,7 @@ export default function BackButton({
   label = 'Back',
   showIcon = true,
   fallbackHref = '/dashboard/events',
+  fallbackHref = '/dashboard/events',
   className,
   ...buttonProps
 }: BackButtonProps) {
@@ -61,12 +62,14 @@ export default function BackButton({
       variant={buttonProps.variant ?? 'ghost'}
       className={cn(
         'gap-2 transition-colors hover:bg-transparent hover:text-blue-600 cursor-pointer',
+        'gap-2 transition-colors hover:bg-transparent hover:text-blue-600 cursor-pointer',
         className
       )}
       onClick={handleClick}
       aria-label="Go back"
       {...buttonProps}
     >
+      {showIcon ? <ArrowLeft className="h-4 w-4" aria-hidden="true" /> : null}
       {showIcon ? <ArrowLeft className="h-4 w-4" aria-hidden="true" /> : null}
       <span>{label}</span>
     </Button>
