@@ -16,7 +16,6 @@ export default function BackButton({
   label = 'Back',
   showIcon = true,
   fallbackHref = '/dashboard/events',
-  fallbackHref = '/dashboard/events',
   className,
   ...buttonProps
 }: BackButtonProps) {

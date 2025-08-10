@@ -9,7 +9,7 @@ import {
   ChevronRight,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import BackButton from '../common/BackButton'
+import { useRouter } from 'next/navigation'
 
 const sections = [
   {
@@ -57,14 +57,24 @@ export const MainSectionSidebar = ({
   onSectionClick: (key: string, href: string) => void
   isOpen: boolean
 }) => {
+  const router = useRouter()
   return (
     <aside className="fixed top-[60px] left-0 h-[calc(100vh-60px)] w-25 border-r bg-[#eaf3ff] pt-[36px] pb-4 px-2 flex flex-col items-center z-30">
-      <BackButton onToggle={onToggle} />
+      <button
+        onClick={() => router.push('/dashboard/events')}
+        className={cn(
+          'text-sm text-gray-700 flex items-center gap-1 mb-6 hover:text-blue-600 transition cursor-pointer',
+          isOpen ? 'w-full' : 'w-0 overflow-hidden'
+        )}
+      >
+        <ChevronLeft className="w-4 h-4 transition-transform duration-300" />
+        <span className="hidden lg:inline-block">Back</span>
+      </button>
 
       <button
         onClick={onBackToggle}
         className={cn(
-          'absolute right-[-20px] z-40 bg-white border border-blue-200 shadow rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-blue-50 cursor-pointer',
+          'absolute right-[-20px] z-40 bg-white border border-blue-200 shadow rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-blue-50',
           !isOpen && 'border-gray-300'
         )}
         style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}
