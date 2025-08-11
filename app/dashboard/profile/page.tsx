@@ -12,11 +12,14 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch('/api/user/profile', {
-          method: 'GET',
-          credentials: 'include',
-          cache: 'no-store',
-        })
+        const res = await fetch(
+          'https://aig-user-side.vercel.app/api/user/profile',
+          {
+            method: 'GET',
+            credentials: 'include',
+            cache: 'no-store',
+          }
+        )
         console.log('Fetching profile data...')
         if (!res.ok) throw new Error('Failed to fetch profile')
         const data = await res.json()
