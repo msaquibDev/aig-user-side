@@ -49,7 +49,7 @@ export default function Login() {
       toast.success("Login successful!");
       router.push("/dashboard");
     } else {
-      toast.error(result?.error || "Invalid credentials");
+      toast.error(result?.error || "Invalid Email or Password");
     }
   };
 

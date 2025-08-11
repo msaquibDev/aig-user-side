@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 import { Profile } from "@/app/data/profile";
 
 export default function MyProfileForm({
@@ -18,11 +19,36 @@ export default function MyProfileForm({
 }: {
   initialData: Profile;
 }) {
-  const [formData, setFormData] = useState(initialData);
+  const [formData, setFormData] = useState<Profile>(initialData);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // ✅ Ensure all fields are populated when `initialData` changes
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        photo: initialData.photo || "/authImg/user.png",
+        fullName: initialData.fullName || "",
+        prefix: initialData.prefix || "",
+        designation: initialData.designation || "",
+        affiliation: initialData.affiliation || "",
+        councilState: initialData.councilState || "",
+        councilReg: initialData.councilReg || "",
+        phone: initialData.phone || "",
+        email: initialData.email || "",
+        country: initialData.country || "",
+        gender: initialData.gender || "",
+        city: initialData.city || "",
+        state: initialData.state || "",
+        mealPreference: initialData.mealPreference || "",
+        pincode: initialData.pincode || "",
+      });
+    }
+  }, [initialData]);
 
   const handleChange = (field: keyof Profile, value: string) => {
-    setFormData({ ...formData, [field]: value });
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -36,32 +62,61 @@ export default function MyProfileForm({
       "image/webp",
       "image/jpg",
     ];
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
 
     if (!validTypes.includes(file.type)) {
       setPhotoError("Unsupported file type. Use JPG, JPEG, PNG, GIF, or WEBP.");
       return;
     }
-
     if (file.size > maxSize) {
       setPhotoError("File size exceeds 5MB. Please choose a smaller file.");
       return;
     }
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setFormData((prev) => ({ ...prev, photo: reader.result as string }));
-      setPhotoError("");
-    };
-    reader.readAsDataURL(file);
+    setPhotoFile(file);
+    setFormData((prev) => ({ ...prev, photo: URL.createObjectURL(file) }));
+    setPhotoError("");
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const formDataObj = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value) formDataObj.append(key, value.toString());
+      });
+
+      if (photoFile) {
+        formDataObj.append("profilePicture", photoFile);
+      }
+
+      const res = await fetch("/api/user/profile", {
+        method: "PUT",
+        body: formDataObj,
+      });
+
+      if (!res.ok) throw new Error("Failed to update profile");
+
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      console.error(error);
+      toast.error("Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="bg-white border border-gray-200 shadow-sm rounded-md p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white border border-gray-200 shadow-sm rounded-md p-6"
+    >
       {/* Profile Photo */}
       <div className="flex items-center gap-4 mb-6">
         <img
-          src={formData.photo || "/default-avatar.png"}
+          src={formData.photo || "/authImg/user.png"}
           alt="Profile"
           className="w-16 h-16 rounded-full object-cover border border-gray-300 cursor-pointer"
         />
@@ -80,8 +135,7 @@ export default function MyProfileForm({
             className="hidden"
           />
           <p className="text-xs text-gray-500">
-            File size: Up to 5MB <br />
-            Supported file types: JPG, JPEG, PNG, GIF, WEBP
+            File size: Up to 5MB <br /> Supported: JPG, JPEG, PNG, GIF, WEBP
           </p>
           {photoError && (
             <p className="text-sm text-red-500 mt-1">{photoError}</p>
@@ -130,12 +184,13 @@ export default function MyProfileForm({
           label="Email"
           value={formData.email}
           onChange={(v) => handleChange("email", v)}
+          disabled
         />
-        <SelectField
+        <InputField
           label="Country"
           value={formData.country}
           onChange={(val) => handleChange("country", val)}
-          options={["India", "USA", "UK", "Australia"]}
+          // options={["India", "USA", "UK", "Australia"]}
         />
         <SelectField
           label="Gender"
@@ -143,17 +198,17 @@ export default function MyProfileForm({
           onChange={(val) => handleChange("gender", val)}
           options={["Male", "Female", "Other"]}
         />
-        <SelectField
+        <InputField
           label="City"
           value={formData.city}
           onChange={(val) => handleChange("city", val)}
-          options={["Hyderabad", "Mumbai", "Delhi", "Chennai"]}
+          // options={["Hyderabad", "Mumbai", "Delhi", "Chennai"]}
         />
-        <SelectField
+        <InputField
           label="State"
           value={formData.state}
           onChange={(val) => handleChange("state", val)}
-          options={["Telangana", "Maharashtra", "Delhi", "Tamil Nadu"]}
+          // options={["Telangana", "Maharashtra", "Delhi", "Tamil Nadu"]}
         />
         <SelectField
           label="Meal Preference"
@@ -161,45 +216,48 @@ export default function MyProfileForm({
           onChange={(val) => handleChange("mealPreference", val)}
           options={["Veg", "Non-Veg", "Vegan"]}
         />
-        <SelectField
+        <InputField
           label="Pincode"
           value={formData.pincode}
-          onChange={(val) => handleChange("pincode", val)}
-          options={["500001", "110001", "600001"]}
+          onChange={(v) => handleChange("pincode", v)}
         />
       </div>
 
       {/* Submit */}
       <div className="mt-10 flex justify-center">
-        <Button className="bg-[#00509E] hover:bg-[#003B73] text-white">
-          Update
+        <Button
+          type="submit"
+          className="bg-[#00509E] hover:bg-[#003B73] text-white"
+          disabled={loading}
+        >
+          {loading ? "Updating..." : "Update"}
         </Button>
       </div>
-    </div>
+    </form>
   );
 }
 
-// ------------------------
-// Helper Input Component
-// ------------------------
 const InputField = ({
   label,
   value,
   onChange,
+  disabled,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
+  disabled?: boolean;
 }) => (
   <div>
     <Label>{label}</Label>
-    <Input value={value} onChange={(e) => onChange(e.target.value)} />
+    <Input
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      disabled={disabled}
+    />
   </div>
 );
 
-// ------------------------
-// Helper Select Component
-// ------------------------
 const SelectField = ({
   label,
   value,
