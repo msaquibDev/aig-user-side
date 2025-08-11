@@ -12,7 +12,10 @@ export default function ProfilePage() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const res = await fetch("/api/user/profile", { method: "GET" });
+        const res = await fetch("/api/user/profile", {
+          method: "GET",
+          credentials: "include",
+        });
         console.log("Fetching profile data...");
         if (!res.ok) throw new Error("Failed to fetch profile");
         const data = await res.json();
