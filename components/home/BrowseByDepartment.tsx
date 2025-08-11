@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -78,20 +77,19 @@ export default function BrowseByDepartment() {
         {sortedEvents.map((event) => (
           <Card
             key={event.id}
-            className="flex flex-col rounded-xl overflow-hidden shadow-md border w-full mx-auto h-full"
+            className="group flex flex-col rounded-xl overflow-hidden shadow-md border bg-white w-full mx-auto hover:shadow-lg transition-all duration-300 h-full"
             style={{ maxWidth: "350px" }}
           >
             {/* Image container - perfectly flush with edges */}
             <div
-              className="aspect-[3/4] w-full"
-              // style={{ aspectRatio: "1/1.414" }}
+              className="w-full p-0 m-0 overflow-hidden"
+              style={{ aspectRatio: "1/1.414" }}
             >
               <img
                 src={event.image}
                 alt={event.title}
-                width={400}
-                height={500}
-                className="w-full h-full object-cover p-0 m-0 block"
+                className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
+                loading="lazy"
               />
             </div>
 
@@ -114,7 +112,7 @@ export default function BrowseByDepartment() {
               {/* Button will now always be at the bottom */}
               <Button
                 onClick={() => router.push(`/login`)}
-                className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors"
+                className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer"
               >
                 Register
               </Button>

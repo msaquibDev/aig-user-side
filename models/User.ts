@@ -1,6 +1,6 @@
 // models/User.ts
-import mongoose, { Document, Schema } from 'mongoose';
-import bcrypt from 'bcryptjs';
+import mongoose, { Document, Schema } from "mongoose";
+import bcrypt from "bcryptjs";
 
 /**
  * User Interface
@@ -20,7 +20,7 @@ export interface IUser extends Document {
   state?: string;
   pincode?: string;
   mealPreference?: string;
-  profilePicture?: string; 
+  profilePicture?: string;
   password: string;
   comparePassword(candidatePassword: string): Promise<boolean>;
   resetPasswordToken?: string;
@@ -35,34 +35,34 @@ const userSchema = new Schema<IUser>(
     // 🔹 Required Fields
     prefix: {
       type: String,
-      required: [true, 'Prefix is required'],
+      required: [true, "Prefix is required"],
     },
     fullname: {
       type: String,
-      required: [true, 'Full name is required'],
+      required: [true, "Full name is required"],
     },
     affiliation: {
       type: String,
-      required: [true, 'Affiliation is required'],
+      required: [true, "Affiliation is required"],
     },
     email: {
       type: String,
-      required: [true, 'Email is required'],
+      required: [true, "Email is required"],
       unique: true,
       lowercase: true,
       trim: true,
     },
     mobile: {
       type: String,
-      required: [true, 'Mobile number is required'],
+      required: [true, "Mobile number is required"],
     },
     country: {
       type: String,
-      required: [true, 'Country is required'],
+      required: [true, "Country is required"],
     },
     password: {
       type: String,
-      required: [true, 'Password is required'],
+      required: [true, "Password is required"],
       select: false,
     },
 
@@ -78,7 +78,6 @@ const userSchema = new Schema<IUser>(
     },
     gender: {
       type: String,
-      enum: ['Male', 'Female', 'Other'],
     },
     city: {
       type: String,
@@ -92,10 +91,10 @@ const userSchema = new Schema<IUser>(
     mealPreference: {
       type: String,
     },
-    profilePicture: { 
-      type: String 
+    profilePicture: {
+      type: String,
     },
-    
+
     // 🔒 Password Reset
     resetPasswordToken: {
       type: String,
@@ -114,8 +113,8 @@ const userSchema = new Schema<IUser>(
 /**
  * Pre-save Middleware - Hash password
  */
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);
   next();
 });
@@ -123,12 +122,14 @@ userSchema.pre('save', async function (next) {
 /**
  * Compare Password Method
  */
-userSchema.methods.comparePassword = async function (candidatePassword: string) {
+userSchema.methods.comparePassword = async function (
+  candidatePassword: string
+) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
 /**
  * Export User Model
  */
-const User = mongoose.models.User || mongoose.model<IUser>('User', userSchema);
+const User = mongoose.models.User || mongoose.model<IUser>("User", userSchema);
 export default User;

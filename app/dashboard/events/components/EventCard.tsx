@@ -1,89 +1,89 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { CalendarDays, MapPin, Ticket } from 'lucide-react'
-import { Input } from '@/components/ui/input'
+import { useState } from "react";
+import { CalendarDays, MapPin, Ticket } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
-import { Button } from '@/components/ui/button'
-import { Card } from '@/components/ui/card'
-import Image from 'next/image'
-import clsx from 'clsx'
-import { useRouter } from 'next/navigation'
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import Image from "next/image";
+import clsx from "clsx";
+import { useRouter } from "next/navigation";
 
 // Dummy data
 const dummyEvents = [
   {
-    id: '1',
-    title: 'AIG IBD Summit 2025',
-    dateRange: '25 Apr 2025 – 27 Apr 2025',
-    location: 'HICC Novotel, Hyderabad, India',
-    eventType: 'CME',
-    image: '/eventImg/event1.png',
-    status: 'upcoming',
+    id: "1",
+    title: "AIG IBD Summit 2025",
+    dateRange: "25 Apr 2025 – 27 Apr 2025",
+    location: "HICC Novotel, Hyderabad, India",
+    eventType: "CME",
+    image: "/eventImg/event1.png",
+    status: "upcoming",
     registered: true,
     daysLeft: 2,
   },
   {
-    id: '2',
-    title: 'Gut, Liver & Lifelines',
-    dateRange: '1 Jun 2025',
-    location: 'Auditorium, AIG Hospitals',
-    eventType: 'Workshop',
-    image: '/eventImg/event2.jpg',
-    status: 'live',
+    id: "2",
+    title: "Gut, Liver & Lifelines",
+    dateRange: "1 Jun 2025",
+    location: "Auditorium, AIG Hospitals",
+    eventType: "Workshop",
+    image: "/eventImg/event2.jpg",
+    status: "live",
     registered: true,
   },
   {
-    id: '3',
-    title: 'Tiny Guts Symposium',
-    dateRange: '1 June 2025',
-    location: 'Auditorium, AIG Hospitals',
-    eventType: 'Conference',
-    image: '/eventImg/event3.png',
-    status: 'upcoming',
+    id: "3",
+    title: "Tiny Guts Symposium",
+    dateRange: "1 June 2025",
+    location: "Auditorium, AIG Hospitals",
+    eventType: "Conference",
+    image: "/eventImg/event3.png",
+    status: "upcoming",
     registered: false,
     daysLeft: 5,
   },
   {
-    id: '4',
-    title: 'Liver Science 2024',
-    dateRange: '15 Mar 2024',
-    location: 'AIG Hospitals',
-    eventType: 'CME',
-    image: '/eventImg/event4.jpg',
-    status: 'past',
+    id: "4",
+    title: "Liver Science 2024",
+    dateRange: "15 Mar 2024",
+    location: "AIG Hospitals",
+    eventType: "CME",
+    image: "/eventImg/event4.jpg",
+    status: "past",
     registered: false,
   },
-]
+];
 
-const TABS = ['Registered', 'All', 'Past']
-const FILTERS = ['All', 'CME', 'Workshop', 'Conference']
+const TABS = ["Registered", "All", "Past"];
+const FILTERS = ["All", "CME", "Workshop", "Conference"];
 
 export default function EventTabs() {
-  const [activeTab, setActiveTab] = useState('Registered')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [filterType, setFilterType] = useState('All')
+  const [activeTab, setActiveTab] = useState("Registered");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState("All");
 
-  const router = useRouter()
+  const router = useRouter();
 
   const filteredEvents = dummyEvents
     .filter((event) => {
-      if (activeTab === 'Registered') return event.registered
-      if (activeTab === 'Past') return event.status === 'past'
-      return true
+      if (activeTab === "Registered") return event.registered;
+      if (activeTab === "Past") return event.status === "past";
+      return true;
     })
     .filter((event) =>
       event.title.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .filter((event) =>
-      filterType === 'All' ? true : event.eventType === filterType
-    )
+      filterType === "All" ? true : event.eventType === filterType
+    );
 
   return (
     <section className="px-4 md:px-8 py-8">
@@ -96,10 +96,10 @@ export default function EventTabs() {
             key={tab}
             onClick={() => setActiveTab(tab)}
             className={clsx(
-              'pb-2 transition-all cursor-pointer',
+              "pb-2 transition-all cursor-pointer",
               activeTab === tab
-                ? 'border-b-2 border-blue-800 text-blue-900'
-                : 'text-gray-500 hover:text-blue-800'
+                ? "border-b-2 border-blue-800 text-blue-900"
+                : "text-gray-500 hover:text-blue-800"
             )}
           >
             {tab}
@@ -135,7 +135,7 @@ export default function EventTabs() {
         {filteredEvents.map((event) => (
           <Card
             key={event.id}
-            style={{ maxWidth: '350px' }}
+            style={{ maxWidth: "350px" }}
             className="flex flex-col rounded-xl overflow-hidden shadow-md border w-full mx-auto h-full"
           >
             {/* Image */}
@@ -169,11 +169,11 @@ export default function EventTabs() {
                 </div>
 
                 <div className="mt-4">
-                  {event.status === 'live' ? (
+                  {event.status === "live" ? (
                     <div className="w-full bg-green-100 text-green-800 text-xs font-semibold text-center px-3 py-1.5 rounded-md">
                       ✅ Event is Live
                     </div>
-                  ) : event.status === 'past' ? (
+                  ) : event.status === "past" ? (
                     <div className="w-full bg-gray-100 text-gray-700 text-xs font-semibold text-center px-3 py-1.5 rounded-md">
                       🕓 Completed
                     </div>
@@ -183,9 +183,9 @@ export default function EventTabs() {
                     </div>
                   ) : (
                     <Button
-                      className="w-full bg-[#00509E] hover:bg-[#003B73] text-white text-xs font-semibold py-2 rounded-md"
+                      className="w-full bg-[#00509E] hover:bg-[#003B73] text-white text-xs font-semibold py-2 rounded-md cursor-pointer"
                       onClick={() =>
-                        router.push('/registration/my-registration')
+                        router.push("/registration/my-registration")
                       }
                     >
                       Register
@@ -198,5 +198,5 @@ export default function EventTabs() {
         ))}
       </div>
     </section>
-  )
+  );
 }

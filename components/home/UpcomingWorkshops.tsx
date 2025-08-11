@@ -13,7 +13,10 @@ export default function UpcomingWorkshops() {
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
           Upcoming Workshops
         </h2>
-        <Button variant="outline" className="text-sm border-gray-300">
+        <Button
+          variant="outline"
+          className="text-sm border-gray-300 cursor-pointer"
+        >
           View All
         </Button>
       </div>
@@ -58,7 +61,7 @@ export default function UpcomingWorkshops() {
               </div>
 
               {/* Button now consistently positioned at bottom */}
-              <Button className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-300 shadow hover:shadow-md">
+              <Button className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-300 shadow hover:shadow-md cursor-pointer">
                 Register
               </Button>
             </div>

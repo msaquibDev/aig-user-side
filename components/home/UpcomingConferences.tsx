@@ -12,7 +12,10 @@ export default function UpcomingConferences() {
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
           Upcoming Conferences
         </h2>
-        <Button variant="outline" className="text-sm border-gray-300">
+        <Button
+          variant="outline"
+          className="text-sm border-gray-300 cursor-pointer"
+        >
           View All
         </Button>
       </div>
@@ -21,15 +24,18 @@ export default function UpcomingConferences() {
         {conferences.map((event) => (
           <Card
             key={event.id}
-            className="flex flex-col rounded-xl overflow-hidden shadow-md border bg-white w-full mx-auto h-full"
+            className="group flex flex-col rounded-xl overflow-hidden shadow-md border bg-white w-full mx-auto hover:shadow-lg transition-all duration-300 h-full"
             style={{ maxWidth: "350px" }}
           >
             {/* Image container - perfectly aligned with card edges */}
-            <div className="w-full p-0 m-0" style={{ aspectRatio: "1/1.414" }}>
+            <div
+              className="w-full p-0 m-0 overflow-hidden"
+              style={{ aspectRatio: "1/1.414" }}
+            >
               <img
                 src={event.image}
                 alt={event.title}
-                className="w-full h-full object-cover p-0 m-0 block"
+                className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
               />
             </div>
@@ -53,7 +59,7 @@ export default function UpcomingConferences() {
               </div>
 
               {/* Button will now always be at the bottom */}
-              <Button className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-200">
+              <Button className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-200 cursor-pointer">
                 Register
               </Button>
             </div>
