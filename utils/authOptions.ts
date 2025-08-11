@@ -1,33 +1,38 @@
-import CredentialsProvider from 'next-auth/providers/credentials';
-import type { NextAuthOptions } from 'next-auth';
-import { connectDB } from '@/lib/mongodb';
-import User from '@/models/User';
-import bcrypt from 'bcryptjs';
+import CredentialsProvider from "next-auth/providers/credentials";
+import type { NextAuthOptions } from "next-auth";
+import { connectDB } from "@/lib/mongodb";
+import User from "@/models/User";
+import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
   },
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         await connectDB();
 
-        const user = await User.findOne({ email: credentials?.email }).select('+password');
+        const user = await User.findOne({ email: credentials?.email }).select(
+          "+password"
+        );
         if (!user) return null;
 
-        const isMatch = await bcrypt.compare(credentials!.password, user.password);
+        const isMatch = await bcrypt.compare(
+          credentials!.password,
+          user.password
+        );
         if (!isMatch) return null;
 
         return {
           id: user._id.toString(),
           email: user.email,
-          name: user.fullname || '',
+          name: user.fullname || "",
         };
       },
     }),
@@ -51,7 +56,7 @@ export const authOptions: NextAuthOptions = {
     },
   },
   pages: {
-    signIn: '/auth/login',
+    signIn: "/login",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };

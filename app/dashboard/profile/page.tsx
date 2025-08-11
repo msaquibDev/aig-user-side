@@ -46,7 +46,14 @@ export default function ProfilePage() {
   }, []);
 
   if (loading) {
-    return <p className="p-4">Loading profile...</p>;
+    return (
+      <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <span className="ml-3 text-blue-500 font-medium">
+          Loading profile...
+        </span>
+      </div>
+    );
   }
 
   if (!profile) {

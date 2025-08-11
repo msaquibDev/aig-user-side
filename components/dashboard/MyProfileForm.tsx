@@ -227,7 +227,7 @@ export default function MyProfileForm({
       <div className="mt-10 flex justify-center">
         <Button
           type="submit"
-          className="bg-[#00509E] hover:bg-[#003B73] text-white"
+          className="bg-[#00509E] hover:bg-[#003B73] text-white cursor-pointer"
           disabled={loading}
         >
           {loading ? "Updating..." : "Update"}
