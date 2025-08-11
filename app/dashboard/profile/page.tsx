@@ -15,6 +15,7 @@ export default function ProfilePage() {
         const res = await fetch("/api/user/profile", {
           method: "GET",
           credentials: "include",
+          cache: "no-store",
         });
         console.log("Fetching profile data...");
         if (!res.ok) throw new Error("Failed to fetch profile");
