@@ -38,6 +38,17 @@ async function requestToNodeRequest(req: NextRequest) {
 
   return stream
 }
+// CORS helper
+const corsHeaders = {
+  'Access-Control-Allow-Origin': 'https://aig-user-side.vercel.app',
+  'Access-Control-Allow-Methods': 'GET,PUT,OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type,Authorization',
+};
+
+// Handle OPTIONS preflight
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
+}
 
 // GET profile
 export async function GET(req: NextRequest) {
@@ -46,7 +57,7 @@ export async function GET(req: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401, headers: corsHeaders })
     }
 
     const user = await User.findOne({ email: session.user.email }).select(
@@ -54,18 +65,13 @@ export async function GET(req: NextRequest) {
     )
 
     if (!user) {
-      return NextResponse.json({ message: 'User not found' }, { status: 404 })
+      return NextResponse.json({ message: 'User not found' }, { status: 404, headers: corsHeaders })
     }
 
-    return new NextResponse(JSON.stringify(user), {
-      headers: {
-        'Access-Control-Allow-Origin': '*', // Or specify your frontend domain
-        'Content-Type': 'application/json',
-      },
-    })
+    return NextResponse.json(user, { status: 200, headers: corsHeaders })
   } catch (error) {
     console.error('Profile GET error:', error)
-    return NextResponse.json({ message: 'Server Error' }, { status: 500 })
+    return NextResponse.json({ message: 'Server Error' }, { status: 500, headers: corsHeaders })
   }
 }
 
@@ -76,7 +82,7 @@ export async function PUT(req: NextRequest) {
     const session = await getServerSession(authOptions)
 
     if (!session?.user?.email) {
-      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401, headers: corsHeaders })
     }
 
     // Convert NextRequest to Node.js-compatible request
@@ -133,10 +139,10 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json(
       { message: 'Profile updated', user: updatedUser },
-      { status: 200 }
+      { status: 200, headers: corsHeaders }
     )
   } catch (error) {
     console.error('Profile PUT error:', error)
-    return NextResponse.json({ message: 'Server Error' }, { status: 500 })
+    return NextResponse.json({ message: 'Server Error' }, { status: 500, headers: corsHeaders })
   }
 }
