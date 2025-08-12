@@ -13,7 +13,10 @@ export default function UpcomingCMEs() {
         <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
           Upcoming CMEs
         </h2>
-        <Button variant="outline" className="text-sm border-gray-300">
+        <Button
+          variant="outline"
+          className="text-sm border-gray-300 cursor-pointer"
+        >
           View All
         </Button>
       </div>
@@ -58,7 +61,7 @@ export default function UpcomingCMEs() {
               </div>
 
               {/* Button now consistently at bottom */}
-              <Button className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-300 shadow-md hover:shadow-lg">
+              <Button className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-300 shadow-md hover:shadow-lg cursor-pointer">
                 Register
               </Button>
             </div>

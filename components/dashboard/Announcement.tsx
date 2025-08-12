@@ -6,6 +6,22 @@ import { Card } from "@/components/ui/card";
 import { Announcement } from "@/app/data/announcement";
 
 export default function AnnouncementCard({ data }: { data: Announcement }) {
+  // Dummy download function
+  const handleDownload = (certName: string) => {
+    const dummyContent = `This is your certificate for: ${certName}`;
+    const blob = new Blob([dummyContent], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${certName.replace(/\s+/g, "_")}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(url);
+  };
+
   return (
     <Card className="p-4 mb-4 shadow-sm">
       <div className="flex justify-between items-start">
@@ -13,9 +29,11 @@ export default function AnnouncementCard({ data }: { data: Announcement }) {
           <Calendar size={16} />
           {data.date}
         </div>
-        <a href={data.downloadUrl} target="_blank" rel="noreferrer">
-          <Download size={20} className="text-blue-600 hover:text-blue-800" />
-        </a>
+        <Download
+          size={20}
+          onClick={() => handleDownload(data.title)}
+          className="text-blue-600 hover:text-blue-800 cursor-pointer"
+        />
       </div>
 
       <h3 className="text-base font-semibold mb-1">{data.title}</h3>

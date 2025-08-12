@@ -49,7 +49,7 @@ export default function Login() {
       toast.success("Login successful!");
       router.push("/dashboard");
     } else {
-      toast.error(result?.error || "Invalid credentials");
+      toast.error(result?.error || "Invalid Email or Password");
     }
   };
 
@@ -97,7 +97,7 @@ export default function Login() {
 
           <Button
             type="submit"
-            className="mt-4 bg-[#00509E] text-white hover:bg-[#003B73]"
+            className="mt-4 bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
             disabled={isLoading}
           >
             {isLoading ? "Logging in..." : "Login"}

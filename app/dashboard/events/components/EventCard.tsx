@@ -150,8 +150,8 @@ export default function EventTabs() {
             </div>
 
             {/* Content */}
-            <div className="flex flex-col flex-grow px-4 py-3">
-              <div className="flex-grow space-y-2">
+            <div className="flex flex-col flex-grow px-4  pb-3">
+              <div className="flex-grow space-y-1.5">
                 <h4 className="text-lg font-bold text-black line-clamp-2 leading-tight">
                   {event.title}
                 </h4>
@@ -183,7 +183,7 @@ export default function EventTabs() {
                     </div>
                   ) : (
                     <Button
-                      className="w-full bg-[#00509E] hover:bg-[#003B73] text-white text-xs font-semibold py-2 rounded-md"
+                      className="w-full bg-[#00509E] hover:bg-[#003B73] text-white text-xs font-semibold py-2 rounded-md cursor-pointer"
                       onClick={() =>
                         router.push("/registration/my-registration")
                       }

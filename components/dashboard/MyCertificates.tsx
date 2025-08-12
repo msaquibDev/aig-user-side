@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Download, Filter, ChevronLeft, ChevronRight } from "lucide-react";
 import { getDummyCertificates } from "@/app/data/certificates";
 
-
 export default function MyCertificates() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -30,6 +29,22 @@ export default function MyCertificates() {
 
   const handleNext = () => {
     if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+  };
+
+  // Dummy download function
+  const handleDownload = (certName: string) => {
+    const dummyContent = `This is your certificate for: ${certName}`;
+    const blob = new Blob([dummyContent], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${certName.replace(/\s+/g, "_")}.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    window.URL.revokeObjectURL(url);
   };
 
   return (
@@ -81,7 +96,8 @@ export default function MyCertificates() {
                 <td className="px-4 py-3">
                   <Download
                     size={20}
-                    className="text-blue-600 hover:text-blue-800"
+                    onClick={() => handleDownload(cert.name)}
+                    className="text-blue-600 hover:text-blue-800 cursor-pointer"
                   />
                 </td>
               </tr>

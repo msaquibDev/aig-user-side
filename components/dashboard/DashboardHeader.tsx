@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { signOut } from "next-auth/react";
 
 export function DashboardHeader({
   onMenuToggle,
@@ -16,6 +17,11 @@ export function DashboardHeader({
   // Replace with dynamic values if needed
   const eventTitle = "AIG IBD Summit 2025";
   const eventDateTime = "Sat Aug 2, 2025 | 08:00 PM (IST)";
+
+  const handleLogout = async () => {
+    await signOut({ redirect: false }); // Clear token/session
+    router.push("/login"); // Redirect after session is cleared
+  };
 
   return (
     <header className="flex items-center justify-between px-4 md:px-6 py-3 bg-gradient-to-r from-[#000d4e] to-[#005aa7] shadow sticky top-0 z-50">
@@ -57,7 +63,7 @@ export function DashboardHeader({
           </Avatar>
         </div>
         <Button
-          onClick={() => router.push("/login")}
+          onClick={handleLogout}
           variant="outline"
           className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
         >

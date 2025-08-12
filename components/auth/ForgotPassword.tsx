@@ -43,7 +43,7 @@ export default function ForgotPassword() {
         />
         <Button
           type="submit"
-          className="mt-4 w-full bg-[#00509E] text-white hover:bg-[#003B73]"
+          className="mt-4 w-full bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
           disabled={loading}
         >
           {loading ? "Sending..." : "Send Reset Link"}

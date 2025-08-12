@@ -4,7 +4,7 @@ import "@/app/globals.css";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { ReactNode, useState } from "react";
-
+import { Toaster } from "sonner";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -30,6 +30,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             {/* Scrollable content below header */}
             <main className="mt-[60px] flex-1 overflow-y-auto bg-gray-100 p-4">
               {children}
+              <Toaster position="top-right" richColors />
             </main>
           </div>
         </div>

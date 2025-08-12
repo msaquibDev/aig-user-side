@@ -113,7 +113,7 @@ export default function ResetPassword() {
         </div>
         <Button
           type="submit"
-          className="w-full bg-[#00509E] text-white hover:bg-[#003B73]"
+          className="w-full bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
           disabled={loading}
         >
           {loading ? "Resetting..." : "Reset Password"}
