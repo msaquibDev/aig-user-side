@@ -24,8 +24,13 @@ export const getDummyProfile = (): Profile => ({
   prefix: "Dr",
   designation: "",
   affiliation: "",
+<<<<<<< HEAD
   medicalCouncilRegistration: "",
   medicalCouncilState: "",
+=======
+  medicalCouncilState: "",
+  medicalCouncilRegistration: "",
+>>>>>>> frontend
   phone: "4512666232",
   email: "abc@gmail.com",
   country: "",

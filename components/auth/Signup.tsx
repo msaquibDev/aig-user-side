@@ -137,7 +137,7 @@ export default function Signup() {
             </Label>
             <Input
               id="prefix"
-              placeholder="Eg: Dr, Mr, Ms"
+              placeholder="Eg: Mr/Ms/Dr/Prof"
               {...register("prefix")}
             />
             {errors.prefix && (
