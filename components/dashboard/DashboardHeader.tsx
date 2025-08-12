@@ -6,6 +6,8 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut } from "next-auth/react";
+import { useUserStore } from "@/app/store/useUserStore";
+import { useState } from "react";
 
 export function DashboardHeader({
   onMenuToggle,
@@ -13,14 +15,22 @@ export function DashboardHeader({
   onMenuToggle: () => void;
 }) {
   const router = useRouter();
+  const photo = useUserStore((state) => state.photo);
+
+  const [loggingOut, setLoggingOut] = useState(false);
 
   // Replace with dynamic values if needed
   const eventTitle = "AIG IBD Summit 2025";
   const eventDateTime = "Sat Aug 2, 2025 | 08:00 PM (IST)";
 
   const handleLogout = async () => {
-    await signOut({ redirect: false }); // Clear token/session
-    router.push("/login"); // Redirect after session is cleared
+    setLoggingOut(true);
+    try {
+      await signOut({ redirect: false });
+      router.push("/login");
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   return (
@@ -58,13 +68,14 @@ export function DashboardHeader({
           className="cursor-pointer"
         >
           <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
-            <AvatarImage src="/authImg/user.png" />
+            <AvatarImage src={photo || "/authImg/user.png"} />
             <AvatarFallback>U</AvatarFallback>
           </Avatar>
         </div>
         <Button
           onClick={handleLogout}
           variant="outline"
+          disabled={loggingOut}
           className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
         >
           Logout

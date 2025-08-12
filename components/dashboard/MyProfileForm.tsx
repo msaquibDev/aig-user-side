@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Profile } from "@/app/data/profile";
+import { useUserStore } from "@/app/store/useUserStore";
 
 export default function MyProfileForm({
   initialData,
@@ -24,6 +25,8 @@ export default function MyProfileForm({
   const [photoError, setPhotoError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const setUser = useUserStore((state) => state.setUser);
+
   // ✅ Ensure all fields are populated when `initialData` changes
   useEffect(() => {
     if (initialData) {
@@ -34,7 +37,8 @@ export default function MyProfileForm({
         designation: initialData.designation || "",
         affiliation: initialData.affiliation || "",
         medicalCouncilState: initialData.medicalCouncilState || "",
-        medicalCouncilRegistration: initialData.medicalCouncilRegistration || "",
+        medicalCouncilRegistration:
+          initialData.medicalCouncilRegistration || "",
         phone: initialData.phone || "",
         email: initialData.email || "",
         country: initialData.country || "",
@@ -45,6 +49,7 @@ export default function MyProfileForm({
         pincode: initialData.pincode || "",
       });
     }
+    setUser({ photo: initialData.photo, fullName: initialData.fullName });
   }, [initialData]);
 
   const handleChange = (field: keyof Profile, value: string) => {
@@ -74,7 +79,9 @@ export default function MyProfileForm({
     }
 
     setPhotoFile(file);
-    setFormData((prev) => ({ ...prev, photo: URL.createObjectURL(file) }));
+    const previewUrl = URL.createObjectURL(file);
+    setFormData((prev) => ({ ...prev, photo: previewUrl }));
+    setUser({ photo: previewUrl }); // ✅ Update store immediately for live preview
     setPhotoError("");
   };
 
@@ -98,6 +105,8 @@ export default function MyProfileForm({
       });
 
       if (!res.ok) throw new Error("Failed to update profile");
+
+      setUser({ photo: formData.photo, fullName: formData.fullName });
 
       toast.success("Profile updated successfully!");
     } catch (error) {
