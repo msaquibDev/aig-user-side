@@ -27,7 +27,7 @@ export default function ProfilePage() {
           designation: data.designation || '',
           affiliation: data.affiliation || '',
           councilState: data.medicalCouncilState || '',
-          councilReg: data.councilReg || '',
+          councilReg: data.medicalCouncilRegistration || '',
           phone: data.mobile || '',
           email: data.email || '',
           country: data.country || '',
