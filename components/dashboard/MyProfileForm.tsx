@@ -33,8 +33,8 @@ export default function MyProfileForm({
         prefix: initialData.prefix || "",
         designation: initialData.designation || "",
         affiliation: initialData.affiliation || "",
-        councilState: initialData.councilState || "",
-        councilReg: initialData.councilReg || "",
+        medicalCouncilState: initialData.medicalCouncilState || "",
+        medicalCouncilRegistration: initialData.medicalCouncilRegistration || "",
         phone: initialData.phone || "",
         email: initialData.email || "",
         country: initialData.country || "",
@@ -167,13 +167,13 @@ export default function MyProfileForm({
         />
         <InputField
           label="Medical Council State"
-          value={formData.councilState}
-          onChange={(v) => handleChange("councilState", v)}
+          value={formData.medicalCouncilState}
+          onChange={(v) => handleChange("medicalCouncilState", v)}
         />
         <InputField
           label="Medical Council Registration"
-          value={formData.councilReg}
-          onChange={(v) => handleChange("councilReg", v)}
+          value={formData.medicalCouncilRegistration}
+          onChange={(v) => handleChange("medicalCouncilRegistration", v)}
         />
         <InputField
           label="Mobile No."
