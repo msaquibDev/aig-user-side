@@ -3,10 +3,25 @@
 import { Download, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Announcement } from "@/app/data/announcement";
+// import { Announcement } from "@/app/data/announcement";
 import { jsPDF } from "jspdf";
+import { Announcement } from "@/app/dashboard/announcements/page";
 
 export default function AnnouncementCard({ data }: { data: Announcement }) {
+  const formatDate = (isoString: string) => {
+    const date = new Date(isoString);
+    const formattedDate = date.toLocaleString("en-IN", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+      timeZone: "Asia/Kolkata",
+    });
+    return formattedDate.replace(",", " at") + " (IST)";
+  };
+
   // Dummy download function
   const handleDownload = () => {
     const doc = new jsPDF();
@@ -22,7 +37,7 @@ export default function AnnouncementCard({ data }: { data: Announcement }) {
     // Date & Author
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
-    doc.text(`Date: ${data.date}`, 10, 40);
+    doc.text(`Date: ${formatDate(data.updatedAt)} `, 10, 40);
     doc.text(`Author: ${data.author}`, 10, 47);
 
     // Description (multi-line)
@@ -41,7 +56,7 @@ export default function AnnouncementCard({ data }: { data: Announcement }) {
       <div className="flex justify-between items-start">
         <div className="text-sm text-gray-500 flex items-center gap-1 mb-2">
           <Calendar size={16} />
-          {data.date}
+          {formatDate(data.updatedAt)}
         </div>
         <Download
           size={20}
