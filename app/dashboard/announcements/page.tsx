@@ -19,8 +19,12 @@ export default function AnnouncementsPage() {
   useEffect(() => {
     const fetchAnnouncements = async () => {
       try {
-        const res = await fetch("/api/user/announcements");
-        console.log("Response:", res);
+        const res = await fetch("/api/user/announcements", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+        // console.log("Response:", res);
         const json = await res.json();
 
         if (json.success) {
