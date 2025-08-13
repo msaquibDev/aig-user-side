@@ -4,22 +4,36 @@ import { Download, Calendar } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 import { Announcement } from "@/app/data/announcement";
+import { jsPDF } from "jspdf";
 
 export default function AnnouncementCard({ data }: { data: Announcement }) {
   // Dummy download function
-  const handleDownload = (certName: string) => {
-    const dummyContent = `This is your certificate for: ${certName}`;
-    const blob = new Blob([dummyContent], { type: "application/pdf" });
-    const url = window.URL.createObjectURL(blob);
+  const handleDownload = () => {
+    const doc = new jsPDF();
 
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${certName.replace(/\s+/g, "_")}.pdf`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Title
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Event Announcement", 105, 15, { align: "center" });
 
-    window.URL.revokeObjectURL(url);
+    doc.setFontSize(14);
+    doc.text(data.title, 10, 30);
+
+    // Date & Author
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Date: ${data.date}`, 10, 40);
+    doc.text(`Author: ${data.author}`, 10, 47);
+
+    // Description (multi-line)
+    doc.setFontSize(12);
+    doc.text("Description:", 10, 60);
+    doc.setFontSize(11);
+    const splitText = doc.splitTextToSize(data.description, 180);
+    doc.text(splitText, 10, 68);
+
+    // Save PDF
+    doc.save(`${data.title.replace(/\s+/g, "_")}.pdf`);
   };
 
   return (
@@ -31,7 +45,7 @@ export default function AnnouncementCard({ data }: { data: Announcement }) {
         </div>
         <Download
           size={20}
-          onClick={() => handleDownload(data.title)}
+          onClick={handleDownload}
           className="text-blue-600 hover:text-blue-800 cursor-pointer"
         />
       </div>
