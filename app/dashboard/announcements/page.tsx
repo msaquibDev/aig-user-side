@@ -24,7 +24,7 @@ export default function AnnouncementsPage() {
           credentials: "include",
           cache: "no-store",
         });
-        // console.log("Response:", res);
+        if (!res.ok) throw new Error("Failed to fetch announcements");
         const json = await res.json();
 
         if (json.success) {
@@ -60,13 +60,6 @@ export default function AnnouncementsPage() {
       <h1 className="text-2xl font-semibold mb-4 text-[#00509E]">
         Announcements
       </h1>
-
-      {/* {loading && <p>Loading announcements...</p>} */}
-
-      {/* {!loading && announcements.length === 0 && (
-        <p className="text-gray-500">No announcements available</p>
-      )} */}
-
       {announcements.map((announcement) => (
         <AnnouncementCard key={announcement._id} data={announcement} />
       ))}

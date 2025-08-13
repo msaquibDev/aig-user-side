@@ -17,7 +17,6 @@ export default function ProfilePage() {
           credentials: 'include',
           cache: 'no-store',
         })
-        console.log('Fetching profile data...')
         if (!res.ok) throw new Error('Failed to fetch profile')
         const data = await res.json()
         setProfile({
