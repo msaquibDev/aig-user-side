@@ -21,6 +21,10 @@ export async function GET() {
       { success: true, data: announcements },
       { status: 200 }
     );
+    return NextResponse.json(
+      { success: true, data: announcements },
+      { status: 200 }
+    );
   } catch (error: any) {
     console.error("GET Announcements Error:", error);
     return NextResponse.json(
