@@ -38,7 +38,7 @@ export default function Footer() {
               { label: "Conferences", href: "/conferences" },
               { label: "Workshops", href: "/workshops" },
               { label: "CMEs", href: "/cmes" },
-              { label: "Login/ Sign Up", href: "/account/login" },
+              { label: "Login/ Sign Up", href: "/login" },
             ].map((item) => (
               <li key={item.href}>
                 <Link href={item.href} className="hover:underline">

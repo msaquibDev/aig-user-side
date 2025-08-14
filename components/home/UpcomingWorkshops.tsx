@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays, MapPin } from "lucide-react";
 import { workshops } from "@/app/data/workshops"; // Assuming you have a data file for workshops
+import { useRouter } from "next/navigation";
 
 export default function UpcomingWorkshops() {
+  const router = useRouter();
   return (
     <section className="bg-[#F8FAFC] px-4 md:px-12 py-12">
       {/* Heading + View All */}
@@ -61,7 +63,10 @@ export default function UpcomingWorkshops() {
               </div>
 
               {/* Button now consistently positioned at bottom */}
-              <Button className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-300 shadow hover:shadow-md cursor-pointer">
+              <Button
+                className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-300 shadow hover:shadow-md cursor-pointer"
+                onClick={() => router.push("/login")}
+              >
                 Register
               </Button>
             </div>

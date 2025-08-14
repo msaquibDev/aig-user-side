@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDays, MapPin } from "lucide-react";
 import { cmes } from "@/app/data/cmes"; // Assuming you have a data file for CMEs
+import { useRouter } from "next/navigation";
 
 export default function UpcomingCMEs() {
+  const router = useRouter();
   return (
     <section className="bg-[#F8FAFC] px-4 md:px-12 py-12">
       {/* Heading + View All */}
@@ -61,7 +63,10 @@ export default function UpcomingCMEs() {
               </div>
 
               {/* Button now consistently at bottom */}
-              <Button className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-300 shadow-md hover:shadow-lg cursor-pointer">
+              <Button
+                className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-300 shadow-md hover:shadow-lg cursor-pointer"
+                onClick={() => router.push("/login")}
+              >
                 Register
               </Button>
             </div>
