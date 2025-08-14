@@ -8,19 +8,7 @@ import mongoose from "mongoose";
 export async function GET() {
   try {
     await connectDB();
-
-   const count = await Announcement.countDocuments();
-   const dbName = mongoose.connection.name;
-
-   // Log to Vercel server logs
-   console.log("Connected to DB:", dbName);
-   console.log("Total announcements:", count);
-
     const announcements = await Announcement.find().sort({ createdAt: -1 });
-    return NextResponse.json(
-      { success: true, data: announcements },
-      { status: 200 }
-    );
     return NextResponse.json(
       { success: true, data: announcements },
       { status: 200 }
