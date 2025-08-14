@@ -2,14 +2,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Announcement from "@/models/Announcements";
+import mongoose from "mongoose";
 
 // 📌 GET: Fetch all announcements
 export async function GET() {
   try {
     await connectDB();
 
+   const count = await Announcement.countDocuments();
+   const dbName = mongoose.connection.name;
+
+   // Log to Vercel server logs
+   console.log("Connected to DB:", dbName);
+   console.log("Total announcements:", count);
+
     const announcements = await Announcement.find().sort({ createdAt: -1 });
-    return NextResponse.json({ success: true, data: announcements }, { status: 200 });
+    return NextResponse.json(
+      { success: true, data: announcements },
+      { status: 200 }
+    );
   } catch (error: any) {
     console.error("GET Announcements Error:", error);
     return NextResponse.json(
