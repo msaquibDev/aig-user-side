@@ -2,9 +2,13 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { signOut, useSession } from "next-auth/react";
+import { useUserStore } from "@/app/store/useUserStore";
+import { useEffect, useState } from "react";
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -17,9 +21,39 @@ const navItems = [
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [loggingOut, setLoggingOut] = useState(false);
+  const router = useRouter();
+
+  const { data: session } = useSession();
+  const user = session?.user;
+
+  const { photo, fullName, setUser } = useUserStore();
+
+  // keep Zustand store in sync with session user
+  useEffect(() => {
+    if (user) {
+      setUser({
+        photo: user.image || "/authImg/user.png",
+        fullName: user.name || "",
+      });
+    }
+  }, [user, setUser]);
+
+  const isLoggedIn = !!user;
+
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      await signOut({ redirect: false });
+      setUser({ photo: "/authImg/user.png", fullName: "" }); // reset
+      router.push("/");
+    } finally {
+      setLoggingOut(false);
+    }
+  };
 
   return (
-    <header className="w-full bg-gradient-to-r from-[#02075d] to-[#1e3a8a] text-white">
+    <header className="w-full bg-gradient-to-r from-[#02075d] to-[#1e3a8a] text-white sticky top-0 z-50">
       <div className="mx-auto max-w-8xl px-8 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/">
@@ -28,6 +62,7 @@ export default function Header() {
             alt="AIG Logo"
             width={120}
             height={40}
+            className="cursor-pointer"
           />
         </Link>
 
@@ -44,6 +79,41 @@ export default function Header() {
           ))}
         </nav>
 
+        {/* Right Side (Auth conditional) */}
+        <div className="flex items-center gap-4">
+          {isLoggedIn ? (
+            <>
+              <Link href="/dashboard/profile">
+                <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
+                  <AvatarImage
+                    src={photo || user?.image || "/authImg/user.png"}
+                  />
+                  <AvatarFallback>
+                    {user?.name?.[0] ?? fullName?.[0] ?? "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </Link>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                disabled={loggingOut}
+                className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
+              >
+                {loggingOut ? "Logging out..." : "Logout"}
+              </Button>
+            </>
+          ) : (
+            <Link href="/login">
+              <Button
+                variant="outline"
+                className="mt-2 w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] cursor-pointer"
+              >
+                Login / Sign Up
+              </Button>
+            </Link>
+          )}
+        </div>
+
         {/* Mobile Hamburger */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
@@ -51,16 +121,6 @@ export default function Header() {
         >
           {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
-
-        {/* Login / Signup (Always Visible) */}
-        <Link href="/login" className="hidden md:inline-block">
-          <Button
-            variant="outline"
-            className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] hover:border-white transition cursor-pointer"
-          >
-            Login / Sign Up
-          </Button>
-        </Link>
       </div>
 
       {/* Mobile Menu Dropdown */}
@@ -76,14 +136,24 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
-          <Link href="/login">
+          {!isLoggedIn ? (
+            <Link href="/login">
+              <Button
+                variant="outline"
+                className="mt-2 w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] cursor-pointer"
+              >
+                Login / Sign Up
+              </Button>
+            </Link>
+          ) : (
             <Button
+              onClick={handleLogout}
               variant="outline"
-              className="mt-2 w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68]"
+              className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
             >
-              Login / Sign Up
+              Logout
             </Button>
-          </Link>
+          )}
         </div>
       )}
 
