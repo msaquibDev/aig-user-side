@@ -17,7 +17,7 @@ export default function PaymentHistoryTable() {
 
   const filteredPayments = allPayments.filter(
     (payment) =>
-      payment.id.toLowerCase().includes(search.toLowerCase()) ||
+      payment.id.toString().includes(search.toLowerCase()) ||
       payment.mode.toLowerCase().includes(search.toLowerCase()) ||
       (payment.status as string).toLowerCase().includes(search.toLowerCase())
   );

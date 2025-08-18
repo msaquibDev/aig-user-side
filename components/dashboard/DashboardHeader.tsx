@@ -12,7 +12,7 @@ import { useState } from "react";
 export function DashboardHeader({
   onMenuToggle,
 }: {
-  onMenuToggle: () => void;
+  onMenuToggle?: () => void;
 }) {
   const router = useRouter();
   const photo = useUserStore((state) => state.photo);

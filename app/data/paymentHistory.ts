@@ -1,7 +1,7 @@
 export type PaymentStatus = "Success" | "Failed";
 
 export type PaymentRecord = {
-  id: string;
+  id: number;
   dateTime: string;
   mode: string;
   amount: string;
@@ -11,7 +11,7 @@ export type PaymentRecord = {
 
 export const dummyPayments = (): PaymentRecord[] => [
   {
-    id: "#12341",
+    id: 1,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹42,000",
@@ -19,7 +19,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#45765",
+    id: 2,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "Credit Card",
     amount: "₹20,000",
@@ -27,7 +27,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#56212",
+    id: 3,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹12,000",
@@ -35,7 +35,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#12341",
+    id: 4,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹42,000",
@@ -43,7 +43,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#45765",
+    id: 5,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "Credit Card",
     amount: "₹20,000",
@@ -51,7 +51,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#56212",
+    id: 6,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹12,000",
@@ -59,7 +59,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#12341",
+    id: 7,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹42,000",
@@ -67,7 +67,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#45765",
+    id: 8,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "Credit Card",
     amount: "₹20,000",
@@ -75,7 +75,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#56212",
+    id: 9,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹12,000",
@@ -83,7 +83,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#12341",
+    id: 10,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹42,000",
@@ -91,7 +91,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#45765",
+    id: 11,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "Credit Card",
     amount: "₹20,000",
@@ -99,7 +99,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#56212",
+    id: 12,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹12,000",
@@ -107,7 +107,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#12341",
+    id: 13,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹42,000",
@@ -115,7 +115,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#45765",
+    id: 14,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "Credit Card",
     amount: "₹20,000",
@@ -123,7 +123,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#56212",
+    id: 15,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹12,000",
@@ -131,7 +131,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#12341",
+    id: 16,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹42,000",
@@ -139,7 +139,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#45765",
+    id: 17,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "Credit Card",
     amount: "₹20,000",
@@ -147,7 +147,7 @@ export const dummyPayments = (): PaymentRecord[] => [
     orderUrl: "#",
   },
   {
-    id: "#56212",
+    id: 18,
     dateTime: "11/11/24 07:00:19 PM (IST)",
     mode: "UPI",
     amount: "₹12,000",

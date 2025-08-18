@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import Link from "next/link";
-import toast from "react-hot-toast";
 import { signIn } from "next-auth/react";
+import { toast } from "sonner";
 
 const schema = z.object({
   email: z.string().email({ message: "Invalid email" }),
@@ -25,6 +25,7 @@ type FormData = z.infer<typeof schema>;
 export default function Login() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -60,7 +61,7 @@ export default function Login() {
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-3 px-8 py-10"
         >
-          <h2 className="text-2xl font-semibold mb-4">Login</h2>
+          <h2 className="text-[#00509E] text-2xl font-semibold mb-4">Login</h2>
 
           <div className="grid gap-1">
             <Label htmlFor="email">Email</Label>
@@ -77,37 +78,48 @@ export default function Login() {
 
           <div className="grid gap-1">
             <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Enter your password"
-              {...register("password")}
-            />
+
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
+                {...register("password")}
+                className="pr-10" // extra padding so text doesn’t overlap icon
+              />
+              <div
+                className="absolute right-3 top-1/2 -translate-y-1/2 cursor-pointer text-gray-500 hover:text-black"
+                onClick={() => setShowPassword((prev) => !prev)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </div>
+            </div>
+
             {errors.password && (
               <p className="text-sm text-red-600">{errors.password.message}</p>
             )}
           </div>
 
-          <Link
-            href="/forgot-password"
-            className="text-sm text-blue-600 underline -mt-1 mb-3"
+          <Button
+            variant="link"
+            className="text-sm text-blue-600 px-0 justify-start text-left"
           >
-            Forgot Password?
-          </Link>
+            <Link href="/forgot-password">Forgot Password?</Link>
+          </Button>
 
           <Button
             type="submit"
-            className="mt-4 bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
+            className="mt-2 bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
             disabled={isLoading}
           >
             {isLoading ? "Logging in..." : "Login"}
           </Button>
 
-          <p className="text-sm mt-2">
+          <p className="text-sm">
             Don’t have an account?{" "}
-            <Link href="/signup" className="text-blue-600 underline">
-              Sign up now
-            </Link>
+            <Button variant="link" className="text-blue-600">
+              <Link href="/signup">Sign up now</Link>
+            </Button>
           </p>
         </form>
 
