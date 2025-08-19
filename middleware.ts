@@ -5,53 +5,83 @@ import { getToken } from "next-auth/jwt";
 
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const origin = req.headers.get("origin") || "";
 
-  // ✅ Allow public routes without login
+  // ✅ Allow OPTIONS preflight requests
+  if (req.method === "OPTIONS") {
+    return new NextResponse(null, {
+      status: 204,
+      headers: corsHeaders(origin),
+    });
+  }
+
+  // ✅ Public routes
   if (
     pathname.startsWith("/login") ||
     pathname.startsWith("/register") ||
-    pathname.startsWith("/api/public") // add your public APIs here
+    pathname.startsWith("/api/public")
   ) {
     return NextResponse.next();
   }
 
-  // ✅ Protect /dashboard routes
+  // ✅ Protect /dashboard
   if (pathname.startsWith("/dashboard")) {
     const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
 
     if (!token) {
-      // Redirect to login if no session
+      console.warn("🚨 No token found, redirecting to /login", {
+        pathname,
+        origin,
+      });
+
       const loginUrl = new URL("/login", req.url);
-      loginUrl.searchParams.set("callbackUrl", req.url); // redirect back after login
+      loginUrl.searchParams.set("callbackUrl", req.url);
       return NextResponse.redirect(loginUrl);
     }
   }
 
-  // ✅ Default: continue request
-  const response = NextResponse.next();
+  // ✅ Default: continue
+  const res = NextResponse.next();
+  applyCorsHeaders(res, origin);
+  return res;
+}
 
-  // ---- OPTIONAL: add your CORS handling ----
-  response.headers.set(
-    "Access-Control-Allow-Origin",
-    "https://aig-user-side.vercel.app"
-  );
-  response.headers.append(
-    "Access-Control-Allow-Origin",
-    "http://localhost:3000"
-  );
-  response.headers.set(
-    "Access-Control-Allow-Methods",
-    "GET, POST, PUT, DELETE, OPTIONS"
-  );
-  response.headers.set(
-    "Access-Control-Allow-Headers",
-    "Content-Type, Authorization"
-  );
-  response.headers.set("Access-Control-Allow-Credentials", "true");
+// ---- Helpers ----
+function corsHeaders(origin: string) {
+  const allowedOrigins = [
+    "http://localhost:3000",
+    "https://aig-user-side.vercel.app",
+  ];
 
-  return response;
+  // Also allow any Vercel preview domains
+  const isPreview =
+    origin.endsWith(".vercel.app") && origin.includes("aig-user-side");
+
+  const finalOrigin =
+    allowedOrigins.includes(origin) || isPreview ? origin : "";
+
+  return {
+    ...(finalOrigin && { "Access-Control-Allow-Origin": finalOrigin }),
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true",
+  };
+}
+
+function applyCorsHeaders(res: NextResponse, origin: string) {
+  const headers = corsHeaders(origin);
+  Object.entries(headers).forEach(([key, value]) => {
+    if (value) res.headers.set(key, value);
+  });
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/:path*"], // protect these paths
+  matcher: [
+    "/dashboard/:path*",
+    "/registration/:path*",
+    "/abstract/:path*",
+    "/travel/:path*",
+    "/accommodation/:path*",
+    "/presentation/:path*",
+  ],
 };
