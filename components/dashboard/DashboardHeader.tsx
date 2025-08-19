@@ -51,7 +51,7 @@ export function DashboardHeader({
     setLoggingOut(true);
     try {
       await signOut({ redirect: false });
-      router.push("/login");
+      router.push("/");
     } finally {
       setLoggingOut(false);
     }
