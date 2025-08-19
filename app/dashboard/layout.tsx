@@ -1,14 +1,15 @@
-// /app/dashboard/layout.tsx
 "use client";
 import "@/app/globals.css";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Sidebar } from "@/components/dashboard/Sidebar";
+import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
 import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
 import { ReactNode, useState } from "react";
 import { Toaster } from "sonner";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
     <html>
       <body className="h-screen overflow-hidden">
