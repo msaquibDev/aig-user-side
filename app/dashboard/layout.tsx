@@ -3,7 +3,6 @@ import "@/app/globals.css";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
-import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
 import { ReactNode, useState } from "react";
 import { Toaster } from "sonner";
 
