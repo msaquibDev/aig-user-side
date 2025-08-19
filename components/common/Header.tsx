@@ -25,27 +25,37 @@ export default function Header() {
   const router = useRouter();
 
   const { data: session } = useSession();
-  const user = session?.user;
-
   const { photo, fullName, setUser } = useUserStore();
 
-  // keep Zustand store in sync with session user
-  useEffect(() => {
-    if (user) {
-      setUser({
-        photo: user.image || "/authImg/user.png",
-        fullName: user.name || "",
-      });
-    }
-  }, [user, setUser]);
+  const isLoggedIn = !!session?.user;
 
-  const isLoggedIn = !!user;
+  // ✅ Fetch latest profile on mount
+  useEffect(() => {
+    async function fetchProfile() {
+      if (!isLoggedIn) return;
+
+      try {
+        const res = await fetch("/api/user/profile");
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const data = await res.json();
+
+        setUser({
+          photo: data.profilePicture || "/authImg/user.png",
+          fullName: data.fullName || session.user?.name || "",
+        });
+      } catch (err) {
+        console.error("Error fetching profile:", err);
+      }
+    }
+
+    fetchProfile();
+  }, [isLoggedIn, session?.user?.email, setUser]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
       await signOut({ redirect: false });
-      setUser({ photo: "/authImg/user.png", fullName: "" }); // reset
+      setUser({ photo: "/authImg/user.png", fullName: "" });
       router.push("/");
     } finally {
       setLoggingOut(false);
@@ -79,17 +89,15 @@ export default function Header() {
           ))}
         </nav>
 
-        {/* Right Side (Auth conditional) */}
+        {/* Right Side */}
         <div className="flex items-center gap-4">
           {isLoggedIn ? (
             <>
               <Link href="/dashboard/profile">
                 <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
-                  <AvatarImage
-                    src={photo || user?.image || "/authImg/user.png"}
-                  />
+                  <AvatarImage src={photo || "/authImg/user.png"} />
                   <AvatarFallback>
-                    {user?.name?.[0] ?? fullName?.[0] ?? "U"}
+                    {fullName?.[0] ?? session.user?.name?.[0] ?? "U"}
                   </AvatarFallback>
                 </Avatar>
               </Link>

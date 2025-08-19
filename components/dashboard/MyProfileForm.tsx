@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Profile } from "@/app/data/profile";
 import { useUserStore } from "@/app/store/useUserStore";
+import { useSession } from "next-auth/react";
 
 /**
  * Zod validation schema (matches the rules you provided)
@@ -93,6 +94,9 @@ export default function MyProfileForm({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const { update } = useSession();
+
 
   // stores validation error messages keyed by field name
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -216,7 +220,13 @@ export default function MyProfileForm({
 
       if (!res.ok) throw new Error("Failed to update profile");
 
-      setUser({ photo: formData.photo, fullName: formData.fullName });
+       const updatedUser = await res.json();
+      setUser({ photo: updatedUser.photo, fullName: updatedUser.fullName });
+
+      await update({
+        image: updatedUser.photo,
+        name: updatedUser.fullName,
+      });
 
       toast.success("Profile updated successfully!");
     } catch (error) {
