@@ -1,62 +1,82 @@
-// app/(section)/[section]/layout.tsx
+"use client";
+
+import "@/app/globals.css";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MainSectionSidebar } from "@/components/dashboard/MainSectionSidebar";
 import { SubSidebar } from "@/components/dashboard/SubSidebar";
-import { SessionProvider } from "next-auth/react";
-import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
+
+import { useRouter, usePathname } from "next/navigation";
+import { useState, useMemo } from "react";
 
 export default function SectionLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
   const router = useRouter();
+  const pathname = usePathname();
 
-  const [activeSection, setActiveSection] = useState("");
-  const [subSidebarOpen, setSubSidebarOpen] = useState(true);
-
-  useEffect(() => {
-    if (pathname.includes("/registration")) setActiveSection("registrations");
-    else if (pathname.includes("/abstract")) setActiveSection("abstract");
-    else if (pathname.includes("/travel")) setActiveSection("travel");
-    else if (pathname.includes("/accomodation"))
-      setActiveSection("accomodation");
-    else if (pathname.includes("/presentation"))
-      setActiveSection("presentation");
+  // Determine initial section from pathname
+  const initialSection = useMemo(() => {
+    if (pathname.includes("/abstract")) return "abstract";
+    if (pathname.includes("/travel")) return "travel";
+    if (pathname.includes("/accomodation")) return "accomodation";
+    if (pathname.includes("/presentation")) return "presentation";
+    return "registrations";
   }, [pathname]);
 
-  const handleSectionClick = (key: string, href: string) => {
+  const [activeSection, setActiveSection] = useState(initialSection);
+  const [subSidebarOpen, setSubSidebarOpen] = useState(true);
+
+  const handleSectionClick = (key: string, path: string) => {
     setActiveSection(key);
     setSubSidebarOpen(true);
-    router.push(href);
+    router.push(path);
   };
 
   return (
-    <>
-      <DashboardHeader
-        onMenuToggle={function (): void {
-          throw new Error("Function not implemented.");
-        }}
-      />
-      <MainSectionSidebar
-        activeSection={activeSection}
-        onBackToggle={() => setSubSidebarOpen((prev) => !prev)}
-        onSectionClick={handleSectionClick}
-        isOpen={subSidebarOpen}
-      />
+    <SessionProviderWrapper>
+      {/* Header */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <DashboardHeader
+          onMenuToggle={() => setSubSidebarOpen((prev) => !prev)}
+        />
+      </div>
 
-      <SubSidebar
-        section={activeSection}
-        isOpen={subSidebarOpen}
-        onToggle={() => setSubSidebarOpen((prev) => !prev)}
-      />
-      <main
-        className={`ml-[${subSidebarOpen ? "20rem" : "5rem"}] mt-[60px] p-6`}
-      >
-        {/* <SessionProvider>{children}</SessionProvider> */}
-      </main>
-    </>
+      <div className="flex pt-[60px] h-screen overflow-hidden">
+        {/* Main Sidebar */}
+        <div className="fixed top-[60px] left-0 h-[calc(100vh-60px)] w-20 z-40 border-r bg-[#eaf3ff]">
+          <MainSectionSidebar
+            activeSection={activeSection}
+            onBackToggle={() => setSubSidebarOpen((prev) => !prev)}
+            onSectionClick={handleSectionClick}
+            isOpen={subSidebarOpen}
+          />
+        </div>
+
+        {/* Sub Sidebar */}
+        <div
+          className={`fixed top-[60px] left-20 z-30 h-[calc(100vh-60px)] transition-all duration-300 border-r bg-[#eaf3ff] ${
+            subSidebarOpen ? "w-64 px-4 py-6" : "w-0 p-0 overflow-hidden"
+          }`}
+        >
+          <SubSidebar
+            section={activeSection}
+            isOpen={subSidebarOpen}
+            onToggle={() => setSubSidebarOpen((prev) => !prev)}
+          />
+        </div>
+
+        {/* Content */}
+        <main
+          className={`flex-1 overflow-y-auto bg-white p-4 transition-all duration-300 ${
+            subSidebarOpen ? "ml-[22rem]" : "ml-[5rem]"
+          }`}
+        >
+          {children}
+        </main>
+      </div>
+    </SessionProviderWrapper>
   );
 }

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { useUserStore } from "@/app/store/useUserStore";
 import { useState } from "react";
 
@@ -15,6 +15,10 @@ export function DashboardHeader({
   onMenuToggle?: () => void;
 }) {
   const router = useRouter();
+  const { data: session } = useSession();
+  const user = session?.user;
+
+  // ✅ Zustand photo (reactive)
   const photo = useUserStore((state) => state.photo);
 
   const [loggingOut, setLoggingOut] = useState(false);
@@ -46,13 +50,15 @@ export function DashboardHeader({
         </button>
 
         {/* Logo */}
-        <Image
-          src="/headerImg/logo.png"
-          alt="AIG Hospitals Logo"
-          width={120}
-          height={40}
-          className="object-contain"
-        />
+        <div onClick={() => router.push("/")} className="cursor-pointer">
+          <Image
+            src="/headerImg/logo.png"
+            alt="AIG Hospitals Logo"
+            width={120}
+            height={40}
+            className="object-contain"
+          />
+        </div>
 
         {/* Event Info */}
         <div className="hidden md:flex flex-col justify-center text-white ml-6">
@@ -68,8 +74,9 @@ export function DashboardHeader({
           className="cursor-pointer"
         >
           <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
-            <AvatarImage src={photo || "/authImg/user.png"} />
-            <AvatarFallback>U</AvatarFallback>
+            {/* ✅ Prefer store photo → fallback to session → fallback default */}
+            <AvatarImage src={photo || user?.image || "/authImg/user.png"} />
+            <AvatarFallback>{user?.name?.[0] ?? "U"}</AvatarFallback>
           </Avatar>
         </div>
         <Button
