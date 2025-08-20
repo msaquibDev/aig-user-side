@@ -7,6 +7,7 @@ export const cmes = [
     date: "1 Jun 2025",
     location: "Auditorium, AIG Hospitals",
     image: "/cmeImg/cme1.png",
+    eventType: "CME",
   },
   {
     id: "2",
@@ -14,6 +15,7 @@ export const cmes = [
     date: "31 May 2025",
     location: "Auditorium, AIG Hospitals",
     image: "/cmeImg/cme2.jpg",
+    eventType: "CME",
   },
   {
     id: "3",
@@ -21,6 +23,7 @@ export const cmes = [
     date: "25 Apr 2025 – 27 Apr 2025",
     location: "HICC Novotel, Hyderabad, India",
     image: "/cmeImg/cme3.png",
+    eventType: "CME",
   },
   {
     id: "4",
@@ -28,5 +31,6 @@ export const cmes = [
     date: "25 Apr 2025 – 27 Apr 2025",
     location: "HICC Novotel, Hyderabad, India",
     image: "/cmeImg/cme3.png",
+    eventType: "CME",
   },
 ];

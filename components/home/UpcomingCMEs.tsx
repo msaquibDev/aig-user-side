@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, MapPin, Ticket } from "lucide-react";
 import { cmes } from "@/app/data/cmes"; // Assuming you have a data file for CMEs
 import { useRouter } from "next/navigation";
 
@@ -12,7 +12,7 @@ export default function UpcomingCMEs() {
     <section className="bg-[#F8FAFC] px-4 md:px-12 py-12">
       {/* Heading + View All */}
       <div className="flex justify-between items-center mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+        <h2 className="text-2xl md:text-3xl font-bold text-[#00509E]">
           Upcoming CMEs
         </h2>
         <Button
@@ -59,6 +59,11 @@ export default function UpcomingCMEs() {
                 <div className="flex items-center text-sm text-muted-foreground gap-2">
                   <MapPin className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
                   <span className="truncate">{event.location}</span>
+                </div>
+
+                <div className="flex items-center text-sm text-muted-foreground gap-2">
+                  <Ticket className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
+                  <span className="truncate">{event.eventType}</span>
                 </div>
               </div>
 

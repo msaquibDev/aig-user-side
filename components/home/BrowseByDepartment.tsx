@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -14,21 +14,30 @@ import {
 } from "@/components/ui/select";
 import { CalendarDays, MapPin } from "lucide-react";
 import { events } from "@/app/data/events";
-import { departments } from "@/app/data/departments";
+// import { departments } from "@/app/data/departments";
+import { useEventStore } from "@/app/store/useEventStore";
 
 export default function BrowseByDepartment() {
+  const { events, fetchEvents } = useEventStore();
+
   const [selectedDept, setSelectedDept] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest" | "">("");
+
+  useEffect(() => {
+    fetchEvents();
+  }, [fetchEvents]);
 
   const router = useRouter();
 
   const filteredEvents = selectedDept
-    ? events.filter((event) => event.department === selectedDept)
+    ? events.filter(
+        (events) => events.department?.departmentName === selectedDept
+      )
     : events;
 
   const sortedEvents = [...filteredEvents].sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
+    const dateA = new Date(a.startDate).getTime();
+    const dateB = new Date(b.startDate).getTime();
     if (sortOrder === "latest") return dateB - dateA;
     if (sortOrder === "oldest") return dateA - dateB;
     return 0;
@@ -38,7 +47,7 @@ export default function BrowseByDepartment() {
     <section className="px-4 md:px-12 py-12 bg-white">
       {/* Top Row: Heading + Filters */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-gray-800">
+        <h2 className="text-2xl md:text-3xl font-bold text-[#00509E]">
           Browse By Department
         </h2>
 
@@ -48,9 +57,12 @@ export default function BrowseByDepartment() {
               <SelectValue placeholder="Select Department" />
             </SelectTrigger>
             <SelectContent>
-              {departments.map((dept) => (
-                <SelectItem key={dept} value={dept}>
-                  {dept}
+              {events.map((dept) => (
+                <SelectItem
+                  key={dept._id}
+                  value={dept.department?.departmentName}
+                >
+                  {dept.department?.departmentName}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -76,7 +88,7 @@ export default function BrowseByDepartment() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5">
         {sortedEvents.map((event) => (
           <Card
-            key={event.id}
+            key={event._id}
             className="group flex flex-col rounded-xl overflow-hidden shadow-md border bg-white w-full mx-auto hover:shadow-lg transition-all duration-300 h-full"
             style={{ maxWidth: "350px" }}
           >
@@ -86,8 +98,8 @@ export default function BrowseByDepartment() {
               style={{ aspectRatio: "1/1.414" }}
             >
               <img
-                src={event.image}
-                alt={event.title}
+                src={event.eventImage}
+                alt={event.eventName}
                 className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
                 loading="lazy"
               />
@@ -97,15 +109,15 @@ export default function BrowseByDepartment() {
             <div className="flex flex-col flex-grow px-4 py-3">
               <div className="flex-grow space-y-2">
                 <h3 className="text-lg font-bold text-black line-clamp-2 leading-tight">
-                  {event.title}
+                  {event.eventName}
                 </h3>
                 <div className="flex items-center text-sm text-muted-foreground gap-2 mt-1">
-                  <CalendarDays className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{event.date}</span>
+                  <CalendarDays className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
+                  <span className="truncate">{event.startDate}</span>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground gap-2">
-                  <MapPin className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{event.location}</span>
+                  <MapPin className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
+                  <span className="truncate">{event.city}</span>
                 </div>
               </div>
 

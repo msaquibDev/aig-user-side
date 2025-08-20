@@ -1,5 +1,6 @@
 import AboutUs from "@/components/home/AboutUs";
 import BrowseByDepartment from "@/components/home/BrowseByDepartment";
+import EventCard from "@/components/home/EventCard";
 import HeroSection from "@/components/home/HeroSection";
 import UpcomingCMEs from "@/components/home/UpcomingCMEs";
 import UpcomingConferences from "@/components/home/UpcomingConferences";
@@ -32,6 +33,7 @@ export default function HomePage() {
       <section id="about" className="scroll-mt-20">
         <AboutUs />
       </section>
+      {/* <EventCard /> */}
     </>
   );
 }
