@@ -19,7 +19,7 @@ import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -300,7 +300,14 @@ export default function Signup() {
             className="mt-4 bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
             disabled={loading}
           >
-            {loading ? "Signing up..." : "Sign Up"}
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Please wait
+              </div>
+            ) : (
+              "Sign Up"
+            )}
           </Button>
 
           <p className="text-sm mt-2">

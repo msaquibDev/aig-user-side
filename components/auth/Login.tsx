@@ -112,7 +112,14 @@ export default function Login() {
             className="mt-2 bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
             disabled={isLoading}
           >
-            {isLoading ? "Logging in..." : "Login"}
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Please wait
+              </div>
+            ) : (
+              "Login"
+            )}
           </Button>
 
           <p className="text-sm">

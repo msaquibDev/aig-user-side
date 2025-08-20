@@ -9,6 +9,7 @@ import { signOut } from "next-auth/react";
 import { useUserStore } from "@/app/store/useUserStore";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { Loader2 } from "lucide-react";
 
 export function DashboardHeader({
   onMenuToggle,
@@ -99,7 +100,14 @@ export function DashboardHeader({
           disabled={loggingOut}
           className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
         >
-          Logout
+          {loggingOut ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Please wait
+            </div>
+          ) : (
+            "Logout"
+          )}
         </Button>
       </div>
     </header>

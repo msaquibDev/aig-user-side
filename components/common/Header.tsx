@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { signOut, useSession } from "next-auth/react";
 import { useUserStore } from "@/app/store/useUserStore";
 import { useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 const navItems = [
   { label: "Home", href: "#home" },
@@ -107,7 +108,14 @@ export default function Header() {
                 disabled={loggingOut}
                 className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
               >
-                {loggingOut ? "Logging out..." : "Logout"}
+                {loggingOut ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Please wait
+                  </div>
+                ) : (
+                  "Logout"
+                )}
               </Button>
             </>
           ) : (
@@ -157,9 +165,17 @@ export default function Header() {
             <Button
               onClick={handleLogout}
               variant="outline"
+              disabled={loggingOut}
               className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
             >
-              Logout
+              {loggingOut ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Please wait
+                </div>
+              ) : (
+                "Logout"
+              )}
             </Button>
           )}
         </div>
