@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectTrigger,
@@ -13,9 +13,9 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { CalendarDays, MapPin } from "lucide-react";
-import { events } from "@/app/data/events";
 // import { departments } from "@/app/data/departments";
 import { useEventStore } from "@/app/store/useEventStore";
+import { formatEventDate } from "@/app/utils/formatEventDate";
 
 export default function BrowseByDepartment() {
   const { events, fetchEvents } = useEventStore();
@@ -31,7 +31,7 @@ export default function BrowseByDepartment() {
 
   const filteredEvents = selectedDept
     ? events.filter(
-        (events) => events.department?.departmentName === selectedDept
+        (event) => event.department?.departmentName === selectedDept
       )
     : events;
 
@@ -57,14 +57,16 @@ export default function BrowseByDepartment() {
               <SelectValue placeholder="Select Department" />
             </SelectTrigger>
             <SelectContent>
-              {events.map((dept) => (
-                <SelectItem
-                  key={dept._id}
-                  value={dept.department?.departmentName}
-                >
-                  {dept.department?.departmentName}
-                </SelectItem>
-              ))}
+              {[
+                ...new Set(events.map((e) => e.department?.departmentName)),
+              ].map(
+                (deptName, idx) =>
+                  deptName && (
+                    <SelectItem key={idx} value={deptName}>
+                      {deptName}
+                    </SelectItem>
+                  )
+              )}
             </SelectContent>
           </Select>
 
@@ -84,54 +86,60 @@ export default function BrowseByDepartment() {
         </div>
       </div>
 
-      {/* Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5">
-        {sortedEvents.map((event) => (
-          <Card
-            key={event._id}
-            className="group flex flex-col rounded-xl overflow-hidden shadow-md border bg-white w-full mx-auto hover:shadow-lg transition-all duration-300 h-full"
-            style={{ maxWidth: "350px" }}
-          >
-            {/* Image container - perfectly flush with edges */}
-            <div
-              className="w-full p-0 m-0 overflow-hidden"
-              style={{ aspectRatio: "1/1.414" }}
+      {/* Cards Grid or No Results */}
+      {sortedEvents.length === 0 ? (
+        <p className="text-gray-500 text-center mt-8">No results found.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5">
+          {sortedEvents.map((event) => (
+            <Card
+              key={event._id}
+              className="group flex flex-col rounded-xl overflow-hidden shadow-md border bg-white w-full mx-auto hover:shadow-lg transition-all duration-300 h-full"
+              style={{ maxWidth: "350px" }}
             >
-              <img
-                src={event.eventImage}
-                alt={event.eventName}
-                className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
-                loading="lazy"
-              />
-            </div>
-
-            {/* Content area with flex-grow to push button down */}
-            <div className="flex flex-col flex-grow px-4 py-3">
-              <div className="flex-grow space-y-2">
-                <h3 className="text-lg font-bold text-black line-clamp-2 leading-tight">
-                  {event.eventName}
-                </h3>
-                <div className="flex items-center text-sm text-muted-foreground gap-2 mt-1">
-                  <CalendarDays className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
-                  <span className="truncate">{event.startDate}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground gap-2">
-                  <MapPin className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
-                  <span className="truncate">{event.city}</span>
-                </div>
+              {/* Image container */}
+              <div
+                className="w-full p-0 m-0 overflow-hidden"
+                style={{ aspectRatio: "1/1.414" }}
+              >
+                <img
+                  src={event.eventImage}
+                  alt={event.eventName}
+                  className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
+                  loading="lazy"
+                />
               </div>
 
-              {/* Button will now always be at the bottom */}
-              <Button
-                onClick={() => router.push(`/login`)}
-                className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer"
-              >
-                Register
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+              {/* Content */}
+              <div className="flex flex-col flex-grow px-4 py-3">
+                <div className="flex-grow space-y-2">
+                  <h3 className="text-lg font-bold text-black line-clamp-2 leading-tight">
+                    {event.eventName}
+                  </h3>
+                  <div className="flex items-center text-sm text-muted-foreground gap-2 mt-1">
+                    <CalendarDays className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
+                    <span className="truncate">
+                      {formatEventDate(event.startDate, event.endDate)}
+                    </span>
+                  </div>
+                  <div className="flex items-center text-sm text-muted-foreground gap-2">
+                    <MapPin className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
+                    <span className="truncate">{event.city}</span>
+                  </div>
+                </div>
+
+                {/* Register Button */}
+                <Button
+                  onClick={() => router.push(`/login`)}
+                  className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer"
+                >
+                  Register
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

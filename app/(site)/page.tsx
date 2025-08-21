@@ -1,10 +1,11 @@
-import AboutUs from "@/components/home/AboutUs";
+// import AboutUs from "@/components/home/AboutUs";
 import BrowseByDepartment from "@/components/home/BrowseByDepartment";
-import EventCard from "@/components/home/EventCard";
+// import EventCard from "@/components/home/EventCard";
 import HeroSection from "@/components/home/HeroSection";
-import UpcomingCMEs from "@/components/home/UpcomingCMEs";
-import UpcomingConferences from "@/components/home/UpcomingConferences";
-import UpcomingWorkshops from "@/components/home/UpcomingWorkshops";
+// import UpcomingCMEs from "@/components/home/UpcomingCMEs";
+// import UpcomingConferences from "@/components/home/UpcomingConferences";
+import UpcomingEventsSection from "@/components/home/UpcomingEventsSection";
+// import UpcomingWorkshops from "@/components/home/UpcomingWorkshops";
 import React from "react";
 
 export default function HomePage() {
@@ -18,21 +19,29 @@ export default function HomePage() {
         <BrowseByDepartment />
       </section>
 
-      <section id="conferences" className="scroll-mt-20">
-        <UpcomingConferences />
-      </section>
+      <UpcomingEventsSection
+        title="Upcoming Conferences"
+        eventCategory="Conference"
+        limit={4}
+      />
+      <UpcomingEventsSection
+        title="Upcoming Workshops"
+        eventCategory="Workshop"
+        limit={4}
+      />
+      <UpcomingEventsSection
+        title="Upcoming CMEs"
+        eventCategory="CME"
+        limit={4}
+      />
 
-      <section id="workshops" className="scroll-mt-20">
-        <UpcomingWorkshops />
-      </section>
-
-      <section id="cmes" className="scroll-mt-20">
+      {/* <section id="cmes" className="scroll-mt-20">
         <UpcomingCMEs />
-      </section>
+      </section> */}
 
-      <section id="about" className="scroll-mt-20">
+      {/* <section id="about" className="scroll-mt-20">
         <AboutUs />
-      </section>
+      </section> */}
       {/* <EventCard /> */}
     </>
   );

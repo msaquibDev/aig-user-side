@@ -65,7 +65,7 @@ export default function Header() {
 
   return (
     <header className="w-full bg-gradient-to-r from-[#02075d] to-[#1e3a8a] text-white sticky top-0 z-50">
-      <div className="mx-auto max-w-8xl px-8 py-4 flex items-center justify-between">
+      <div className="mx-auto max-w-8xl px-8 py-3 flex items-center justify-between">
         {/* Logo */}
         <Link href="/">
           <Image
@@ -73,7 +73,7 @@ export default function Header() {
             alt="AIG Logo"
             width={120}
             height={40}
-            className="cursor-pointer"
+            className="cursor-pointer w-auto" // 👈 keeps aspect ratio intact
           />
         </Link>
 
@@ -91,7 +91,7 @@ export default function Header() {
         </nav>
 
         {/* Right Side */}
-        <div className="flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-4">
           {isLoggedIn ? (
             <>
               <Link href="/dashboard/profile">
@@ -133,7 +133,7 @@ export default function Header() {
         {/* Mobile Hamburger */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden focus:outline-none"
+          className="md:hidden focus:outline-none cursor-pointer"
         >
           {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -152,8 +152,40 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
-          {!isLoggedIn ? (
-            <Link href="/login">
+          {isLoggedIn ? (
+            <>
+              <Link
+                href="/dashboard/profile"
+                onClick={() => setMenuOpen(false)}
+              >
+                <div className="flex items-center gap-3 py-2 border-b border-white/20">
+                  <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
+                    <AvatarImage src={photo || "/authImg/user.png"} />
+                    <AvatarFallback>
+                      {fullName?.[0] ?? session?.user?.name?.[0] ?? "U"}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span>{fullName || session?.user?.name}</span>
+                </div>
+              </Link>
+              <Button
+                onClick={handleLogout}
+                variant="outline"
+                disabled={loggingOut}
+                className="w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
+              >
+                {loggingOut ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Please wait
+                  </div>
+                ) : (
+                  "Logout"
+                )}
+              </Button>
+            </>
+          ) : (
+            <Link href="/login" onClick={() => setMenuOpen(false)}>
               <Button
                 variant="outline"
                 className="mt-2 w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] cursor-pointer"
@@ -161,22 +193,6 @@ export default function Header() {
                 Login / Sign Up
               </Button>
             </Link>
-          ) : (
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              disabled={loggingOut}
-              className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
-            >
-              {loggingOut ? (
-                <div className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Please wait
-                </div>
-              ) : (
-                "Logout"
-              )}
-            </Button>
           )}
         </div>
       )}
