@@ -1,24 +1,25 @@
-'use client'
+"use client";
 
-import { useParams } from 'next/navigation'
-import { useEffect } from 'react'
-import { useRegistrationStore } from '@/app/store/useRegistrationStore'
-import RegistrationStepper from '@/components/registrations/myRegistration/RegistrationStepper'
-import Step1BasicDetails from '@/components/registrations/myRegistration/Step1BasicDetails'
-import Step2AccompanyingPerson from '@/components/registrations/myRegistration/Step2AccompanyingPerson'
-import Step3SelectWorkshop from '@/components/registrations/myRegistration/Step3SelectWorkshop'
-import Step4ConfirmPay from '@/components/registrations/myRegistration/Step4ConfirmPay'
+import { useParams } from "next/navigation";
+import { useEffect } from "react";
+import { useRegistrationStore } from "@/app/store/useRegistrationStore";
+import RegistrationStepper from "@/components/registrations/myRegistration/RegistrationStepper";
+import Step1BasicDetails from "@/components/registrations/myRegistration/Step1BasicDetails";
+import Step2AccompanyingPerson from "@/components/registrations/myRegistration/Step2AccompanyingPerson";
+import Step3SelectWorkshop from "@/components/registrations/myRegistration/Step3SelectWorkshop";
+import Step4ConfirmPay from "@/components/registrations/myRegistration/Step4ConfirmPay";
 
 export default function RegistrationPage() {
-  const { eventId } = useParams<{ eventId: string }>()
-  const { currentStep, setStep } = useRegistrationStore()
+  const { eventId } = useParams<{ eventId: string }>();
+  const { currentStep, setStep } = useRegistrationStore();
 
   useEffect(() => {
-    setStep(1)
-  }, [eventId])
+    setStep(1);
+  }, [eventId]);
 
-  const goNext = () => setStep(Math.min(currentStep + 1, 4))
-  const goBack = () => setStep(Math.max(currentStep - 1, 1))
+  // const goNext = () => setStep(Math.min(currentStep + 1, 4));
+  const goNext = () => setStep(Math.min(currentStep + 1, 2));
+  const goBack = () => setStep(Math.max(currentStep - 1, 1));
 
   return (
     <main className="px-4 sm:px-6 pb-10 relative mt-6">
@@ -43,15 +44,15 @@ export default function RegistrationPage() {
         {/* Step Content */}
         <div className="mt-10">
           {currentStep === 1 && <Step1BasicDetails onNext={goNext} />}
-          {currentStep === 2 && (
+          {/* {currentStep === 2 && (
             <Step2AccompanyingPerson onNext={goNext} onBack={goBack} />
           )}
           {currentStep === 3 && (
             <Step3SelectWorkshop onNext={goNext} onBack={goBack} />
-          )}
-          {currentStep === 4 && <Step4ConfirmPay onBack={goBack} />}
+          )} */}
+          {currentStep === 2 && <Step4ConfirmPay onBack={goBack} />}
         </div>
       </div>
     </main>
-  )
+  );
 }

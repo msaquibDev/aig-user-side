@@ -16,12 +16,16 @@ import { CalendarDays, MapPin } from "lucide-react";
 // import { departments } from "@/app/data/departments";
 import { useEventStore } from "@/app/store/useEventStore";
 import { formatEventDate } from "@/app/utils/formatEventDate";
+import { useSession } from "next-auth/react";
+
 
 export default function BrowseByDepartment() {
   const { events, fetchEvents } = useEventStore();
 
   const [selectedDept, setSelectedDept] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest" | "">("");
+  const { data: session } = useSession();
+
 
   useEffect(() => {
     fetchEvents();
