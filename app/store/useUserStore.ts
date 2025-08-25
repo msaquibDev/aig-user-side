@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 interface UserState {
-  photo: string;
+  photo: string | null;
   fullName: string;
   setUser: (data: Partial<UserState>) => void;
 }

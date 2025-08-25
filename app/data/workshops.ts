@@ -7,6 +7,7 @@ export const workshops = [
     date: "1 Jun 2025",
     location: "Auditorium, AIG Hospitals",
     image: "/workshopImg/workshop1.png",
+    eventType: "Workshop",
   },
   {
     id: "2",
@@ -14,6 +15,7 @@ export const workshops = [
     date: "31 May 2025",
     location: "Auditorium, AIG Hospitals",
     image: "/workshopImg/workshop2.jpg",
+    eventType: "Workshop",
   },
   {
     id: "3",
@@ -21,6 +23,7 @@ export const workshops = [
     date: "25 Apr 2025 – 27 Apr 2025",
     location: "HICC Novotel, Hyderabad, India",
     image: "/workshopImg/workshop3.png",
+    eventType: "Workshop",
   },
   {
     id: "4",
@@ -28,5 +31,6 @@ export const workshops = [
     date: "25 Apr 2025 – 27 Apr 2025",
     location: "HICC Novotel, Hyderabad, India",
     image: "/workshopImg/workshop3.png",
+    eventType: "Workshop",
   },
 ];

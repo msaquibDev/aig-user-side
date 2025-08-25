@@ -1,6 +1,7 @@
 // app/layout.tsx
 // import { SessionProvider } from "next-auth/react";
-import { Toaster } from "react-hot-toast";
+import { Toaster } from "sonner";
+import "../globals.css";
 
 export default function RootLayout({
   children,
@@ -9,9 +10,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>
-        <Toaster position="top-right" />
-        <main>{children}</main>
+      <body className="antialiased">
+        <div className="antialiased">
+          <Toaster richColors position="top-right" />
+          <main>{children}</main>
+        </div>
       </body>
     </html>
   );

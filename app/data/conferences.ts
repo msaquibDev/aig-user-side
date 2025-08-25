@@ -7,6 +7,7 @@ export const conferences = [
     date: "1 Jun 2025",
     location: "Auditorium, AIG Hospitals",
     image: "/conferenceImg/conference1.png",
+    eventType: "Conference",
   },
   {
     id: "2",
@@ -14,6 +15,7 @@ export const conferences = [
     date: "31 May 2025",
     location: "Auditorium, AIG Hospitals",
     image: "/conferenceImg/conference2.jpg",
+    eventType: "Conference",
   },
   {
     id: "3",
@@ -21,6 +23,7 @@ export const conferences = [
     date: "25 Apr 2025 – 27 Apr 2025",
     location: "HICC Novotel, Hyderabad, India",
     image: "/conferenceImg/conference3.png",
+    eventType: "Conference",
   },
   {
     id: "4",
@@ -28,5 +31,6 @@ export const conferences = [
     date: "25 Apr 2025 – 27 Apr 2025",
     location: "HICC Novotel, Hyderabad, India",
     image: "/conferenceImg/conference3.png",
+    eventType: "Conference",
   },
 ];

@@ -4,6 +4,7 @@ import "../globals.css";
 import { Toaster } from "sonner";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
+import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper"; // ✅ new
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,18 +23,20 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Header />
-        <Toaster richColors position="top-right" />
-        <main>{children}</main>
-        <Footer />
+        <SessionProviderWrapper>
+          <Header />
+          <Toaster richColors position="top-right" />
+          <main>{children}</main>
+          <Footer />
+        </SessionProviderWrapper>
       </body>
     </html>
   );

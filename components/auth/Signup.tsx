@@ -19,8 +19,9 @@ import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
-import toast from "react-hot-toast";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import Link from "next/link";
 
 countries.registerLocale(enLocale);
 
@@ -129,7 +130,9 @@ export default function Signup() {
           onSubmit={handleSubmit(onSubmit)}
           className="flex flex-col gap-3 px-8 py-10"
         >
-          <h2 className="text-2xl font-semibold mb-4">Sign Up</h2>
+          <h2 className="text-[#00509E] text-2xl font-semibold mb-4">
+            Sign Up
+          </h2>
 
           <div className="grid gap-1">
             <Label htmlFor="prefix">
@@ -213,7 +216,7 @@ export default function Signup() {
               <SelectTrigger id="country" className="w-full cursor-pointer">
                 <SelectValue placeholder="Select Country" />
               </SelectTrigger>
-              <SelectContent className="w-full">
+              <SelectContent className="w-full h-60">
                 {countryList.map((country) => (
                   <SelectItem key={country.code} value={country.name}>
                     {country.name}
@@ -297,14 +300,21 @@ export default function Signup() {
             className="mt-4 bg-[#00509E] text-white hover:bg-[#003B73] cursor-pointer"
             disabled={loading}
           >
-            {loading ? "Signing up..." : "Sign Up"}
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Please wait
+              </div>
+            ) : (
+              "Sign Up"
+            )}
           </Button>
 
           <p className="text-sm mt-2">
             Already have an account?{" "}
-            <a href="/login" className="text-blue-600 underline">
-              Login now
-            </a>
+            <Button variant="link" className="text-blue-600">
+              <Link href="/login">Login now</Link>
+            </Button>
           </p>
         </form>
 

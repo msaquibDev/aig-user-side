@@ -5,9 +5,9 @@ import { Check } from "lucide-react";
 
 const steps = [
   { id: 1, title: "Fill Basic Details" },
-  { id: 2, title: "Add Accompanying Person" },
-  { id: 3, title: "Select Workshop" },
-  { id: 4, title: "Confirm & Pay" },
+  // { id: 2, title: "Add Accompanying Person" },
+  // { id: 3, title: "Select Workshop" },
+  { id: 2, title: "Confirm & Pay" },
 ];
 
 export default function RegistrationStepper({

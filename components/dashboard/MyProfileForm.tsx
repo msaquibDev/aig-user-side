@@ -15,6 +15,8 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { Profile } from "@/app/data/profile";
 import { useUserStore } from "@/app/store/useUserStore";
+import { useSession } from "next-auth/react";
+import { Loader2, Pencil } from "lucide-react";
 
 /**
  * Zod validation schema (matches the rules you provided)
@@ -93,6 +95,9 @@ export default function MyProfileForm({
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+
+  const { update } = useSession();
 
   // stores validation error messages keyed by field name
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -216,9 +221,16 @@ export default function MyProfileForm({
 
       if (!res.ok) throw new Error("Failed to update profile");
 
-      setUser({ photo: formData.photo, fullName: formData.fullName });
+      const updatedUser = await res.json();
+      setUser({ photo: updatedUser.photo, fullName: updatedUser.fullName });
+
+      await update({
+        image: updatedUser.photo,
+        name: updatedUser.fullName,
+      });
 
       toast.success("Profile updated successfully!");
+      setIsEditing(false);
     } catch (error) {
       console.error(error);
       toast.error("Failed to update profile");
@@ -234,25 +246,33 @@ export default function MyProfileForm({
     >
       {/* Profile Photo */}
       <div className="flex items-center gap-4 mb-6">
-        <img
-          src={formData.photo || "/authImg/user.png"}
-          alt="Profile"
-          className="w-16 h-16 rounded-full object-cover border border-gray-300 cursor-pointer"
-        />
-        <div>
-          <Label
-            htmlFor="photo"
-            className="text-[#00509E] font-medium cursor-pointer"
-          >
-            Select Photo
-          </Label>
+        {/* Profile photo with clickable image */}
+        <div className="relative">
+          <label htmlFor="photo" className="cursor-pointer">
+            <img
+              src={formData.photo || "/authImg/user.png"}
+              alt="Profile"
+              className="w-16 h-16 rounded-full object-cover border border-gray-300 hover:opacity-80 transition"
+            />
+            {isEditing && (
+              <span className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow hover:bg-gray-100">
+                <Pencil className="w-4 h-4 text-[#00509E]" />
+              </span>
+            )}
+          </label>
+
           <input
             type="file"
             id="photo"
             accept="image/*"
             onChange={handlePhotoChange}
             className="hidden"
+            disabled={!isEditing}
           />
+        </div>
+
+        <div>
+          <Label className="text-[#00509E] font-medium">Profile Photo</Label>
           <p className="text-xs text-gray-500">
             File size: Up to 5MB <br /> Supported: JPG, JPEG, PNG, GIF, WEBP
           </p>
@@ -277,6 +297,7 @@ export default function MyProfileForm({
           value={formData.prefix}
           onChange={(v) => handleChange("prefix", v)}
           error={errors.prefix}
+          disabled={!isEditing}
         />
         <InputField
           label="Full Name"
@@ -284,6 +305,7 @@ export default function MyProfileForm({
           value={formData.fullName}
           onChange={(v) => handleChange("fullName", v)}
           error={errors.fullName}
+          disabled={!isEditing}
         />
         <SelectField
           label="Gender"
@@ -291,12 +313,14 @@ export default function MyProfileForm({
           onChange={(val) => handleChange("gender", val)}
           options={["Male", "Female", "Other"]}
           error={errors.gender}
+          disabled={!isEditing}
         />
         <InputField
           label="Designation"
           value={formData.designation}
           onChange={(v) => handleChange("designation", v)}
           error={errors.designation}
+          disabled={!isEditing}
         />
         <InputField
           label="Affiliation"
@@ -304,18 +328,21 @@ export default function MyProfileForm({
           value={formData.affiliation}
           onChange={(v) => handleChange("affiliation", v)}
           error={errors.affiliation}
+          disabled={!isEditing}
         />
         <InputField
           label="Medical Council State"
           value={formData.medicalCouncilState}
           onChange={(v) => handleChange("medicalCouncilState", v)}
           error={errors.medicalCouncilState}
+          disabled={!isEditing}
         />
         <InputField
           label="Medical Council Registration"
           value={formData.medicalCouncilRegistration}
           onChange={(v) => handleChange("medicalCouncilRegistration", v)}
           error={errors.medicalCouncilRegistration}
+          disabled={!isEditing}
         />
         <SelectField
           label="Meal Preference"
@@ -323,6 +350,7 @@ export default function MyProfileForm({
           onChange={(val) => handleChange("mealPreference", val)}
           options={["Veg", "Non-Veg", "Vegan"]}
           error={errors.mealPreference}
+          disabled={!isEditing}
         />
         <InputField
           label="Mobile No."
@@ -330,6 +358,7 @@ export default function MyProfileForm({
           value={formData.phone}
           onChange={(v) => handleChange("phone", v)}
           error={errors.phone}
+          disabled={!isEditing}
         />
         <InputField
           label="Email"
@@ -344,36 +373,69 @@ export default function MyProfileForm({
           value={formData.country}
           onChange={(val) => handleChange("country", val)}
           error={errors.country}
+          disabled={!isEditing}
         />
         <InputField
           label="State"
           value={formData.state}
           onChange={(val) => handleChange("state", val)}
           error={errors.state}
+          disabled={!isEditing}
         />
         <InputField
           label="City"
           value={formData.city}
           onChange={(val) => handleChange("city", val)}
           error={errors.city}
+          disabled={!isEditing}
         />
         <InputField
           label="Pincode"
           value={formData.pincode}
           onChange={(v) => handleChange("pincode", v)}
           error={errors.pincode}
+          disabled={!isEditing}
         />
       </div>
 
       {/* Submit */}
-      <div className="mt-10 flex justify-center">
-        <Button
-          type="submit"
-          className="bg-[#00509E] hover:bg-[#003B73] text-white cursor-pointer w-auto"
-          disabled={loading}
-        >
-          {loading ? "Updating..." : "Update"}
-        </Button>
+      <div className="mt-10 flex justify-center gap-4">
+        {!isEditing ? (
+          <button
+            type="button"
+            className="p-2 h-10 w-20 cursor-pointer rounded-md bg-[#00509E] hover:bg-[#003B73] text-white font-semibold"
+            onClick={() => setIsEditing(true)}
+          >
+            Edit
+          </button>
+        ) : (
+          <>
+            <Button
+              type="submit"
+              className="bg-[#00509E] hover:bg-[#003B73] text-white cursor-pointer"
+              disabled={loading}
+            >
+              {loading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Please wait
+                </div>
+              ) : (
+                "Update"
+              )}
+            </Button>
+            <Button
+              type="button"
+              className="bg-gray-300 hover:bg-gray-400 text-black cursor-pointer"
+              onClick={() => {
+                setFormData(initialData); // reset changes
+                setIsEditing(false);
+              }}
+            >
+              Cancel
+            </Button>
+          </>
+        )}
       </div>
     </form>
   );
@@ -414,17 +476,19 @@ const SelectField = ({
   onChange,
   options,
   error,
+  disabled,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   options: string[];
   error?: string;
+  disabled?: boolean; // 👈 ADD
 }) => (
   <div>
     <Label>{label}</Label>
-    <Select value={value} onValueChange={onChange}>
-      <SelectTrigger className="w-full cursor-pointer">
+    <Select value={value} onValueChange={onChange} disabled={disabled}>
+      <SelectTrigger className="w-full cursor-pointer" disabled={disabled}>
         <SelectValue placeholder="-Select-" />
       </SelectTrigger>
       <SelectContent>

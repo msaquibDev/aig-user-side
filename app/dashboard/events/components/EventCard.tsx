@@ -110,14 +110,14 @@ export default function EventTabs() {
       {/* Search + Filter (shadcn style) */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <Input
-          placeholder="Search"
+          placeholder="Search..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full md:w-1/3"
+          className="w-full md:w-1/3 bg-white"
         />
 
         <Select value={filterType} onValueChange={setFilterType}>
-          <SelectTrigger className="w-48 cursor-pointer">
+          <SelectTrigger className="w-48 cursor-pointer bg-white">
             <SelectValue placeholder="Filter by Type" />
           </SelectTrigger>
           <SelectContent>

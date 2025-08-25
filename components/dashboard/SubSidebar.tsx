@@ -29,9 +29,9 @@ const sidebarMap: Record<string, SidebarItem[]> = {
       path: '/registration/my-registration',
       icon: User,
     },
-    { label: 'Accompanying', path: '/registration/accompanying', icon: Users },
-    { label: 'Workshop', path: '/registration/workshop', icon: Hammer },
-    { label: 'Banquet', path: '/registration/banquet', icon: UtensilsCrossed },
+    // { label: 'Accompanying', path: '/registration/accompanying', icon: Users },
+    // { label: 'Workshop', path: '/registration/workshop', icon: Hammer },
+    // { label: 'Banquet', path: '/registration/banquet', icon: UtensilsCrossed },
   ],
   abstract: [
     { label: 'My Abstract', path: '/abstract/my-abstracts', icon: Notebook },
