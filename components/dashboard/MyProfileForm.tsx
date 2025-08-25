@@ -16,7 +16,7 @@ import { z } from "zod";
 import { Profile } from "@/app/data/profile";
 import { useUserStore } from "@/app/store/useUserStore";
 import { useSession } from "next-auth/react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 
 /**
  * Zod validation schema (matches the rules you provided)
@@ -246,19 +246,21 @@ export default function MyProfileForm({
     >
       {/* Profile Photo */}
       <div className="flex items-center gap-4 mb-6">
-        <img
-          src={formData.photo || "/authImg/user.png"}
-          alt="Profile"
-          className="w-16 h-16 rounded-full object-cover border border-gray-300 cursor-pointer hover:ring-2 hover:ring-[#00509E] transition"
-        />
+        {/* Profile photo with clickable image */}
+        <div className="relative">
+          <label htmlFor="photo" className="cursor-pointer">
+            <img
+              src={formData.photo || "/authImg/user.png"}
+              alt="Profile"
+              className="w-16 h-16 rounded-full object-cover border border-gray-300 hover:opacity-80 transition"
+            />
+            {isEditing && (
+              <span className="absolute bottom-0 right-0 bg-white p-1 rounded-full shadow hover:bg-gray-100">
+                <Pencil className="w-4 h-4 text-[#00509E]" />
+              </span>
+            )}
+          </label>
 
-        <div>
-          <Label
-            htmlFor="photo"
-            className="text-[#00509E] font-medium cursor-pointer"
-          >
-            Select Photo
-          </Label>
           <input
             type="file"
             id="photo"
@@ -267,6 +269,10 @@ export default function MyProfileForm({
             className="hidden"
             disabled={!isEditing}
           />
+        </div>
+
+        <div>
+          <Label className="text-[#00509E] font-medium">Profile Photo</Label>
           <p className="text-xs text-gray-500">
             File size: Up to 5MB <br /> Supported: JPG, JPEG, PNG, GIF, WEBP
           </p>
