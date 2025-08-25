@@ -17,8 +17,8 @@ export type BasicDetails = {
   phone: string;
   affiliation?: string;
   designation?: string;
-  registration: string;
-  councilState?: string;
+  medicalCouncilRegistration: string;
+  medicalCouncilState?: string;
   address?: string;
   country: string;
   state?: string;
@@ -67,7 +67,6 @@ type RegistrationState = {
   resetForm: () => void;
 };
 
-
 // ✅ Initial values
 const initialBasicDetails: BasicDetails = {
   prefix: "",
@@ -76,8 +75,8 @@ const initialBasicDetails: BasicDetails = {
   phone: "",
   affiliation: "",
   designation: "",
-  registration: "",
-  councilState: "",
+  medicalCouncilRegistration: "",
+  medicalCouncilState: "",
   address: "",
   country: "India",
   state: "",
@@ -130,4 +129,3 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
       skippedWorkshops: false,
     }),
 }));
-
