@@ -69,13 +69,13 @@ const RegistrationSchema = new Schema<IRegistration>(
     pincode: { type: String, required: [true, "Pincode is required"] },
     mealPreference: {
       type: String,
-      enum: ["Veg", "Non-Veg", "Jain"],
-      required: [true, "Meal Preference is required"],
+      // enum: ["Veg", "Non-Veg", "Jain"],
+      // required: [true, "Meal Preference is required"],
     },
     gender: {
       type: String,
-      enum: ["Male", "Female", "Other"],
-      required: [true, "Gender is required"],
+      // enum: ["Male", "Female", "Other"],
+      // required: [true, "Gender is required"],
     },
     registrationCategory: {
       type: String,

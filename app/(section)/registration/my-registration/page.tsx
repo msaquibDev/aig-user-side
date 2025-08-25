@@ -11,11 +11,45 @@ import Step4ConfirmPay from "@/components/registrations/myRegistration/Step4Conf
 
 export default function RegistrationPage() {
   const { eventId } = useParams<{ eventId: string }>();
-  const { currentStep, setStep } = useRegistrationStore();
+  const { currentStep, setStep, updateBasicDetails } = useRegistrationStore();
 
   useEffect(() => {
-    setStep(1);
-  }, [eventId]);
+    const fetchUserDetails = async () => {
+      try {
+        const res = await fetch("/api/user/registration", {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+        if (!res.ok) throw new Error("Failed to fetch profile");
+        const result = await res.json();
+        const user = result?.data?.user;
+        console.log("Fetched user details:", user);
+        if (user) {
+          updateBasicDetails({
+            prefix: user.prefix ?? "",
+            fullName: user.fullname ?? "",
+            phone: user.mobile ?? "",
+            email: user.email ?? "",
+            affiliation: user.affiliation ?? "",
+            designation: user.designation ?? "",
+            medicalCouncilState: user.medicalCouncilState ?? "",
+            medicalCouncilRegistration: user.medicalCouncilRegistration ?? "",
+            gender: user.gender ?? "male",
+            country: user.country ?? "",
+            city: user.city ?? "",
+            state: user.state ?? "",
+            pincode: user.pincode ?? "",
+            mealPreference: user.mealPreference ?? "veg",
+          });
+        }
+      } catch (error) {
+        // toast.error("Error loading profile");
+        console.error(error);
+      }
+    };
+    fetchUserDetails();
+  }, []);
 
   // const goNext = () => setStep(Math.min(currentStep + 1, 4));
   const goNext = () => setStep(Math.min(currentStep + 1, 2));
