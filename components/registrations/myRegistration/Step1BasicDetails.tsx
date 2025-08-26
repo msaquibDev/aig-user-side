@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -59,6 +59,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
     handleSubmit,
     setValue,
     reset,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -183,7 +184,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           <Input {...register("pincode")} />
         </div>
 
-        <div className="space-y-1.5">
+        {/* <div className="space-y-1.5">
           <Label>Meal Preference</Label>
           <Select
             onValueChange={(val) =>
@@ -195,14 +196,42 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               <SelectValue placeholder="Select Meal Preference" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="veg">Veg</SelectItem>
-              <SelectItem value="non-veg">Non-Veg</SelectItem>
-              <SelectItem value="jain">Jain</SelectItem>
+              <SelectItem value="Veg">Veg</SelectItem>
+              <SelectItem value="Non-Veg">Non-Veg</SelectItem>
+              <SelectItem value="Jain">Jain</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         <div className="space-y-1.5">
+          <Label>Meal Preference</Label>
+          <Controller
+            name="mealPreference"
+            control={control}
+            render={({ field }) => (
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || ""} // ✅ controlled
+              >
+                <SelectTrigger className="w-full cursor-pointer">
+                  <SelectValue placeholder="Select Meal Preference" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Veg">Veg</SelectItem>
+                  <SelectItem value="Non-Veg">Non-Veg</SelectItem>
+                  <SelectItem value="Jain">Jain</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.mealPreference && (
+            <p className="text-sm text-red-600">
+              {errors.mealPreference.message}
+            </p>
+          )}
+        </div>
+
+        {/* <div className="space-y-1.5">
           <Label>Gender</Label>
           <Select
             onValueChange={(val) =>
@@ -214,11 +243,37 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               <SelectValue placeholder="Select Gender" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="Male">Male</SelectItem>
+              <SelectItem value="Female">Female</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
+          {errors.gender && (
+            <p className="text-sm text-red-600">{errors.gender.message}</p>
+          )}
+        </div> */}
+
+        <div className="space-y-1.5">
+          <Label>Gender</Label>
+          <Controller
+            name="gender"
+            control={control}
+            render={({ field }) => (
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || ""} // ✅ controlled
+              >
+                <SelectTrigger className="w-full cursor-pointer">
+                  <SelectValue placeholder="Select Gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
           {errors.gender && (
             <p className="text-sm text-red-600">{errors.gender.message}</p>
           )}
@@ -241,25 +296,25 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           {[
             {
               id: "r1",
-              value: "member",
+              value: "Member",
               label: "Member",
               price: "₹ 15,170.00",
             },
             {
               id: "r2",
-              value: "trade",
+              value: "Trade",
               label: "Trade Delegates",
               price: "₹ 14,000.00",
             },
             {
               id: "r3",
-              value: "student",
+              value: "Student",
               label: "Technologists/Students",
               price: "₹ 20,000.00",
             },
             {
               id: "r4",
-              value: "non-member",
+              value: "Non-Member",
               label: "Non-Member",
               price: "₹ 28,563.00",
             },
