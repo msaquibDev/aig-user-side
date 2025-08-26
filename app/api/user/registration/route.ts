@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import Registration, { RegistrationCategory } from "@/models/Registration";
 import User from "@/models/User";
 import { getServerSession } from "next-auth"; // assuming next-auth is used
+import { authOptions } from "@/utils/authOptions";
 
 /**
  * GET - Fetch user info + available registration categories
@@ -70,7 +71,7 @@ export async function POST(req: NextRequest) {
     }
 
     //  Auto-attach logged-in user id
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },

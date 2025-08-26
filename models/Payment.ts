@@ -7,7 +7,7 @@ export interface IPayment extends Document {
   amount: number;
   currency: string;
   status: "initiated" | "success" | "failed";
-  paymentProvider: string; // e.g., "razorpay", "stripe"
+  paymentProvider: string; // e.g., "razorpay"
   transactionId?: string; // from gateway
   createdAt: Date;
   updatedAt: Date;
