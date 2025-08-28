@@ -1,56 +1,36 @@
-// app/api/user/announcements/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import Announcement from "@/models/Announcements";
-import mongoose from "mongoose";
+import { NextResponse } from "next/server";
 
-// 📌 GET: Fetch all announcements
 export async function GET() {
   try {
-    await connectDB();
-    const announcements = await Announcement.find().sort({ createdAt: -1 });
-    return NextResponse.json(
-      { success: true, data: announcements },
-      { status: 200 }
-    );
-  } catch (error: any) {
-    console.error("GET Announcements Error:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to fetch announcements" },
-      { status: 500 }
-    );
-  }
-}
+    // Fetch from the external API
+    const res = await fetch("https://admin.aigevent.tech/api/announcements", {
+      cache: "no-store",
+    });
 
-// 📌 POST: Create a new announcement
-export async function POST(req: NextRequest) {
-  try {
-    await connectDB();
-
-    const { title, description, author } = await req.json();
-
-    // Basic validation
-    if (!title || !description || !author) {
+    if (!res.ok) {
       return NextResponse.json(
-        { success: false, message: "All fields are required" },
-        { status: 400 }
+        { success: false, message: "Failed to fetch announcements" },
+        { status: 500 }
       );
     }
 
-    const newAnnouncement = await Announcement.create({
-      title,
-      description,
-      author,
-    });
+    const json = await res.json();
 
+    // 🔹 Map external fields -> internal fields
+    const mapped = json.data.map((item: any) => ({
+      _id: item._id,
+      updatedAt: item.updatedAt,
+      title: item.heading,
+      description: item.description,
+      author: item.postedBy,
+      downloadUrl: "",
+    }));
+
+    return NextResponse.json({ success: true, data: mapped }, { status: 200 });
+  } catch (error) {
+    console.error("GET Announcements Error:", error);
     return NextResponse.json(
-      { success: true, data: newAnnouncement },
-      { status: 201 }
-    );
-  } catch (error: any) {
-    console.error("POST Announcement Error:", error);
-    return NextResponse.json(
-      { success: false, message: "Failed to create announcement" },
+      { success: false, message: "Failed to fetch announcements" },
       { status: 500 }
     );
   }
