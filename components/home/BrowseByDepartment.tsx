@@ -21,17 +21,17 @@ import { useSession } from "next-auth/react";
 
 export default function BrowseByDepartment() {
   const { events, fetchEvents } = useEventStore();
+   const router = useRouter();
 
   const [selectedDept, setSelectedDept] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest" | "">("");
   const { data: session } = useSession();
 
+  
 
   useEffect(() => {
     fetchEvents();
   }, [fetchEvents]);
-
-  const router = useRouter();
 
   const filteredEvents = selectedDept
     ? events.filter(
