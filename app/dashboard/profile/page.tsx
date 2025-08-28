@@ -5,7 +5,11 @@ import { cookies } from "next/headers";
 
 async function getProfile(): Promise<Profile | null> {
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile`, {
+    const baseUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      process.env.NEXTAUTH_URL ||
+      "http://localhost:3000";
+    const res = await fetch(`${baseUrl}/user/profile`, {
       method: "GET",
       credentials: "include",
       cache: "no-store",
@@ -14,6 +18,7 @@ async function getProfile(): Promise<Profile | null> {
         Cookie: cookies().toString(), // if you need to forward session cookies from server
       },
     });
+    console.log("Fetch profile response status:", res.status);
     if (!res.ok) return null;
     const data = await res.json();
 
