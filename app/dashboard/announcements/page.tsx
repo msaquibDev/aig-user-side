@@ -22,7 +22,7 @@ async function getAnnouncements(): Promise<Announcement[]> {
     });
 
     const json = await res.json();
-    console.log("SSR Announcements JSON:", json);
+    // console.log("SSR Announcements JSON:", json);
 
     if (json.success && Array.isArray(json.data)) {
       return json.data;

@@ -1,62 +1,47 @@
-"use client";
-
-import { useEffect, useState } from "react";
+// app/dashboard/profile/page.tsx
 import MyProfileForm from "@/components/dashboard/MyProfileForm";
 import { Profile } from "@/app/data/profile";
-import { toast } from "sonner";
+import { cookies } from "next/headers";
 
-export default function ProfilePage() {
-  const [profile, setProfile] = useState<Profile | null>(null);
-  const [loading, setLoading] = useState(true);
+async function getProfile(): Promise<Profile | null> {
+  try {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/user/profile`, {
+      method: "GET",
+      credentials: "include",
+      cache: "no-store",
+      // Important: Forward cookies to API (if using auth)
+      headers: {
+        Cookie: cookies().toString(), // if you need to forward session cookies from server
+      },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/user/profile", {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
-        setProfile({
-          photo: data.profilePicture || "/authImg/user.png",
-          fullName: data.fullname || "",
-          prefix: data.prefix || "",
-          designation: data.designation || "",
-          affiliation: data.affiliation || "",
-          medicalCouncilState: data.medicalCouncilState || "",
-          medicalCouncilRegistration: data.medicalCouncilRegistration || "",
-          phone: data.mobile || "",
-          email: data.email || "",
-          country: data.country || "",
-          gender: data.gender || "",
-          city: data.city || "",
-          state: data.state || "",
-          mealPreference: data.mealPreference || "",
-          pincode: data.pincode || "",
-        });
-      } catch (error) {
-        toast.error("Error loading profile");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
+    return {
+      photo: data.profilePicture || "/authImg/user.png",
+      fullName: data.fullname || "",
+      prefix: data.prefix || "",
+      designation: data.designation || "",
+      affiliation: data.affiliation || "",
+      medicalCouncilState: data.medicalCouncilState || "",
+      medicalCouncilRegistration: data.medicalCouncilRegistration || "",
+      phone: data.mobile || "",
+      email: data.email || "",
+      country: data.country || "",
+      gender: data.gender || "",
+      city: data.city || "",
+      state: data.state || "",
+      mealPreference: data.mealPreference || "",
+      pincode: data.pincode || "",
     };
-
-    fetchProfile();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-        <span className="ml-3 text-blue-500 font-medium">
-          Loading profile...
-        </span>
-      </div>
-    );
+  } catch (err) {
+    console.error("Error fetching profile:", err);
+    return null;
   }
+}
+
+export default async function ProfilePage() {
+  const profile = await getProfile();
 
   if (!profile) {
     return <p className="p-4 text-red-500">No profile data found.</p>;
