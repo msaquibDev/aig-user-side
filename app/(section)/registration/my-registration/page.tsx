@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRegistrationStore } from "@/app/store/useRegistrationStore";
 import RegistrationStepper from "@/components/registrations/myRegistration/RegistrationStepper";
 import Step1BasicDetails from "@/components/registrations/myRegistration/Step1BasicDetails";

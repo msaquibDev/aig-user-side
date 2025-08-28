@@ -21,6 +21,7 @@ const workshopMap: Record<string, { title: string; date: string }> = {
 
 type Section = "basic" | "accompany" | "workshop" | null;
 
+
 export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -39,6 +40,11 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
     () => accompanyingPersons[0] || {},
     [accompanyingPersons]
   );
+
+  // 💰 Registration amount + tax
+  const regAmount = basicDetails?.registrationCategory?.amount || 0;
+  const tax = Math.round(regAmount * 0.18); // 18% GST (adjust if needed)
+  const total = regAmount + tax;
 
   const [editingSection, setEditingSection] = useState<Section>(null);
   const [tempBasic, setTempBasic] = useState({ ...basicDetails });
@@ -142,7 +148,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
         </section>
 
         {/* Accompanying Person */}
-        {accompanyingPersons.length > 0 && (
+        {/* {accompanyingPersons.length > 0 && (
           <section>
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73]">
@@ -183,10 +189,10 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
               )}
             </div>
           </section>
-        )}
+        )} */}
 
         {/* Workshops */}
-        {!skippedWorkshops && (
+        {/* {!skippedWorkshops && (
           <section>
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73]">
@@ -251,7 +257,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
               })
             )}
           </section>
-        )}
+        )} */}
 
         {/* Order Summary */}
         <section>
@@ -261,23 +267,24 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
               <span>
-                Gut, Liver & Lifelines
+                {basicDetails?.registrationCategory?.categoryName ||
+                  "Registration"}
                 {!skippedAccompanying && accompanyingPersons.length > 0 && (
                   <>
                     <br />+ 1 Accompanying Person
                   </>
                 )}
               </span>
-              <span>₹ 18,555.00</span>
+              <span>₹ {regAmount.toLocaleString("en-IN")}.00</span>
             </div>
             <div className="flex justify-between">
               <span>Tax</span>
-              <span>₹ 2,000.00</span>
+              <span>₹ {tax.toLocaleString("en-IN")}.00</span>
             </div>
             <hr />
             <div className="flex justify-between font-semibold text-base">
               <span>Total</span>
-              <span>₹ 20,555.00</span>
+              <span>₹ {total.toLocaleString("en-IN")}.00</span>
             </div>
           </div>
         </section>

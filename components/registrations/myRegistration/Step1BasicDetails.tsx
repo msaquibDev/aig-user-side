@@ -1,11 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { useRegistrationStore } from "@/app/store/useRegistrationStore";
+import {
+  RegistrationCategory,
+  useRegistrationStore,
+} from "@/app/store/useRegistrationStore";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -44,8 +47,13 @@ const schema = z.object({
     required_error: "Meal preference is required",
   }),
 
-  registrationCategory: z.enum(["Member", "Trade", "Student", "Non-Member"], {
-    required_error: "Registration category is required",
+  // registrationCategory: z.enum(["Member", "Trade", "Student", "Non-Member"], {
+  // required_error: "Registration category is required",
+  // }),
+  registrationCategory: z.object({
+    _id: z.string(),
+    categoryName: z.string(),
+    amount: z.number(),
   }),
 });
 
@@ -53,6 +61,7 @@ type FormData = z.infer<typeof schema>;
 
 export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
   const { basicDetails, updateBasicDetails } = useRegistrationStore();
+  const [categories, setCategories] = useState([]);
 
   const {
     register,
@@ -76,6 +85,26 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
     toast.success("Details saved!");
     onNext();
   };
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await fetch("/api/user/registrationCategory", {
+          method: "GET",
+        });
+        const data = await res.json();
+        console.log("Category Response:", data);
+
+        if (data.success) {
+          setCategories(data.data);
+        }
+      } catch (err) {
+        console.error("GET categories error:", err);
+      }
+    }
+
+    fetchCategories();
+  }, []);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
@@ -281,7 +310,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
       </div>
 
       {/* Registration Categories */}
-      <div className="space-y-2">
+      {/* <div className="space-y-2">
         <Label className="font-medium">Select Registration Category</Label>
         <RadioGroup
           defaultValue={basicDetails.registrationCategory}
@@ -333,6 +362,45 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             </div>
           ))}
         </RadioGroup>
+        {errors.registrationCategory && (
+          <p className="text-sm text-red-600">
+            {errors.registrationCategory.message}
+          </p>
+        )}
+      </div> */}
+
+      <div className="space-y-2">
+        <Label className="font-medium">Select Registration Category</Label>
+        <RadioGroup
+          defaultValue={
+            basicDetails.registrationCategory
+              ? JSON.stringify(basicDetails.registrationCategory)
+              : ""
+          }
+          onValueChange={(val) =>
+            setValue("registrationCategory", JSON.parse(val))
+          }
+          className="space-y-2"
+        >
+          {categories.map((cat: RegistrationCategory) => (
+            <div
+              key={cat._id}
+              className="flex items-center justify-between border rounded-lg p-3"
+            >
+              <div className="flex items-center gap-2">
+                <RadioGroupItem
+                  value={JSON.stringify(cat)} // ✅ whole object as string
+                  id={cat._id}
+                />
+                <Label htmlFor={cat._id}>{cat.categoryName}</Label>
+              </div>
+              <div className="text-right">
+                <p>₹ {cat.amount.toLocaleString("en-IN")}.00</p>
+              </div>
+            </div>
+          ))}
+        </RadioGroup>
+
         {errors.registrationCategory && (
           <p className="text-sm text-red-600">
             {errors.registrationCategory.message}

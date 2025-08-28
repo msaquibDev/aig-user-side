@@ -1,11 +1,12 @@
 import { create } from "zustand";
 
 // Types
-export type RegistrationCategory =
-  | "Member"
-  | "Trade"
-  | "Student"
-  | "Non-Member";
+export type RegistrationCategory = {
+  _id: string;
+  categoryName: string;
+  amount: number;
+};
+
 export type Gender = "Male" | "Female" | "Other";
 export type MealPreference = "Veg" | "Non-Veg" | "Jain";
 
@@ -84,7 +85,7 @@ const initialBasicDetails: BasicDetails = {
   pincode: "",
   mealPreference: "Veg",
   gender: "Male",
-  registrationCategory: "Member",
+  registrationCategory: undefined as any,
 };
 
 export const useRegistrationStore = create<RegistrationState>((set) => ({
