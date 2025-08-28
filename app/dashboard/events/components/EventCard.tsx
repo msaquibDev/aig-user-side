@@ -47,7 +47,7 @@ export default function EventTabs() {
       event.eventName.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .filter((event) =>
-      filterType === "All" ? true : event.eventType === filterType
+      filterType === "All" ? true : event.eventCategory === filterType
     );
 
   return (
