@@ -2,12 +2,12 @@ import { create } from "zustand";
 
 // Types
 export type RegistrationCategory =
-  | "member"
-  | "trade"
-  | "student"
-  | "non-member";
-export type Gender = "male" | "female" | "other";
-export type MealPreference = "veg" | "non-veg" | "jain";
+  | "Member"
+  | "Trade"
+  | "Student"
+  | "Non-Member";
+export type Gender = "Male" | "Female" | "Other";
+export type MealPreference = "Veg" | "Non-Veg" | "Jain";
 
 // Main form type
 export type BasicDetails = {
@@ -82,9 +82,9 @@ const initialBasicDetails: BasicDetails = {
   state: "",
   city: "",
   pincode: "",
-  mealPreference: undefined,
-  gender: undefined,
-  registrationCategory: "member",
+  mealPreference: "Veg",
+  gender: "Male",
+  registrationCategory: "Member",
 };
 
 export const useRegistrationStore = create<RegistrationState>((set) => ({

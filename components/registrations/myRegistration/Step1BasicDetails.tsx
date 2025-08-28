@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -28,23 +28,23 @@ const schema = z.object({
   email: z.string().email("Invalid email"),
   affiliation: z.string().optional(),
   designation: z.string().optional(),
-  registration: z.string().min(1, "Registration is required"),
-  councilState: z.string().optional(),
+  medicalCouncilRegistration: z.string().min(1, "Registration is required"),
+  medicalCouncilState: z.string().optional(),
   address: z.string().optional(),
   country: z.string().min(1, "Country is required"),
   state: z.string().optional(),
   city: z.string().optional(),
   pincode: z.string().optional(),
 
-  gender: z.enum(["male", "female", "other"], {
+  gender: z.enum(["Male", "Female", "Other"], {
     required_error: "Gender is required",
   }),
 
-  mealPreference: z.enum(["veg", "non-veg", "jain"], {
+  mealPreference: z.enum(["Veg", "Non-Veg", "Jain"], {
     required_error: "Meal preference is required",
   }),
 
-  registrationCategory: z.enum(["member", "trade", "student", "non-member"], {
+  registrationCategory: z.enum(["Member", "Trade", "Student", "Non-Member"], {
     required_error: "Registration category is required",
   }),
 });
@@ -58,17 +58,18 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
     register,
     handleSubmit,
     setValue,
+    reset,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: basicDetails,
   });
 
+  // Prefill form when basicDetails changes
   useEffect(() => {
-    Object.entries(basicDetails).forEach(([key, value]) => {
-      setValue(key as keyof FormData, value as string);
-    });
-  }, [basicDetails, setValue]);
+    reset(basicDetails);
+  }, [basicDetails, reset]);
 
   const onSubmit = (data: FormData) => {
     updateBasicDetails(data);
@@ -142,17 +143,17 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
 
         <div className="space-y-1.5">
           <Label>Medical Council Registration</Label>
-          <Input {...register("registration")} />
-          {errors.registration && (
+          <Input {...register("medicalCouncilRegistration")} />
+          {errors.medicalCouncilRegistration && (
             <p className="text-sm text-red-600">
-              {errors.registration.message}
+              {errors.medicalCouncilRegistration.message}
             </p>
           )}
         </div>
 
         <div className="space-y-1.5">
           <Label>Medical Council State</Label>
-          <Input {...register("councilState")} />
+          <Input {...register("medicalCouncilState")} />
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
@@ -183,7 +184,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           <Input {...register("pincode")} />
         </div>
 
-        <div className="space-y-1.5">
+        {/* <div className="space-y-1.5">
           <Label>Meal Preference</Label>
           <Select
             onValueChange={(val) =>
@@ -195,14 +196,42 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               <SelectValue placeholder="Select Meal Preference" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="veg">Veg</SelectItem>
-              <SelectItem value="non-veg">Non-Veg</SelectItem>
-              <SelectItem value="jain">Jain</SelectItem>
+              <SelectItem value="Veg">Veg</SelectItem>
+              <SelectItem value="Non-Veg">Non-Veg</SelectItem>
+              <SelectItem value="Jain">Jain</SelectItem>
             </SelectContent>
           </Select>
-        </div>
+        </div> */}
 
         <div className="space-y-1.5">
+          <Label>Meal Preference</Label>
+          <Controller
+            name="mealPreference"
+            control={control}
+            render={({ field }) => (
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || ""} // ✅ controlled
+              >
+                <SelectTrigger className="w-full cursor-pointer">
+                  <SelectValue placeholder="Select Meal Preference" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Veg">Veg</SelectItem>
+                  <SelectItem value="Non-Veg">Non-Veg</SelectItem>
+                  <SelectItem value="Jain">Jain</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
+          {errors.mealPreference && (
+            <p className="text-sm text-red-600">
+              {errors.mealPreference.message}
+            </p>
+          )}
+        </div>
+
+        {/* <div className="space-y-1.5">
           <Label>Gender</Label>
           <Select
             onValueChange={(val) =>
@@ -214,11 +243,37 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               <SelectValue placeholder="Select Gender" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="male">Male</SelectItem>
-              <SelectItem value="female">Female</SelectItem>
-              <SelectItem value="other">Other</SelectItem>
+              <SelectItem value="Male">Male</SelectItem>
+              <SelectItem value="Female">Female</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
             </SelectContent>
           </Select>
+          {errors.gender && (
+            <p className="text-sm text-red-600">{errors.gender.message}</p>
+          )}
+        </div> */}
+
+        <div className="space-y-1.5">
+          <Label>Gender</Label>
+          <Controller
+            name="gender"
+            control={control}
+            render={({ field }) => (
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || ""} // ✅ controlled
+              >
+                <SelectTrigger className="w-full cursor-pointer">
+                  <SelectValue placeholder="Select Gender" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Male">Male</SelectItem>
+                  <SelectItem value="Female">Female</SelectItem>
+                  <SelectItem value="Other">Other</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
           {errors.gender && (
             <p className="text-sm text-red-600">{errors.gender.message}</p>
           )}
@@ -241,25 +296,25 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           {[
             {
               id: "r1",
-              value: "member",
+              value: "Member",
               label: "Member",
               price: "₹ 15,170.00",
             },
             {
               id: "r2",
-              value: "trade",
+              value: "Trade",
               label: "Trade Delegates",
               price: "₹ 14,000.00",
             },
             {
               id: "r3",
-              value: "student",
+              value: "Student",
               label: "Technologists/Students",
               price: "₹ 20,000.00",
             },
             {
               id: "r4",
-              value: "non-member",
+              value: "Non-Member",
               label: "Non-Member",
               price: "₹ 28,563.00",
             },

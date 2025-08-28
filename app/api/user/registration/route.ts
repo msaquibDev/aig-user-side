@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
     await connectDB();
 
     //  Get logged-in user (using session)
-    const session = await getServerSession();
+    const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
@@ -33,10 +33,12 @@ export async function GET(req: NextRequest) {
     }
 
     //  Build categories list from enum
-    const categories = Object.entries(RegistrationCategory).map(([key, value]) => ({
-      name: key,
-      amount: value,
-    }));
+    const categories = Object.entries(RegistrationCategory).map(
+      ([key, value]) => ({
+        name: key,
+        amount: value,
+      })
+    );
 
     return NextResponse.json({
       success: true,

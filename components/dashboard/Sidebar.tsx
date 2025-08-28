@@ -15,11 +15,11 @@ import {
 
 const navItems = [
   { label: "Events", href: "/dashboard/events", icon: CalendarDays },
-  {
-    label: "My Certificates",
-    href: "/dashboard/certificates",
-    icon: ScrollText,
-  },
+  // {
+  //   label: "My Certificates",
+  //   href: "/dashboard/certificates",
+  //   icon: ScrollText,
+  // },
   { label: "Announcements", href: "/dashboard/announcements", icon: Megaphone },
   { label: "My Profile", href: "/dashboard/profile", icon: Users },
   { label: "Payment History", href: "/dashboard/payments", icon: History },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CalendarDays, MapPin, Ticket } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
@@ -15,74 +15,39 @@ import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
-
-// Dummy data
-const dummyEvents = [
-  {
-    id: "1",
-    title: "AIG IBD Summit 2025",
-    dateRange: "25 Apr 2025 – 27 Apr 2025",
-    location: "HICC Novotel, Hyderabad, India",
-    eventType: "CME",
-    image: "/eventImg/event1.png",
-    status: "upcoming",
-    registered: true,
-    daysLeft: 2,
-  },
-  {
-    id: "2",
-    title: "Gut, Liver & Lifelines",
-    dateRange: "1 Jun 2025",
-    location: "Auditorium, AIG Hospitals",
-    eventType: "Workshop",
-    image: "/eventImg/event2.jpg",
-    status: "live",
-    registered: true,
-  },
-  {
-    id: "3",
-    title: "Tiny Guts Symposium",
-    dateRange: "1 June 2025",
-    location: "Auditorium, AIG Hospitals",
-    eventType: "Conference",
-    image: "/eventImg/event3.png",
-    status: "upcoming",
-    registered: false,
-    daysLeft: 5,
-  },
-  {
-    id: "4",
-    title: "Liver Science 2024",
-    dateRange: "15 Mar 2024",
-    location: "AIG Hospitals",
-    eventType: "CME",
-    image: "/eventImg/event4.jpg",
-    status: "past",
-    registered: false,
-  },
-];
+import { useEventStore } from "@/app/store/useEventStore"; // ✅ using store
+import { formatEventDate } from "@/app/utils/formatEventDate";
 
 const TABS = ["Registered", "All", "Past"];
 const FILTERS = ["All", "CME", "Workshop", "Conference"];
 
 export default function EventTabs() {
-  const [activeTab, setActiveTab] = useState("Registered");
+  const [activeTab, setActiveTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("All");
+  const { events, fetchEvents } = useEventStore();
 
   const router = useRouter();
 
-  const filteredEvents = dummyEvents
-    .filter((event) => {
-      if (activeTab === "Registered") return event.registered;
-      if (activeTab === "Past") return event.status === "past";
-      return true;
-    })
+  useEffect(() => {
+    fetchEvents(); // load events from API into store
+  }, [fetchEvents]);
+
+  // later you’ll provide a separate response for registered events
+  const registeredEvents: any[] = []; // placeholder
+
+  const filteredEvents = (
+    activeTab === "Registered"
+      ? registeredEvents
+      : activeTab === "Past"
+      ? registeredEvents.filter((ev) => ev.status === "past")
+      : events
+  ) // All tab
     .filter((event) =>
-      event.title.toLowerCase().includes(searchQuery.toLowerCase())
+      event.eventName.toLowerCase().includes(searchQuery.toLowerCase())
     )
     .filter((event) =>
-      filterType === "All" ? true : event.eventType === filterType
+      filterType === "All" ? true : event.eventCategory === filterType
     );
 
   return (
@@ -107,7 +72,7 @@ export default function EventTabs() {
         ))}
       </div>
 
-      {/* Search + Filter (shadcn style) */}
+      {/* Search + Filter */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
         <Input
           placeholder="Search..."
@@ -134,65 +99,48 @@ export default function EventTabs() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5">
         {filteredEvents.map((event) => (
           <Card
-            key={event.id}
+            key={event._id}
+            className="group flex flex-col rounded-xl overflow-hidden shadow-md border bg-white w-full mx-auto hover:shadow-lg transition-all duration-300 h-full"
             style={{ maxWidth: "350px" }}
-            className="flex flex-col rounded-xl overflow-hidden shadow-md border w-full mx-auto h-full"
           >
-            {/* Image */}
-            <div className="aspect-[3/4] w-full">
-              <Image
-                src={event.image}
-                alt={event.title}
-                width={400}
-                height={500}
-                className="w-full h-full object-cover"
+            {/* Image container */}
+            <div
+              className="w-full overflow-hidden"
+              style={{ aspectRatio: "1/1.414" }}
+            >
+              <img
+                src={event.eventImage}
+                alt={event.eventName}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                loading="lazy"
               />
             </div>
 
             {/* Content */}
-            <div className="flex flex-col flex-grow px-4  pb-3">
-              <div className="flex-grow space-y-1.5">
-                <h4 className="text-lg font-bold text-black line-clamp-2 leading-tight">
-                  {event.title}
-                </h4>
+            <div className="flex flex-col flex-grow px-4 py-3">
+              <div className="flex-grow space-y-2">
+                <h3 className="text-lg font-bold text-black line-clamp-2 leading-tight">
+                  {event.eventName}
+                </h3>
                 <div className="flex items-center text-sm text-muted-foreground gap-2 mt-1">
-                  <CalendarDays className="w-4 h-4" />
-                  <span className="truncate">{event.dateRange}</span>
+                  <CalendarDays className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
+                  <span className="truncate">
+                    {formatEventDate(event.startDate, event.endDate)}
+                  </span>
                 </div>
                 <div className="flex items-center text-sm text-muted-foreground gap-2">
-                  <MapPin className="w-4 h-4" />
-                  <span className="truncate">{event.location}</span>
-                </div>
-                <div className="flex items-center text-sm text-muted-foreground gap-2">
-                  <Ticket className="w-4 h-4" />
-                  <span className="truncate">{event.eventType}</span>
-                </div>
-
-                <div className="mt-4">
-                  {event.status === "live" ? (
-                    <div className="w-full bg-green-100 text-green-800 text-xs font-semibold text-center px-3 py-1.5 rounded-md">
-                      ✅ Event is Live
-                    </div>
-                  ) : event.status === "past" ? (
-                    <div className="w-full bg-gray-100 text-gray-700 text-xs font-semibold text-center px-3 py-1.5 rounded-md">
-                      🕓 Completed
-                    </div>
-                  ) : event.registered ? (
-                    <div className="w-full bg-blue-100 text-blue-800 text-xs font-semibold text-center px-3 py-1.5 rounded-md">
-                      ⏳ Starts in {event.daysLeft} Days
-                    </div>
-                  ) : (
-                    <Button
-                      className="w-full bg-[#00509E] hover:bg-[#003B73] text-white text-xs font-semibold py-2 rounded-md cursor-pointer"
-                      onClick={() =>
-                        router.push("/registration/my-registration")
-                      }
-                    >
-                      Register
-                    </Button>
-                  )}
+                  <MapPin className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
+                  <span className="truncate">{event.city}</span>
                 </div>
               </div>
+
+              {/* Register Button */}
+              <Button
+                onClick={() => router.push(`/registration/my-registration`)}
+                className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer"
+              >
+                Register
+              </Button>
             </div>
           </Card>
         ))}
