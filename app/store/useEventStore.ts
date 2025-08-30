@@ -59,25 +59,28 @@ export interface Event {
 
 interface EventState {
   events: Event[];
+  currentEvent: Event | null;
   loading: boolean;
   error: string | null;
   fetchEvents: () => Promise<void>;
+  setCurrentEvent: (event: Event | null) => void;
 }
 
 export const useEventStore = create<EventState>((set) => ({
   events: [],
+  currentEvent: null,
   loading: false,
   error: null,
 
   fetchEvents: async () => {
     try {
       set({ loading: true, error: null });
-      // ✅ Call your local proxy route instead of external API
       const res = await axios.get("/api/events");
-      console.log("Fetched events:", res.data.data);
       set({ events: res.data.data, loading: false });
     } catch (err: any) {
       set({ error: err.message, loading: false });
     }
   },
+
+  setCurrentEvent: (event) => set({ currentEvent: event }),
 }));

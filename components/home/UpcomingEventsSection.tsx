@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useEventStore } from "@/app/store/useEventStore";
 import { useEffect } from "react";
 import { formatEventDate } from "@/app/utils/formatEventDate";
+import { useSession } from "next-auth/react";
 
 interface UpcomingEventsSectionProps {
   title: string;
@@ -21,6 +22,15 @@ export default function UpcomingEventsSection({
 }: UpcomingEventsSectionProps) {
   const router = useRouter();
   const { events, fetchEvents } = useEventStore();
+  const { data: session } = useSession();
+
+  const handleRegister = (eventId: string) => {
+    if (!session) {
+      router.push("/login");
+    } else {
+      router.push(`/registration/my-registration?eventId=${eventId}`);
+    }
+  };
 
   useEffect(() => {
     fetchEvents();
@@ -106,8 +116,8 @@ export default function UpcomingEventsSection({
               </div>
 
               <Button
+                onClick={() => handleRegister(event._id)}
                 className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors duration-200 cursor-pointer"
-                onClick={() => router.push("/login")}
               >
                 Register
               </Button>

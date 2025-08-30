@@ -8,9 +8,11 @@ import Step1BasicDetails from "@/components/registrations/myRegistration/Step1Ba
 import Step2AccompanyingPerson from "@/components/registrations/myRegistration/Step2AccompanyingPerson";
 import Step3SelectWorkshop from "@/components/registrations/myRegistration/Step3SelectWorkshop";
 import Step4ConfirmPay from "@/components/registrations/myRegistration/Step4ConfirmPay";
+import { useEventStore } from "@/app/store/useEventStore";
 
 export default function RegistrationPage() {
   const { eventId } = useParams<{ eventId: string }>();
+  const { setCurrentEvent } = useEventStore();
   const { currentStep, setStep, updateBasicDetails } = useRegistrationStore();
 
   useEffect(() => {
@@ -50,6 +52,32 @@ export default function RegistrationPage() {
     };
     fetchUserDetails();
   }, []);
+
+  useEffect(() => {
+    async function fetchEvent() {
+      try {
+        if (!eventId) return;
+
+        const res = await fetch(`/api/events/${eventId}`, {
+          cache: "no-store",
+        });
+        const result = await res.json();
+
+        console.log("Event API response:", result);
+
+        if (!res.ok || !result?.success)
+          throw new Error("Failed to fetch event");
+
+        // result.data is an array of categories
+        setCurrentEvent(result.data);
+      } catch (err) {
+        console.error("Error fetching event:", err);
+        setCurrentEvent(null);
+      }
+    }
+
+    fetchEvent();
+  }, [eventId, setCurrentEvent]);
 
   // const goNext = () => setStep(Math.min(currentStep + 1, 4));
   const goNext = () => setStep(Math.min(currentStep + 1, 2));

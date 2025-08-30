@@ -1,4 +1,4 @@
-import EventTabs from "./components/EventCard";
+import EventTabs from "@/components/dashboard/EventCard";
 
 export default function EventsPage() {
   return (

@@ -18,16 +18,22 @@ import { useEventStore } from "@/app/store/useEventStore";
 import { formatEventDate } from "@/app/utils/formatEventDate";
 import { useSession } from "next-auth/react";
 
-
 export default function BrowseByDepartment() {
   const { events, fetchEvents } = useEventStore();
-   const router = useRouter();
+  const router = useRouter();
+  console.log("All events from store:", events);
 
   const [selectedDept, setSelectedDept] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest" | "">("");
   const { data: session } = useSession();
 
-  
+  const handleRegister = (eventId: string) => {
+    if (!session) {
+      router.push("/login");
+    } else {
+      router.push(`/registration/my-registration?eventId=${eventId}`);
+    }
+  };
 
   useEffect(() => {
     fetchEvents();
@@ -134,7 +140,7 @@ export default function BrowseByDepartment() {
 
                 {/* Register Button */}
                 <Button
-                  onClick={() => router.push(`/login`)}
+                  onClick={() => handleRegister(event._id)}
                   className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer"
                 >
                   Register

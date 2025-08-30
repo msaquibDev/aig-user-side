@@ -29,6 +29,10 @@ export default function EventTabs() {
 
   const router = useRouter();
 
+  const handleRegister = (eventId: string) => {
+    router.push(`/registration/my-registration?eventId=${eventId}`);
+  };
+
   useEffect(() => {
     fetchEvents(); // load events from API into store
   }, [fetchEvents]);
@@ -106,7 +110,8 @@ export default function EventTabs() {
             {/* Image container */}
             <div
               className="w-full overflow-hidden"
-              style={{ aspectRatio: "1/1.414" }}
+              // style={{ aspectRatio: "1/1.414" }}
+              style={{ aspectRatio: "1/1.2" }}
             >
               <img
                 src={event.eventImage}
@@ -136,7 +141,7 @@ export default function EventTabs() {
 
               {/* Register Button */}
               <Button
-                onClick={() => router.push(`/registration/my-registration`)}
+                onClick={() => handleRegister(event._id)}
                 className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer"
               >
                 Register
