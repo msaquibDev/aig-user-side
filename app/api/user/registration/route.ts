@@ -6,6 +6,9 @@ import { connectDB } from "@/lib/mongodb";
 import Registration from "@/models/Registration";
 import User from "@/models/User";
 import type { NextRequest } from "next/server";
+import MealPreference from "@/models/MealPreference"; // <-- add this
+import RegistrationCategory from "@/models/RegistrationCategory"; // if using .populate("registrationCategory")
+
 
 /**
  * POST /api/user/registration
@@ -102,9 +105,13 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const registrations = await Registration.find({ user: user._id })
-      .populate("mealPreference")
-      .populate("registrationCategory");
+    // Fetch only registrations where payment is successful
+    const registrations = await Registration.find({ 
+        user: user._id,
+        isPaid: true  // <-- only successful payments
+      })
+      .populate({ path: "mealPreference", model: MealPreference })
+      .populate({ path: "registrationCategory", model: RegistrationCategory });
 
     return NextResponse.json({ registrations }, { status: 200 });
   } catch (error: any) {
