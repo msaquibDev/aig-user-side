@@ -3,82 +3,66 @@ import { NextRequest, NextResponse } from "next/server";
 import Razorpay from "razorpay";
 import { connectDB } from "@/lib/mongodb";
 import Registration from "@/models/Registration";
-import RegistrationCategory from "@/models/RegistrationCategory";
 import Payment from "@/models/Payment";
 import { getServerSession } from "next-auth";
-import { authOptions } from "@/utils/authOptions"; // adjust path if needed
+import { authOptions } from "@/utils/authOptions";
 import mongoose from "mongoose";
 
+/**
+ * POST /api/user/payment/order
+ * → Create a Razorpay order for a registration
+ */
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
     const { registrationId } = await req.json();
-
     if (!registrationId) {
-      return NextResponse.json(
-        { success: false, message: "registrationId is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ success: false, message: "registrationId is required" }, { status: 400 });
     }
 
-    // Find registration and populate category
-    const registration = await Registration.findById(registrationId).populate({
-      path: "registrationCategory",
-      model: RegistrationCategory,
-    });
-
+    // Fetch registration
+    const registration = await Registration.findById(registrationId);
     if (!registration) {
-      return NextResponse.json(
-        { success: false, message: "Registration not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, message: "Registration not found" }, { status: 404 });
     }
 
-    const category: any = registration.registrationCategory;
-    if (!category || typeof category.amount !== "number") {
-      return NextResponse.json(
-        { success: false, message: "Invalid registration amount" },
-        { status: 400 }
-      );
-    }
+    // Example: Amount based on registration category (you can adjust)
+    const amount = 5000; // You may fetch dynamically from RegistrationCategory if needed
 
-    // Razorpay instance
+    // Create Razorpay instance
     const razorpay = new Razorpay({
       key_id: process.env.RAZORPAY_KEY_ID!,
       key_secret: process.env.RAZORPAY_KEY_SECRET!,
     });
 
-    // Order options
+    // Razorpay order options
     const options = {
-      amount: category.amount * 100, // convert to paise
+      amount: amount * 100, // in paise
       currency: "INR",
       receipt: `receipt_${registration._id.toString()}`,
       notes: {
         registrationId: registration._id.toString(),
-        category: category.categoryName,
+        fullName: registration.fullName,
       },
     };
 
     const order = await razorpay.orders.create(options);
 
-    // Create a Payment record with status "initiated"
+    // Create payment record in DB
     const payment = await Payment.create({
-      registration: new mongoose.Types.ObjectId(registrationId),
+      registration: registration._id,
       user: new mongoose.Types.ObjectId(session.user.id),
-      amount: category.amount,
+      amount,
       currency: "INR",
       status: "initiated",
       paymentProvider: "razorpay",
-      transactionId: order.id, // Razorpay order id as transaction ref
+      transactionId: order.id, // Razorpay order ID
     });
 
     return NextResponse.json({
@@ -89,9 +73,6 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error("Order Error:", err);
-    return NextResponse.json(
-      { success: false, message: err.message || "Something went wrong" },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, message: err.message || "Something went wrong" }, { status: 500 });
   }
 }
