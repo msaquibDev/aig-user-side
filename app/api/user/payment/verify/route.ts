@@ -1,18 +1,24 @@
+// app/api/user/payment/verify/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Payment from "@/models/Payment";
 import Registration from "@/models/Registration";
+import mongoose from "mongoose";
 
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
-    const {
-      razorpay_order_id,
-      razorpay_payment_id,
-      registrationId,
-    } = await req.json();
+    const { razorpay_order_id, razorpay_payment_id, registrationId } =
+      await req.json();
 
-    //  Call Razorpay API to verify payment
+    if (!razorpay_order_id || !razorpay_payment_id || !registrationId) {
+      return NextResponse.json(
+        { success: false, message: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    // Verify with Razorpay API
     const authHeader =
       "Basic " +
       Buffer.from(
@@ -23,9 +29,7 @@ export async function POST(req: NextRequest) {
       `https://api.razorpay.com/v1/payments/${razorpay_payment_id}`,
       {
         method: "GET",
-        headers: {
-          Authorization: authHeader,
-        },
+        headers: { Authorization: authHeader },
       }
     );
 
@@ -38,7 +42,7 @@ export async function POST(req: NextRequest) {
 
     const paymentData = await response.json();
 
-    //  Cross-check order_id matches
+    // Cross-check order_id matches
     if (paymentData.order_id !== razorpay_order_id) {
       return NextResponse.json(
         { success: false, message: "Order ID mismatch" },
@@ -46,26 +50,38 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    //  Save Payment in DB
-    const payment = await Payment.create({
-      registration: registrationId,
-      amount: paymentData.amount / 100, // convert paise to INR
-      currency: paymentData.currency,
-      status: paymentData.status,
-      paymentProvider: "razorpay",
-      transactionId: razorpay_payment_id,
-    });
+    // Update existing Payment record
+    const updatedPayment = await Payment.findOneAndUpdate(
+      { transactionId: razorpay_order_id },
+      {
+        $set: {
+          status: paymentData.status === "captured" ? "success" : "failed",
+          transactionId: razorpay_payment_id,
+        },
+      },
+      { new: true }
+    );
 
-    //  Mark Registration as paid
-    await Registration.findByIdAndUpdate(registrationId, {
-      $set: { isPaid: true },
-    });
+    if (!updatedPayment) {
+      return NextResponse.json(
+        { success: false, message: "Payment record not found" },
+        { status: 404 }
+      );
+    }
 
-    return NextResponse.json({ success: true, payment });
+    // Mark Registration as paid if successful
+    if (updatedPayment.status === "success") {
+      await Registration.findByIdAndUpdate(
+        new mongoose.Types.ObjectId(registrationId),
+        { $set: { isPaid: true } }
+      );
+    }
+
+    return NextResponse.json({ success: true, payment: updatedPayment });
   } catch (err: any) {
     console.error("Verify Error:", err);
     return NextResponse.json(
-      { success: false, message: err.message },
+      { success: false, message: err.message || "Something went wrong" },
       { status: 500 }
     );
   }
