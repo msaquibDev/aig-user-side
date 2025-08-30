@@ -1,99 +1,77 @@
-import { NextRequest, NextResponse } from "next/server";
+// app/api/user/registration/route.ts
+import { NextResponse } from "next/server";
+import { getToken } from "next-auth/jwt";
 import { connectDB } from "@/lib/mongodb";
-import Registration, { RegistrationCategory } from "@/models/Registration";
-import User from "@/models/User";
-import { getServerSession } from "next-auth"; // assuming next-auth is used
-import { authOptions } from "@/utils/authOptions";
+import Registration from "@/models/Registration";
+import type { NextRequest } from "next/server";
 
-/**
- * GET - Fetch user info + available registration categories
- */
-export async function GET(req: NextRequest) {
+//  POST /api/user/registration → create new registration
+export async function POST(req: NextRequest) {
   try {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     await connectDB();
+    const body = await req.json();
 
-    //  Get logged-in user (using session)
-    const session = await getServerSession();
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const user = await User.findById(session.user.id).select(
-      "prefix fullname email mobile affiliation designation medicalCouncilState medicalCouncilRegistration gender country city state pincode mealPreference"
-    );
-
-    if (!user) {
-      return NextResponse.json(
-        { success: false, message: "User not found" },
-        { status: 404 }
-      );
-    }
-
-    //  Build categories list from enum
-    const categories = Object.entries(RegistrationCategory).map(([key, value]) => ({
-      name: key,
-      amount: value,
-    }));
-
-    return NextResponse.json({
-      success: true,
-      data: {
-        user,
-        categories,
-      },
+    const newRegistration = await Registration.create({
+      user: token.id, // logged-in user
+      prefix: body.prefix,
+      fullName: body.fullName,
+      mobile: body.mobile,
+      email: body.email,
+      affiliation: body.affiliation,
+      designation: body.designation,
+      medicalCouncilRegistration: body.medicalCouncilRegistration,
+      medicalCouncilState: body.medicalCouncilState,
+      address: body.address,
+      country: body.country,
+      state: body.state,
+      city: body.city,
+      pincode: body.pincode,
+      mealPreference: body.mealPreference, // ObjectId
+      gender: body.gender,
+      registrationCategory: body.registrationCategory, // ObjectId
+      eventId: body.eventId, // only ObjectId of event
+      isPaid: body.isPaid ?? false,
     });
-  } catch (err: any) {
-    console.error(err);
+
     return NextResponse.json(
-      { success: false, message: err.message },
+      { message: "Registration created successfully", registration: newRegistration },
+      { status: 201 }
+    );
+  } catch (error: any) {
+    console.error("POST /registration error:", error);
+    return NextResponse.json(
+      { error: "Failed to create registration", details: error.message },
       { status: 500 }
     );
   }
 }
 
-/**
- * POST - Save registration form
- */
-export async function POST(req: NextRequest) {
+//  GET /api/user/registration → get all registrations of logged-in user
+export async function GET(req: NextRequest) {
   try {
+    const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     await connectDB();
-    const body = await req.json();
+    const registrations = await Registration.find({ user: token.id })
+      .populate("mealPreference")
+      .populate("registrationCategory")
+      .populate("eventId"); // populate Event model for details
 
-    // Validate category
-    if (!body.registrationCategory) {
-      return NextResponse.json(
-        { success: false, message: "Registration Category is required" },
-        { status: 400 }
-      );
-    }
-
-    //  Auto-attach logged-in user id
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json(
-        { success: false, message: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
-    const registration = new Registration({
-      ...body,
-      user: session.user.id,
-    });
-
-    await registration.save(); // auto-sets registrationAmount via hook
-
+    return NextResponse.json({ registrations }, { status: 200 });
+  } catch (error: any) {
+    console.error("GET /registration error:", error);
     return NextResponse.json(
-      { success: true, data: registration },
-      { status: 201 }
-    );
-  } catch (err: any) {
-    console.error(err);
-    return NextResponse.json(
-      { success: false, message: err.message },
+      { error: "Failed to fetch registrations", details: error.message },
       { status: 500 }
     );
   }

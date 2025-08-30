@@ -2,6 +2,7 @@
 import mongoose, { Schema, Document, Model } from "mongoose";
 
 export interface IRegistrationCategory extends Document {
+  _id: mongoose.Types.ObjectId; 
   categoryName: string;
   amount: number;
   createdAt: Date;

@@ -1,14 +1,15 @@
-// models/Payment.ts
-import mongoose, { Document, Schema, Model } from "mongoose";
+import mongoose, { Schema, Document, models } from "mongoose";
 import { IRegistration } from "./Registration";
 
 export interface IPayment extends Document {
-  registration: IRegistration["_id"]; // reference to Registration
+  _id: mongoose.Types.ObjectId;
+  registration: IRegistration["_id"];
+  user: mongoose.Types.ObjectId;
   amount: number;
   currency: string;
   status: "initiated" | "success" | "failed";
-  paymentProvider: string; // e.g., "razorpay"
-  transactionId?: string; // from gateway
+  paymentProvider: string;
+  transactionId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +19,11 @@ const PaymentSchema = new Schema<IPayment>(
     registration: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Registration",
+      required: true,
+    },
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
       required: true,
     },
     amount: { type: Number, required: true },
@@ -33,7 +39,8 @@ const PaymentSchema = new Schema<IPayment>(
   { timestamps: true }
 );
 
-const Payment: Model<IPayment> =
-  mongoose.models.Payment || mongoose.model<IPayment>("Payment", PaymentSchema);
+// ✅ Fix: add default export
+const Payment =
+  models.Payment || mongoose.model<IPayment>("Payment", PaymentSchema);
 
 export default Payment;

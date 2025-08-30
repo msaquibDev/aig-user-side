@@ -1,20 +1,14 @@
+// models/Registration.ts
 import mongoose, { Document, Schema, Model } from "mongoose";
 import { IUser } from "./User";
-
-/**
- * Registration Category Enum with Fees
- */
-export enum RegistrationCategory {
-  "Member" = 15170,
-  "Trade Delegates" = 14000,
-  "Technologist/Students" = 200000,
-  "Non-Member" = 28563,
-}
+import { IMealPreference } from "./MealPreference";
+import { IRegistrationCategory } from "./RegistrationCategory";
 
 /**
  * Registration Interface
  */
 export interface IRegistration extends Document {
+  _id: mongoose.Types.ObjectId; 
   user: IUser["_id"];
   prefix: string;
   fullName: string;
@@ -29,10 +23,10 @@ export interface IRegistration extends Document {
   state: string;
   city: string;
   pincode: string;
-  mealPreference: "Veg" | "Non-Veg" | "Jain";
+  mealPreference: IMealPreference["_id"]; // store ObjectId
   gender: "Male" | "Female" | "Other";
-  registrationCategory: keyof typeof RegistrationCategory;
-  registrationAmount: number;
+  registrationCategory: IRegistrationCategory["_id"]; // store ObjectId
+  eventId: mongoose.Types.ObjectId; // store Event ObjectId only
   isPaid: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -67,23 +61,34 @@ const RegistrationSchema = new Schema<IRegistration>(
     state: { type: String, required: [true, "State is required"] },
     city: { type: String, required: [true, "City is required"] },
     pincode: { type: String, required: [true, "Pincode is required"] },
+
+    // Reference Meal Preference model
     mealPreference: {
-      type: String,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MealPreference",
       required: [true, "Meal Preference is required"],
     },
+
     gender: {
       type: String,
+      enum: ["Male", "Female", "Other"],
       required: [true, "Gender is required"],
     },
+
+    // Reference Registration Category model
     registrationCategory: {
-      type: String,
-      enum: Object.keys(RegistrationCategory),
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "RegistrationCategory",
       required: [true, "Registration Category is required"],
     },
-    registrationAmount: {
-      type: Number,
-      default: 0, // not required; will be auto-set in hook
+
+    // Reference Event model (only ObjectId stored)
+    eventId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event", // we just reference it by model name, no need to import from other repo
+      required: [true, "Event reference is required"],
     },
+
     isPaid: {
       type: Boolean,
       default: false,
@@ -91,18 +96,6 @@ const RegistrationSchema = new Schema<IRegistration>(
   },
   { timestamps: true }
 );
-
-/**
- * Auto-fill registration amount before validation
- */
-RegistrationSchema.pre("validate", function (next) {
-  // @ts-ignore
-  if (this.registrationCategory) {
-    // @ts-ignore
-    this.registrationAmount = RegistrationCategory[this.registrationCategory];
-  }
-  next();
-});
 
 /**
  * Prevent model overwrite in Next.js
