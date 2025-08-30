@@ -75,7 +75,7 @@ export const useEventStore = create<EventState>((set) => ({
   fetchEvents: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.get("/api/events");
+      const res = await axios.get("https://admin.aigevent.tech/api/events"); // ✅ external API
       set({ events: res.data.data, loading: false });
     } catch (err: any) {
       set({ error: err.message, loading: false });
