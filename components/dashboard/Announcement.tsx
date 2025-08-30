@@ -38,7 +38,7 @@ export default function AnnouncementCard({ data }: { data: Announcement }) {
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.text(`Date: ${formatDate(data.updatedAt)} `, 10, 40);
-    doc.text(`Author: ${data.author}`, 10, 47);
+    doc.text(`Author: ${data.postedBy}`, 10, 47);
 
     // Description (multi-line)
     doc.setFontSize(12);
@@ -70,9 +70,11 @@ export default function AnnouncementCard({ data }: { data: Announcement }) {
 
       <div className="flex items-center gap-2 text-sm text-gray-500">
         <Avatar className="h-6 w-6">
-          <AvatarFallback>{data.author[0]}</AvatarFallback>
+          <AvatarFallback>
+            {data.postedBy ? data.postedBy[0].toUpperCase() : "?"}
+          </AvatarFallback>
         </Avatar>
-        Posted by {data.author}
+        Posted by {data.postedBy}
       </div>
     </Card>
   );

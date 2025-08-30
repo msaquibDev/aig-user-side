@@ -1,6 +1,4 @@
-"use client";
-
-import { useState, useEffect } from "react";
+// app/dashboard/announcements/page.tsx
 import AnnouncementCard from "@/components/dashboard/Announcement";
 
 export type Announcement = {
@@ -8,48 +6,40 @@ export type Announcement = {
   updatedAt: string;
   title: string;
   description: string;
-  author: string;
+  postedBy: string;
   downloadUrl: string;
 };
 
-export default function AnnouncementsPage() {
-  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
-  const [loading, setLoading] = useState(true);
+async function getAnnouncements(): Promise<Announcement[]> {
+  try {
+    const res = await fetch("https://admin.aigevent.tech/api/announcements", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      // SSR cache settings
+      cache: "no-store", // so it always fetches fresh data
+    });
 
-  useEffect(() => {
-    const fetchAnnouncements = async () => {
-      try {
-        const res = await fetch("/api/user/announcements", {
-          method: "GET",
-          credentials: "include",
-          cache: "no-store",
-        });
-        if (!res.ok) throw new Error("Failed to fetch announcements");
-        const json = await res.json();
+    const json = await res.json();
+    // console.log("SSR Announcements JSON:", json);
 
-        if (json.success) {
-          setAnnouncements(json.data);
-        }
-      } catch (error) {
-        console.error("Error fetching announcements:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAnnouncements();
-  }, []);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-40">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-        <span className="ml-3 text-blue-500 font-medium">
-          Loading announcements...
-        </span>
-      </div>
-    );
+    if (json.success && Array.isArray(json.data)) {
+      return json.data;
+    } else if (Array.isArray(json)) {
+      return json;
+    } else if (json.announcements) {
+      return json.announcements;
+    }
+    return [];
+  } catch (error) {
+    console.error("Error fetching announcements (server):", error);
+    return [];
   }
+}
+
+export default async function AnnouncementsPage() {
+  const announcements = await getAnnouncements();
 
   if (!announcements || announcements.length === 0) {
     return <p className="p-4 text-red-500">No announcements found.</p>;

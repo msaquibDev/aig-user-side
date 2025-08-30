@@ -10,6 +10,8 @@ import { useUserStore } from "@/app/store/useUserStore";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { useEventStore } from "@/app/store/useEventStore";
+import { formatEventDate } from "@/app/utils/formatEventDate";
 
 export function DashboardHeader({
   onMenuToggle,
@@ -19,12 +21,20 @@ export function DashboardHeader({
   const router = useRouter();
   const { photo, fullName } = useUserStore(); // Zustand store
   const setUser = useUserStore((state) => state.setUser);
+  const { currentEvent } = useEventStore();
 
   const [loggingOut, setLoggingOut] = useState(false);
 
   // Replace with dynamic values if needed
-  const eventTitle = "AIG IBD Summit 2025";
-  const eventDateTime = "Sat Aug 2, 2025 | 08:00 PM (IST)";
+  // const eventTitle = "AIG IBD Summit 2025";
+  // const eventDateTime = "Sat Aug 2, 2025 | 08:00 PM (IST)";
+
+  const eventTitle = currentEvent?.eventName;
+  const eventDateTime = currentEvent
+    ? `${formatEventDate(currentEvent.startDate)} | ${currentEvent.startTime} ${
+        currentEvent.timeZone
+      }`
+    : "";
 
   // ✅ Fetch latest user profile on mount
   useEffect(() => {
