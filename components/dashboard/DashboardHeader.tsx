@@ -29,12 +29,13 @@ export function DashboardHeader({
   // const eventTitle = "AIG IBD Summit 2025";
   // const eventDateTime = "Sat Aug 2, 2025 | 08:00 PM (IST)";
 
-  const eventTitle = currentEvent?.eventName;
+  const eventTitle = currentEvent?.eventName ?? "Loading Event...";
   const eventDateTime = currentEvent
     ? `${formatEventDate(currentEvent.startDate)} | ${currentEvent.startTime} ${
         currentEvent.timeZone
       }`
     : "";
+
 
   // ✅ Fetch latest user profile on mount
   useEffect(() => {
