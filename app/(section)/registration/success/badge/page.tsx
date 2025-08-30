@@ -38,7 +38,7 @@ export default function BadgePage() {
       <BadgeCard
         name={basicDetails.fullName}
         regNo={dummyRegNo}
-        role={basicDetails.registrationCategory || "Attendee"}
+        // role={basicDetails.registrationCategory || "Attendee"}
         qrData={qrData}
       />
     </div>

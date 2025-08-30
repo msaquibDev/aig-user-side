@@ -1,30 +1,23 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRegistrationStore } from "@/app/store/useRegistrationStore";
+import { useEventStore } from "@/app/store/useEventStore"; // ✅ import event store
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
-
-const workshopMap: Record<string, { title: string; date: string }> = {
-  ws1: {
-    title: "Lorem ipsum dolor sit amet consectetur.",
-    date: "31 May 2025",
-  },
-  ws2: {
-    title: "Lorem ipsum dolor sit amet consectetur.",
-    date: "3 June 2025",
-  },
-};
+import { Input } from "@/components/ui/input";
 
 type Section = "basic" | "accompany" | "workshop" | null;
 
-
 export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
-  const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const eventIdFromUrl = searchParams.get("eventId");
+
+  const { events, currentEvent, setCurrentEvent, fetchEvents } =
+    useEventStore();
   const {
     basicDetails,
     accompanyingPersons,
@@ -36,32 +29,57 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
     skippedWorkshops,
   } = useRegistrationStore();
 
+  const [loading, setLoading] = useState(false);
+  const [tempBasic, setTempBasic] = useState({ ...basicDetails });
+  const [tempAccompany, setTempAccompany] = useState(
+    accompanyingPersons[0] || {}
+  );
+  const [tempWorkshop, setTempWorkshop] = useState([...selectedWorkshops]);
+  const [editingSection, setEditingSection] = useState<Section>(null);
+
+  // Load events if not already loaded
+  useEffect(() => {
+    if (!events.length) fetchEvents();
+  }, []);
+
+  // Set current event based on URL
+  useEffect(() => {
+    if (!eventIdFromUrl || !events.length) return;
+
+    const foundEvent = events.find((e) => e._id === eventIdFromUrl);
+    if (foundEvent) {
+      console.log("Event found:", foundEvent.eventName);
+      setCurrentEvent(foundEvent);
+      updateBasicDetails({
+        ...basicDetails,
+        eventId: foundEvent._id,
+        eventName: foundEvent.eventName,
+      });
+    } else {
+      console.warn("Event not found for ID:", eventIdFromUrl);
+    }
+  }, [events, eventIdFromUrl]);
+
+  useEffect(() => {
+    setTempBasic({ ...basicDetails });
+  }, [basicDetails]);
+
   const initialAccompany = useMemo(
     () => accompanyingPersons[0] || {},
     [accompanyingPersons]
   );
-
-  // 💰 Registration amount + tax
   const regAmount = basicDetails?.registrationCategory?.amount || 0;
-  const tax = Math.round(regAmount * 0.18); // 18% GST (adjust if needed)
+  const tax = Math.round(regAmount * 0.18);
   const total = regAmount + tax;
-
-  const [editingSection, setEditingSection] = useState<Section>(null);
-  const [tempBasic, setTempBasic] = useState({ ...basicDetails });
-  const [tempAccompany, setTempAccompany] = useState({ ...initialAccompany });
-  const [tempWorkshop, setTempWorkshop] = useState([...selectedWorkshops]);
 
   const toggleEdit = (section: Section) => {
     const isEditing = editingSection === section;
-
     if (isEditing) {
-      // Save values
       if (section === "basic") updateBasicDetails(tempBasic);
       if (section === "accompany") setAccompanyingPersons([tempAccompany]);
       if (section === "workshop") setSelectedWorkshops(tempWorkshop);
       setEditingSection(null);
     } else {
-      // Reset temp values from store
       if (section === "basic") setTempBasic({ ...basicDetails });
       if (section === "accompany") setTempAccompany({ ...initialAccompany });
       if (section === "workshop") setTempWorkshop([...selectedWorkshops]);
@@ -69,20 +87,112 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
     }
   };
 
-  const handleSubmit = () => {
-    if (!basicDetails.fullName || !basicDetails.email || !basicDetails.phone) {
+  const handleSubmit = async () => {
+    if (editingSection === "basic") updateBasicDetails(tempBasic);
+
+    if (
+      !basicDetails.eventId ||
+      !basicDetails.eventName ||
+      !basicDetails.fullName ||
+      !basicDetails.email ||
+      !basicDetails.phone ||
+      !basicDetails.registrationCategory?._id
+    ) {
       toast.error("Please complete all required details before submitting.");
       return;
     }
 
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    // Simulate dummy loading delay
-    setTimeout(() => {
-      toast.success("Registration submitted successfully!");
-      router.push("/registration/success");
+      const payload = {
+        eventId: basicDetails.eventId,
+        eventName: basicDetails.eventName,
+        registrationCategory: basicDetails.registrationCategory._id,
+        mealPreference: basicDetails.mealPreference,
+        prefix: basicDetails.prefix,
+        fullName: basicDetails.fullName,
+        phone: basicDetails.phone,
+        email: basicDetails.email,
+        affiliation: basicDetails.affiliation,
+        designation: basicDetails.designation,
+        medicalCouncilRegistration: basicDetails.medicalCouncilRegistration,
+        medicalCouncilState: basicDetails.medicalCouncilState,
+        address: basicDetails.address,
+        country: basicDetails.country,
+        state: basicDetails.state,
+        city: basicDetails.city,
+        pincode: basicDetails.pincode,
+        gender: basicDetails.gender,
+      };
+
+      const registrationRes = await fetch("/api/user/registration", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      if (!registrationRes.ok) {
+        const err = await registrationRes.json();
+        throw new Error(err?.error || "Failed to create registration");
+      }
+
+      const { registration } = await registrationRes.json();
+      const registrationId = registration._id;
+
+      const orderRes = await fetch("/api/user/payment/order", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ registrationId }),
+      });
+
+      if (!orderRes.ok) throw new Error("Failed to create payment order");
+
+      const { order } = await orderRes.json();
+      if (!(window as any).Razorpay) throw new Error("Razorpay not loaded");
+
+      const options: any = {
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Event Registration",
+        description: registration.eventName,
+        order_id: order.id,
+        handler: async function (response: any) {
+          try {
+            const verifyRes = await fetch("/api/user/payment/verify", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                registrationId,
+              }),
+            });
+
+            if (!verifyRes.ok) throw new Error("Payment verification failed");
+            toast.success("Payment successful!");
+            router.push("/registration/success");
+          } catch (err: any) {
+            toast.error(err.message || "Payment verification failed");
+          }
+        },
+        prefill: {
+          name: basicDetails.fullName,
+          email: basicDetails.email,
+          contact: basicDetails.phone,
+        },
+        theme: { color: "#00509E" },
+      };
+
+      new (window as any).Razorpay(options).open();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to process registration/payment");
+    } finally {
       setLoading(false);
-    }, 1500); // 1.5 seconds delay
+    }
   };
 
   return (
@@ -97,7 +207,6 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
             <Button
               size="sm"
               variant="ghost"
-              className="text-sm text-[#00509E]"
               onClick={() => toggleEdit("basic")}
             >
               ✎ {editingSection === "basic" ? "Save" : "Edit"}
@@ -131,10 +240,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
                 <Input
                   value={(tempBasic as any)[key] || ""}
                   onChange={(e) =>
-                    setTempBasic({
-                      ...tempBasic,
-                      [key]: e.target.value,
-                    })
+                    setTempBasic({ ...tempBasic, [key]: e.target.value })
                   }
                   disabled={editingSection !== "basic"}
                   className={
@@ -147,118 +253,6 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
           </div>
         </section>
 
-        {/* Accompanying Person */}
-        {/* {accompanyingPersons.length > 0 && (
-          <section>
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73]">
-                Accompanying Person
-              </h3>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-sm text-[#00509E]"
-                onClick={() => toggleEdit("accompany")}
-              >
-                ✎ {editingSection === "accompany" ? "Save" : "Edit"}
-              </Button>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              {["name", "relation", "age", "gender", "mealPreference"].map(
-                (key) => (
-                  <div key={key}>
-                    <p className="text-gray-600 capitalize">{key}</p>
-                    <Input
-                      value={(tempAccompany as any)[key] || ""}
-                      onChange={(e) =>
-                        setTempAccompany({
-                          ...tempAccompany,
-                          [key]: e.target.value,
-                        })
-                      }
-                      disabled={editingSection !== "accompany"}
-                      className={
-                        editingSection === "accompany"
-                          ? "ring-1 ring-blue-300"
-                          : ""
-                      }
-                      autoComplete="off"
-                    />
-                  </div>
-                )
-              )}
-            </div>
-          </section>
-        )} */}
-
-        {/* Workshops */}
-        {/* {!skippedWorkshops && (
-          <section>
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73]">
-                Workshop
-              </h3>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-sm text-[#00509E]"
-                onClick={() => toggleEdit("workshop")}
-              >
-                ✎ {editingSection === "workshop" ? "Save" : "Edit"}
-              </Button>
-            </div>
-            {editingSection === "workshop" ? (
-              <div className="space-y-2">
-                {Object.entries(workshopMap).map(([id, w]) => (
-                  <label
-                    key={id}
-                    className="flex items-center justify-between bg-blue-50 p-2 rounded ring-1 ring-blue-200"
-                  >
-                    <div>
-                      <p className="text-sm font-medium">
-                        {id === "ws1" ? "Pre" : "Post"} - Conference Workshop (
-                        {w.date})
-                      </p>
-                      <p className="text-gray-500">{w.title}</p>
-                    </div>
-                    <input
-                      type="checkbox"
-                      checked={tempWorkshop.includes(id)}
-                      onChange={(e) =>
-                        setTempWorkshop((prev) =>
-                          e.target.checked
-                            ? [...prev, id]
-                            : prev.filter((wid) => wid !== id)
-                        )
-                      }
-                    />
-                  </label>
-                ))}
-              </div>
-            ) : (
-              selectedWorkshops.map((id) => {
-                const w = workshopMap[id];
-                if (!w) return null;
-                return (
-                  <div
-                    key={id}
-                    className="flex justify-between text-sm py-2 border-b last:border-b-0"
-                  >
-                    <span>
-                      {id === "ws1" ? "Pre" : "Post"} - Conference Workshop (
-                      {w.date})
-                    </span>
-                    <div className="text-right">
-                      <p className="text-gray-500">{w.title}</p>
-                      <p className="font-medium">₹ 8,555.00</p>
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </section>
-        )} */}
-
         {/* Order Summary */}
         <section>
           <h3 className="text-sm font-semibold border-b-2 border-[#00509E] pb-1 text-[#003B73] mb-2">
@@ -270,9 +264,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
                 {basicDetails?.registrationCategory?.categoryName ||
                   "Registration"}
                 {!skippedAccompanying && accompanyingPersons.length > 0 && (
-                  <>
-                    <br />+ 1 Accompanying Person
-                  </>
+                  <>+ 1 Accompanying Person</>
                 )}
               </span>
               <span>₹ {regAmount.toLocaleString("en-IN")}.00</span>
@@ -289,8 +281,8 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
           </div>
         </section>
 
-        {/* Confirm Button */}
-        <div className="text-center pt-4">
+        {/* Confirm & Pay */}
+        <div className="text-center pt-4 z-50">
           <Button
             onClick={handleSubmit}
             disabled={loading}
@@ -298,8 +290,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Processing...
+                <Loader2 className="w-4 h-4 animate-spin" /> Processing...
               </>
             ) : (
               "Confirm & Pay"

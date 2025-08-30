@@ -12,6 +12,8 @@ export type MealPreference = "Veg" | "Non-Veg" | "Jain";
 
 // Main form type
 export type BasicDetails = {
+  eventId: any;
+  eventName: any;
   prefix?: string;
   fullName: string;
   email: string;
@@ -70,6 +72,8 @@ type RegistrationState = {
 
 // ✅ Initial values
 const initialBasicDetails: BasicDetails = {
+  eventId: "",
+  eventName: "",
   prefix: "",
   fullName: "",
   email: "",
