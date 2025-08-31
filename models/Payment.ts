@@ -13,7 +13,12 @@ export interface IPayment extends Document {
   currency: string;                   // Payment currency (default: INR)
   status: "initiated" | "success" | "failed"; // Payment status
   paymentProvider: string;            // e.g., "razorpay"
-  transactionId?: string;             // Transaction ID from provider
+
+  // Razorpay fields
+  razorpayOrderId: string;            // Razorpay order_id
+  razorpayPaymentId?: string;         // Razorpay payment_id (only after success)
+  razorpaySignature?: string;         // Razorpay signature (after success)
+
   createdAt: Date;
   updatedAt: Date;
 }
@@ -50,7 +55,16 @@ const PaymentSchema: Schema<IPayment> = new Schema(
       type: String,
       required: [true, "Payment provider is required"],
     },
-    transactionId: {
+
+    // Razorpay fields
+    razorpayOrderId: {
+      type: String,
+      required: [true, "Razorpay order_id is required"],
+    },
+    razorpayPaymentId: {
+      type: String,
+    },
+    razorpaySignature: {
       type: String,
     },
   },
@@ -58,7 +72,7 @@ const PaymentSchema: Schema<IPayment> = new Schema(
 );
 
 /**
- * Prevent model overwrite in Next.js
+ * Prevent model overwrite in Next.js hot-reload
  */
 const Payment: Model<IPayment> =
   models.Payment || mongoose.model<IPayment>("Payment", PaymentSchema);
