@@ -22,14 +22,15 @@ import {
 import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
+import CountryStateCitySelect from "@/components/common/CountryStateCitySelect";
 
 // ✅ Schema for validation
 const schema = z.object({
-  prefix: z.string().optional(),
+  prefix: z.string().min(1, "Prefix is required"),
   fullName: z.string().min(1, "Full Name is required"),
-  phone: z.string().min(10, "Phone is required"),
+  phone: z.string().regex(/^\d{10}$/, { message: "Mobile must be 10 digits" }),
   email: z.string().email("Invalid email"),
-  affiliation: z.string().optional(),
+  affiliation: z.string().min(1, "Affiliation is required"),
   designation: z.string().optional(),
   medicalCouncilRegistration: z.string().min(1, "Registration is required"),
   medicalCouncilState: z.string().optional(),
@@ -69,6 +70,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
     setValue,
     reset,
     control,
+    watch,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -125,7 +127,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               <SelectItem value="Dr">Dr</SelectItem>
             </SelectContent>
           </Select> */}
-          <Label htmlFor="prefix">Prefix</Label>
+          <Label htmlFor="prefix">
+            Prefix <span className="text-red-600">*</span>
+          </Label>
           <Input
             id="prefix"
             placeholder="Eg: Dr, Mr, Ms"
@@ -137,7 +141,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Full Name</Label>
+          <Label>
+            Full Name <span className="text-red-600">*</span>
+          </Label>
           <Input {...register("fullName")} />
           {errors.fullName && (
             <p className="text-sm text-red-600">{errors.fullName.message}</p>
@@ -145,15 +151,29 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Mobile No.</Label>
-          <Input {...register("phone")} />
+          <Label>
+            Mobile No. <span className="text-red-600">*</span>
+          </Label>
+          <Input
+            type="tel"
+            inputMode="numeric"
+            maxLength={10} // still keeps native mobile keypad correct
+            {...register("phone")}
+            onInput={(e) => {
+              let val = e.currentTarget.value.replace(/\D/g, ""); // allow only digits
+              if (val.length > 10) val = val.slice(0, 10); // trim to 10 digits
+              e.currentTarget.value = val;
+            }}
+          />
           {errors.phone && (
             <p className="text-sm text-red-600">{errors.phone.message}</p>
           )}
         </div>
 
         <div className="space-y-1.5">
-          <Label>Email Id</Label>
+          <Label>
+            Email Id <span className="text-red-600">*</span>
+          </Label>
           <Input {...register("email")} />
           {errors.email && (
             <p className="text-sm text-red-600">{errors.email.message}</p>
@@ -161,8 +181,13 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Affiliation</Label>
+          <Label>
+            Affiliation <span className="text-red-600">*</span>
+          </Label>
           <Input {...register("affiliation")} />
+          {errors.affiliation && (
+            <p className="text-sm text-red-600">{errors.affiliation.message}</p>
+          )}
         </div>
 
         <div className="space-y-1.5">
@@ -191,14 +216,21 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Country</Label>
+          {/* <Label>
+            Country <span className="text-red-600">*</span>
+          </Label>
           <Input {...register("country")} />
           {errors.country && (
             <p className="text-sm text-red-600">{errors.country.message}</p>
-          )}
+          )} */}
+          <CountryStateCitySelect
+            control={control}
+            watch={watch}
+            errors={errors}
+          />
         </div>
 
-        <div className="space-y-1.5">
+        {/* <div className="space-y-1.5">
           <Label>State</Label>
           <Input {...register("state")} />
         </div>
@@ -206,7 +238,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         <div className="space-y-1.5">
           <Label>City</Label>
           <Input {...register("city")} />
-        </div>
+        </div> */}
 
         <div className="space-y-1.5">
           <Label>Pincode</Label>
@@ -383,21 +415,19 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           className="space-y-2"
         >
           {categories.map((cat: RegistrationCategory) => (
-            <div
+            <Label
               key={cat._id}
-              className="flex items-center justify-between border rounded-lg p-3"
+              htmlFor={cat._id}
+              className="flex items-center justify-between border rounded-lg p-3 cursor-pointer hover:bg-gray-50"
             >
               <div className="flex items-center gap-2">
-                <RadioGroupItem
-                  value={JSON.stringify(cat)} // ✅ whole object as string
-                  id={cat._id}
-                />
-                <Label htmlFor={cat._id}>{cat.categoryName}</Label>
+                <RadioGroupItem value={JSON.stringify(cat)} id={cat._id} />
+                <span>{cat.categoryName}</span>
               </div>
               <div className="text-right">
                 <p>₹ {cat.amount.toLocaleString("en-IN")}.00</p>
               </div>
-            </div>
+            </Label>
           ))}
         </RadioGroup>
 
@@ -410,7 +440,10 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
 
       {/* Submit */}
       <div className="text-center">
-        <Button type="submit" className="bg-[#00509E] hover:bg-[#003B73] px-8">
+        <Button
+          type="submit"
+          className="bg-[#00509E] hover:bg-[#003B73] px-8 cursor-pointer"
+        >
           Save & Continue
         </Button>
       </div>
