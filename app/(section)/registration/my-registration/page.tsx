@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRegistrationStore } from "@/app/store/useRegistrationStore";
 import RegistrationStepper from "@/components/registrations/myRegistration/RegistrationStepper";
@@ -8,10 +8,15 @@ import Step1BasicDetails from "@/components/registrations/myRegistration/Step1Ba
 import Step2AccompanyingPerson from "@/components/registrations/myRegistration/Step2AccompanyingPerson";
 import Step3SelectWorkshop from "@/components/registrations/myRegistration/Step3SelectWorkshop";
 import Step4ConfirmPay from "@/components/registrations/myRegistration/Step4ConfirmPay";
+import { useEventStore } from "@/app/store/useEventStore";
 
 export default function RegistrationPage() {
-  const { eventId } = useParams<{ eventId: string }>();
   const { currentStep, setStep, updateBasicDetails } = useRegistrationStore();
+  const { events, currentEvent, setCurrentEvent, fetchEvents } =
+    useEventStore();
+
+  const searchParams = useSearchParams();
+  const eventIdFromUrl = searchParams.get("eventId");
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -55,31 +60,23 @@ export default function RegistrationPage() {
     fetchUserProfile();
   }, [updateBasicDetails]);
 
-  // useEffect(() => {
-  //   async function fetchEvent() {
-  //     try {
-  //       if (!eventId) return;
+  useEffect(() => {
+    if (!events.length) fetchEvents();
+  }, [events, fetchEvents]);
 
-  //       const res = await fetch(`/api/events/${eventId}`, {
-  //         cache: "no-store",
-  //       });
-  //       const result = await res.json();
+  // ✅ Set current event based on URL
+  useEffect(() => {
+    if (!eventIdFromUrl || !events.length) return;
 
-  //       console.log("Event API response:", result);
-
-  //       if (!res.ok || !result?.success)
-  //         throw new Error("Failed to fetch event");
-
-  //       // result.data is an array of categories
-  //       setCurrentEvent(result.data);
-  //     } catch (err) {
-  //       console.error("Error fetching event:", err);
-  //       setCurrentEvent(null);
-  //     }
-  //   }
-
-  //   fetchEvent();
-  // }, [eventId, setCurrentEvent]);
+    const foundEvent = events.find((e) => e._id === eventIdFromUrl);
+    if (foundEvent) {
+      setCurrentEvent(foundEvent);
+      updateBasicDetails({
+        eventId: foundEvent._id,
+        eventName: foundEvent.eventName,
+      });
+    }
+  }, [events, eventIdFromUrl, setCurrentEvent, updateBasicDetails]);
 
   // const goNext = () => setStep(Math.min(currentStep + 1, 4));
 
