@@ -13,11 +13,8 @@ type Section = "basic" | "accompany" | "workshop" | null;
 
 export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const eventIdFromUrl = searchParams.get("eventId");
+  const { currentEvent } = useEventStore();
 
-  const { events, currentEvent, setCurrentEvent, fetchEvents } =
-    useEventStore();
   const {
     basicDetails,
     accompanyingPersons,
@@ -36,29 +33,6 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
   );
   const [tempWorkshop, setTempWorkshop] = useState([...selectedWorkshops]);
   const [editingSection, setEditingSection] = useState<Section>(null);
-
-  // Load events if not already loaded
-  useEffect(() => {
-    if (!events.length) fetchEvents();
-  }, []);
-
-  // Set current event based on URL
-  useEffect(() => {
-    if (!eventIdFromUrl || !events.length) return;
-
-    const foundEvent = events.find((e) => e._id === eventIdFromUrl);
-    if (foundEvent) {
-      console.log("Event found:", foundEvent.eventName);
-      setCurrentEvent(foundEvent);
-      updateBasicDetails({
-        ...basicDetails,
-        eventId: foundEvent._id,
-        eventName: foundEvent.eventName,
-      });
-    } else {
-      console.warn("Event not found for ID:", eventIdFromUrl);
-    }
-  }, [events, eventIdFromUrl]);
 
   useEffect(() => {
     setTempBasic({ ...basicDetails });
@@ -261,12 +235,19 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
           <div className="text-sm space-y-1">
             <div className="flex justify-between">
               <span>
-                {basicDetails?.registrationCategory?.categoryName ||
-                  "Registration"}
+                {currentEvent?.eventName
+                  ? `${currentEvent.eventName} - ${
+                      basicDetails?.registrationCategory?.categoryName ||
+                      "Registration"
+                    }`
+                  : basicDetails?.registrationCategory?.categoryName ||
+                    "Registration"}
+
                 {!skippedAccompanying && accompanyingPersons.length > 0 && (
-                  <>+ 1 Accompanying Person</>
+                  <> + 1 Accompanying Person</>
                 )}
               </span>
+
               <span>₹ {regAmount.toLocaleString("en-IN")}.00</span>
             </div>
             <div className="flex justify-between">
