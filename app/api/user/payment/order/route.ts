@@ -1,16 +1,17 @@
 // app/api/user/payment/order/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import Razorpay from "razorpay";
 import { connectDB } from "@/lib/mongodb";
 import Registration from "@/models/Registration";
+import RegistrationCategory from "@/models/RegistrationCategory";
 import Payment from "@/models/Payment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/authOptions";
+import { razorpay } from "@/lib/razorpay";
 import mongoose from "mongoose";
 
 /**
  * POST /api/user/payment/order
- * → Create a Razorpay order for a registration
+ * Create a Razorpay order for a registration
  */
 export async function POST(req: NextRequest) {
   try {
@@ -26,24 +27,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "registrationId is required" }, { status: 400 });
     }
 
-    // Fetch registration
+    // 🔹 Fetch registration
     const registration = await Registration.findById(registrationId);
     if (!registration) {
       return NextResponse.json({ success: false, message: "Registration not found" }, { status: 404 });
     }
 
-    // Example: Amount based on registration category (you can adjust)
-    const amount = 5000; // You may fetch dynamically from RegistrationCategory if needed
+    // 🔹 Fetch category to get amount
+    const category = await RegistrationCategory.findById(registration.registrationCategory);
+    if (!category) {
+      return NextResponse.json({ success: false, message: "Registration category not found" }, { status: 404 });
+    }
+    const amount = category.amount;
 
-    // Create Razorpay instance
-    const razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID!,
-      key_secret: process.env.RAZORPAY_KEY_SECRET!,
-    });
-
-    // Razorpay order options
+    // 🔹 Razorpay order options
     const options = {
-      amount: amount * 100, // in paise
+      amount: amount * 100, // convert to paise
       currency: "INR",
       receipt: `receipt_${registration._id.toString()}`,
       notes: {
@@ -54,7 +53,7 @@ export async function POST(req: NextRequest) {
 
     const order = await razorpay.orders.create(options);
 
-    // Create payment record in DB
+    // 🔹 Save payment record
     const payment = await Payment.create({
       registration: registration._id,
       user: new mongoose.Types.ObjectId(session.user.id),
@@ -62,7 +61,7 @@ export async function POST(req: NextRequest) {
       currency: "INR",
       status: "initiated",
       paymentProvider: "razorpay",
-      transactionId: order.id, // Razorpay order ID
+      razorpayOrderId: order.id,
     });
 
     return NextResponse.json({

@@ -9,12 +9,12 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
-    const { razorpay_order_id, razorpay_payment_id, registrationId } = await req.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, registrationId } = await req.json();
     if (!razorpay_order_id || !razorpay_payment_id || !registrationId) {
       return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 });
     }
 
-    // Verify payment with Razorpay
+    // 🔹 Verify payment with Razorpay API
     const authHeader =
       "Basic " + Buffer.from(process.env.RAZORPAY_KEY_ID + ":" + process.env.RAZORPAY_KEY_SECRET).toString("base64");
 
@@ -31,36 +31,38 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, message: "Order ID mismatch" }, { status: 400 });
     }
 
-    // Update payment record
+    // 🔹 Update payment record
     const updatedPayment = await Payment.findOneAndUpdate(
-      { transactionId: razorpay_order_id },
+      { razorpayOrderId: razorpay_order_id },
       {
         $set: {
           status: paymentData.status === "captured" ? "success" : "failed",
-          transactionId: razorpay_payment_id,
+          razorpayPaymentId: razorpay_payment_id,
+          razorpaySignature: razorpay_signature,
         },
       },
       { new: true }
     );
+
     if (!updatedPayment) {
       return NextResponse.json({ success: false, message: "Payment record not found" }, { status: 404 });
     }
 
-    // If payment success → update registration
+    // 🔹 If payment success → update registration
     if (updatedPayment.status === "success") {
       const registration = await Registration.findById(registrationId);
       if (!registration) {
         return NextResponse.json({ success: false, message: "Registration not found" }, { status: 404 });
       }
 
-      // ✅ Fetch eventCode from admin repo
+      // Fetch eventCode from Admin repo
       const eventRes = await axios.get(`${process.env.ADMIN_API_BASE_URL}/events/${registration.eventId}`);
       const eventCode = eventRes.data?.eventCode;
       if (!eventCode) {
         return NextResponse.json({ success: false, message: "Event code not found from Admin" }, { status: 400 });
       }
 
-      // Generate regNum
+      // Generate regNum like AIGLC-1, AIGLC-2...
       const count = await Registration.countDocuments({ eventId: registration.eventId, regNumGenerated: true });
       const regNum = `${eventCode}-${count + 1}`;
 
