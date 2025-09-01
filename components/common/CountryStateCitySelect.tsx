@@ -10,15 +10,38 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "../ui/input";
 
-export default function CountryStateCitySelect({ control, watch, errors }: any) {
+interface Props {
+  control: any;
+  watch: any;
+  errors?: any;
+  showCountry?: boolean;
+  disableCountry?: boolean;
+  showState?: boolean;
+  showCity?: boolean;
+  showPincode?: boolean;
+  editing?: boolean;
+}
+
+export default function CountryStateCitySelect({
+  control,
+  watch,
+  errors,
+  showCountry = true,
+  disableCountry = false,
+  showState = true,
+  showCity = true,
+  showPincode = true,
+  editing = false,
+}: Props) {
   const country = watch("country");
   const state = watch("state");
 
   return (
     <>
       {/* Country */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      {showCountry && (
         <div className="space-y-1.5">
           <Label>
             Country <span className="text-red-600">*</span>
@@ -27,13 +50,17 @@ export default function CountryStateCitySelect({ control, watch, errors }: any) 
             name="country"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value || ""}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || ""}
+                disabled={disableCountry}
+              >
                 <SelectTrigger className="w-full cursor-pointer">
                   <SelectValue placeholder="Select Country" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60">
                   {Country.getAllCountries().map((c) => (
-                    <SelectItem key={c.isoCode} value={c.isoCode}>
+                    <SelectItem key={c.isoCode} value={c.name}>
                       {c.name}
                     </SelectItem>
                   ))}
@@ -41,60 +68,101 @@ export default function CountryStateCitySelect({ control, watch, errors }: any) 
               </Select>
             )}
           />
-          {errors.country && (
+          {errors?.country && (
             <p className="text-sm text-red-600">{errors.country.message}</p>
           )}
         </div>
+      )}
 
-        {/* State */}
+      {/* State */}
+      {showState && (
         <div className="space-y-1.5">
           <Label>State</Label>
           <Controller
             name="state"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value || ""}>
+              <Select
+                onValueChange={(value) => field.onChange(value)}
+                value={field.value || ""}
+                disabled={!editing}
+              >
                 <SelectTrigger className="w-full cursor-pointer">
-                  <SelectValue placeholder="Select State" />
+                  <SelectValue placeholder="Select state" />
                 </SelectTrigger>
                 <SelectContent>
-                  {country &&
-                    State.getStatesOfCountry(country).map((s) => (
-                      <SelectItem key={s.isoCode} value={s.isoCode}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
+                  {State.getStatesOfCountry(
+                    Country.getAllCountries().find(
+                      (c) => c.name === watch("country")
+                    )?.isoCode || ""
+                  ).map((s) => (
+                    <SelectItem key={s.isoCode} value={s.name}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}
           />
         </div>
+      )}
 
-        {/* City */}
+      {/* City */}
+      {showCity && (
         <div className="space-y-1.5">
           <Label>City</Label>
           <Controller
             name="city"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value || ""}>
+              <Select
+                onValueChange={(value) => field.onChange(value)}
+                value={field.value}
+                disabled={!editing}
+              >
                 <SelectTrigger className="w-full cursor-pointer">
-                  <SelectValue placeholder="Select City" />
+                  <SelectValue placeholder="Select city" />
                 </SelectTrigger>
                 <SelectContent>
-                  {country &&
-                    state &&
-                    City.getCitiesOfState(country, state).map((city) => (
-                      <SelectItem key={city.name} value={city.name}>
-                        {city.name}
-                      </SelectItem>
-                    ))}
+                  {City.getCitiesOfState(
+                    Country.getAllCountries().find(
+                      (c) => c.name === watch("country")
+                    )?.isoCode || "",
+                    State.getStatesOfCountry(
+                      Country.getAllCountries().find(
+                        (c) => c.name === watch("country")
+                      )?.isoCode || ""
+                    ).find((s) => s.name === watch("state"))?.isoCode || ""
+                  ).map((c) => (
+                    <SelectItem key={c.name} value={c.name}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}
           />
         </div>
-      </div>
+      )}
+
+      {/* Pincode */}
+      {showPincode && (
+        <div className="space-y-1.5">
+          <Label>Postal Code</Label>
+          <Controller
+            name="pincode"
+            control={control}
+            render={({ field }) => (
+              <Input
+                type="text"
+                placeholder="Enter Postal Code"
+                {...field}
+                disabled={!editing}
+              />
+            )}
+          />
+        </div>
+      )}
     </>
   );
 }
