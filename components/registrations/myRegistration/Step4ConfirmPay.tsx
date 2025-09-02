@@ -83,7 +83,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
         eventId: basicDetails.eventId,
         eventName: basicDetails.eventName,
         registrationCategory: basicDetails.registrationCategory._id,
-        mealPreference: basicDetails.mealPreference,
+        mealPreference: basicDetails.mealPreference?._id,
         prefix: basicDetails.prefix,
         fullName: basicDetails.fullName,
         phone: basicDetails.phone,
@@ -100,70 +100,29 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
         gender: basicDetails.gender,
       };
 
-      const registrationRes = await fetch("/api/user/registration", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      console.log("Submitting Registration Payload:", payload);
+      const registrationRes = await fetch(
+        `/api/user/registration/${basicDetails.eventId}`,
+        {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
       if (!registrationRes.ok) {
         const err = await registrationRes.json();
-        throw new Error(err?.error || "Failed to create registration");
+        throw new Error(err?.error || "Registration failed");
       }
 
-      const { registration } = await registrationRes.json();
-      const registrationId = registration._id;
+      const registrationData = await registrationRes.json();
+      const registrationId = registrationData.registration?._id;
 
-      const orderRes = await fetch("/api/user/payment/order", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ registrationId }),
-      });
-
-      if (!orderRes.ok) throw new Error("Failed to create payment order");
-
-      const { order } = await orderRes.json();
-      if (!(window as any).Razorpay) throw new Error("Razorpay not loaded");
-
-      const options: any = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: order.amount,
-        currency: order.currency,
-        name: "Event Registration",
-        description: registration.eventName,
-        order_id: order.id,
-        handler: async function (response: any) {
-          try {
-            const verifyRes = await fetch("/api/user/payment/verify", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_payment_id: response.razorpay_payment_id,
-                registrationId,
-              }),
-            });
-
-            if (!verifyRes.ok) throw new Error("Payment verification failed");
-            toast.success("Payment successful!");
-            router.push("/registration/success");
-          } catch (err: any) {
-            toast.error(err.message || "Payment verification failed");
-          }
-        },
-        prefill: {
-          name: basicDetails.fullName,
-          email: basicDetails.email,
-          contact: basicDetails.phone,
-        },
-        theme: { color: "#00509E" },
-      };
-
-      new (window as any).Razorpay(options).open();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to process registration/payment");
+      router.push(`/registration/payment?registrationId=${registrationId}`);
+    } catch (error) {
+      console.error("Error:", error);
+      toast.error("Something went wrong");
     } finally {
       setLoading(false);
     }
@@ -213,7 +172,11 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
                   {key.replace(/([A-Z])/g, " $1")}
                 </p>
                 <Input
-                  value={(tempBasic as any)[key] || ""}
+                  value={
+                    key === "mealPreference"
+                      ? tempBasic.mealPreference?.mealName || "" // ✅ show mealName
+                      : (tempBasic as any)[key] || ""
+                  }
                   onChange={(e) =>
                     setTempBasic({ ...tempBasic, [key]: e.target.value })
                   }

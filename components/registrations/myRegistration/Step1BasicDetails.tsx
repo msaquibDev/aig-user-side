@@ -48,7 +48,11 @@ const schema = z.object({
   //   required_error: "Meal preference is required",
   // }),
 
-  mealPreference: z.string().min(1, "Meal preference is required"),
+  // mealPreference: z.string().min(1, "Meal preference is required"),
+  mealPreference: z.object({
+    _id: z.string(),
+    mealName: z.string(),
+  }),
 
   // registrationCategory: z.enum(["Member", "Trade", "Student", "Non-Member"], {
   // required_error: "Registration category is required",
@@ -261,13 +265,24 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             name="mealPreference"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value || ""}>
+              <Select
+                onValueChange={(value) => {
+                  const selected = mealPreferences.find((m) => m._id === value);
+                  if (selected) {
+                    field.onChange({
+                      _id: selected._id, // ✅ for backend
+                      mealName: selected.mealName, // ✅ for UI/review
+                    });
+                  }
+                }}
+                value={field.value?._id || ""} // keep controlled
+              >
                 <SelectTrigger className="w-full cursor-pointer">
                   <SelectValue placeholder="Select Meal Preference" />
                 </SelectTrigger>
                 <SelectContent>
                   {mealPreferences.map((meal) => (
-                    <SelectItem key={meal._id} value={meal.mealName}>
+                    <SelectItem key={meal._id} value={meal._id}>
                       {meal.mealName}
                     </SelectItem>
                   ))}
@@ -275,6 +290,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               </Select>
             )}
           />
+
           {errors.mealPreference && (
             <p className="text-sm text-red-600">
               {errors.mealPreference.message}

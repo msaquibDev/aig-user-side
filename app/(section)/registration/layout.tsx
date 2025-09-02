@@ -7,6 +7,7 @@ import { SubSidebar } from "@/components/dashboard/SubSidebar";
 import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
 
 import { useRouter, usePathname } from "next/navigation";
+import Script from "next/script";
 import { useState } from "react";
 
 export default function SectionLayout({
