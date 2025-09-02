@@ -13,24 +13,40 @@ import {
 } from "@/components/ui/select";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Profile } from "@/app/data/profile";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+// Ensure Profile type matches Zod schema: optional fields should be string (not string | undefined)
+type Profile = {
+  prefix: string;
+  email: string;
+  fullName: string;
+  affiliation: string;
+  phone: string;
+  country: string;
+  designation?: string;
+  medicalCouncilState?: string;
+  medicalCouncilRegistration?: string;
+  gender?: string;
+  city?: string;
+  state?: string;
+  mealPreference?: string;
+  pincode?: string;
+  photo?: string;
+};
 import { useUserStore } from "@/app/store/useUserStore";
 import { useSession } from "next-auth/react";
 import { Loader2, Pencil } from "lucide-react";
+import { useForm, Controller } from "react-hook-form";
+import CountryStateCitySelect from "../common/CountryStateCitySelect";
 
-/**
- * Zod validation schema (matches the rules you provided)
- */
+// ✅ Schema stays same
 const profileSchema = z.object({
   fullName: z
     .string()
     .min(3, "Full name is required")
     .regex(/^[A-Za-z\s]+$/, "Only alphabets and spaces are allowed")
     .max(50, "Maximum 50 characters"),
-  prefix: z
-    .string()
-    .min(1, "Prefix is required")
-    .max(10, "Maximum 10 characters"),
+  prefix: z.string().min(1, "Prefix is required").max(10),
   designation: z
     .string()
     .regex(/^[A-Za-z\s]+$/, "Only alphabets allowed")
@@ -38,21 +54,18 @@ const profileSchema = z.object({
     .max(50, "Maximum 50 characters")
     .optional()
     .or(z.literal("")),
-  affiliation: z
-    .string()
-    .min(1, "Affiliation is required")
-    .max(50, "Maximum 100 characters"),
+  affiliation: z.string().min(1, "Affiliation is required").max(50),
   medicalCouncilState: z
     .string()
     .regex(/^[A-Za-z\s]+$/, "Only alphabets allowed")
-    .min(2, "Minimum 2 characters")
-    .max(50, "Maximum 50 characters")
+    .min(2)
+    .max(50)
     .optional()
     .or(z.literal("")),
   medicalCouncilRegistration: z
     .string()
-    .min(3, "Minimum 3 characters")
-    .max(50, "Maximum 50 characters")
+    .min(3)
+    .max(50)
     .optional()
     .or(z.literal("")),
   phone: z
@@ -64,23 +77,23 @@ const profileSchema = z.object({
   city: z
     .string()
     .regex(/^[A-Za-z\s]+$/, "Only alphabets allowed")
-    .min(2, "Minimum 2 characters")
-    .max(50, "Maximum 50 characters")
+    .min(2)
+    .max(50)
     .optional()
     .or(z.literal("")),
   state: z
     .string()
     .regex(/^[A-Za-z\s]+$/, "Only alphabets allowed")
-    .min(2, "Minimum 2 characters")
-    .max(50, "Maximum 50 characters")
+    .min(2)
+    .max(50)
     .optional()
     .or(z.literal("")),
   mealPreference: z.string().optional(),
   pincode: z
     .string()
     .regex(/^\d+$/, "Pincode must be numeric")
-    .min(4, "Minimum 4 digits")
-    .max(10, "Maximum 10 digits")
+    .min(4)
+    .max(10)
     .optional()
     .or(z.literal("")),
   photo: z.string().optional(),
@@ -91,58 +104,37 @@ export default function MyProfileForm({
 }: {
   initialData: Profile;
 }) {
-  const [formData, setFormData] = useState<Profile>(initialData);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoError, setPhotoError] = useState("");
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
   const { update } = useSession();
-
-  // stores validation error messages keyed by field name
-  const [errors, setErrors] = useState<Record<string, string>>({});
-
   const setUser = useUserStore((state) => state.setUser);
 
-  // Ensure all fields are populated when `initialData` changes
+  // ✅ Setup react-hook-form
+  const {
+    control,
+    handleSubmit,
+    watch,
+    reset,
+    formState: { errors },
+  } = useForm<Profile>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      ...initialData,
+      photo: initialData.photo || "/authImg/user.png",
+    },
+  });
+
+  // ✅ Reset when initialData changes
   useEffect(() => {
-    if (initialData) {
-      setFormData({
-        photo: initialData.photo || "/authImg/user.png",
-        fullName: initialData.fullName || "",
-        prefix: initialData.prefix || "",
-        designation: initialData.designation || "",
-        affiliation: initialData.affiliation || "",
-        medicalCouncilState: initialData.medicalCouncilState || "",
-        medicalCouncilRegistration:
-          initialData.medicalCouncilRegistration || "",
-        phone: initialData.phone || "",
-        email: initialData.email || "",
-        country: initialData.country || "",
-        gender: initialData.gender || "",
-        city: initialData.city || "",
-        state: initialData.state || "",
-        mealPreference: initialData.mealPreference || "",
-        pincode: initialData.pincode || "",
-      });
-      // update navbar store on initial load
-      setUser({ photo: initialData.photo, fullName: initialData.fullName });
-    }
-  }, [initialData, setUser]);
-
-  const handleChange = (field: keyof Profile, value: string) => {
-    // clear related validation error as user types
-    setErrors((prev) => {
-      if (prev[field]) {
-        const cp = { ...prev };
-        delete cp[field];
-        return cp;
-      }
-      return prev;
+    reset({
+      ...initialData,
+      photo: initialData.photo || "/authImg/user.png",
     });
-
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+    setUser({ photo: initialData.photo, fullName: initialData.fullName });
+  }, [initialData, reset, setUser]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -168,57 +160,24 @@ export default function MyProfileForm({
 
     setPhotoFile(file);
     const previewUrl = URL.createObjectURL(file);
-    setFormData((prev) => ({ ...prev, photo: previewUrl }));
-    setUser({ photo: previewUrl }); // Update store immediately for live preview
+    reset((prev) => ({ ...prev, photo: previewUrl })); // update form preview
+    setUser({ photo: previewUrl });
     setPhotoError("");
-    // clear photo-level validation error if any
-    setErrors((prev) => {
-      const cp = { ...prev };
-      delete cp["photo"];
-      return cp;
-    });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate with Zod before submitting
-    const result = profileSchema.safeParse(formData);
-    if (!result.success) {
-      // Map Zod errors to an object keyed by field name
-      const newErrors: Record<string, string> = {};
-      result.error.errors.forEach((err) => {
-        const key = String(err.path[0] || "form");
-        // Only set the first message per field
-        if (!newErrors[key]) newErrors[key] = err.message;
-      });
-      setErrors(newErrors);
-
-      // show first error as toast for quick feedback
-      const firstMessage = result.error.errors[0]?.message;
-      toast.error(firstMessage || "Please fix the form errors");
-      return;
-    }
-
-    // no validation errors -> proceed
-    setErrors({});
+  const onSubmit = async (data: Profile) => {
     setLoading(true);
-
     try {
       const formDataObj = new FormData();
-      Object.entries(formData).forEach(([key, value]) => {
+      Object.entries(data).forEach(([key, value]) => {
         if (value) formDataObj.append(key, value.toString());
       });
-
-      if (photoFile) {
-        formDataObj.append("profilePicture", photoFile);
-      }
+      if (photoFile) formDataObj.append("profilePicture", photoFile);
 
       const res = await fetch("/api/user/profile", {
         method: "PUT",
         body: formDataObj,
       });
-
       if (!res.ok) throw new Error("Failed to update profile");
 
       const updatedUser = await res.json();
@@ -231,8 +190,8 @@ export default function MyProfileForm({
 
       toast.success("Profile updated successfully!");
       setIsEditing(false);
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
+      console.error(err);
       toast.error("Failed to update profile");
     } finally {
       setLoading(false);
@@ -241,16 +200,15 @@ export default function MyProfileForm({
 
   return (
     <form
-      onSubmit={handleSubmit}
+      onSubmit={handleSubmit(onSubmit)}
       className="bg-white border border-gray-200 shadow-sm rounded-md p-6"
     >
       {/* Profile Photo */}
       <div className="flex items-center gap-4 mb-6">
-        {/* Profile photo with clickable image */}
         <div className="relative">
           <label htmlFor="photo" className="cursor-pointer">
             <img
-              src={formData.photo || "/authImg/user.png"}
+              src={watch("photo") || "/authImg/user.png"}
               alt="Profile"
               className="w-16 h-16 rounded-full object-cover border border-gray-300 hover:opacity-80 transition"
             />
@@ -260,7 +218,6 @@ export default function MyProfileForm({
               </span>
             )}
           </label>
-
           <input
             type="file"
             id="photo"
@@ -270,7 +227,6 @@ export default function MyProfileForm({
             disabled={!isEditing}
           />
         </div>
-
         <div>
           <Label className="text-[#00509E] font-medium">Profile Photo</Label>
           <p className="text-xs text-gray-500">
@@ -280,7 +236,7 @@ export default function MyProfileForm({
             <p className="text-sm text-red-500 mt-1">{photoError}</p>
           )}
           {errors.photo && (
-            <p className="text-sm text-red-500 mt-1">{errors.photo}</p>
+            <p className="text-sm text-red-500 mt-1">{errors.photo.message}</p>
           )}
         </div>
       </div>
@@ -288,113 +244,84 @@ export default function MyProfileForm({
       {/* Form Fields */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 [&>div]:space-y-2">
         <InputField
+          control={control}
+          name="prefix"
           label="Prefix"
-          requiredIndicator={
-            <span>
-              (Mr/Ms/Dr/Prof)<span className="text-red-500">*</span>
-            </span>
-          }
-          value={formData.prefix}
-          onChange={(v) => handleChange("prefix", v)}
-          error={errors.prefix}
-          disabled={!isEditing}
+          required
+          editing={isEditing}
         />
         <InputField
+          control={control}
+          name="fullName"
           label="Full Name"
-          requiredIndicator={<span className="text-red-500"> *</span>}
-          value={formData.fullName}
-          onChange={(v) => handleChange("fullName", v)}
-          error={errors.fullName}
-          disabled={!isEditing}
+          required
+          editing={isEditing}
         />
         <SelectField
+          control={control}
+          name="gender"
           label="Gender"
-          value={formData.gender}
-          onChange={(val) => handleChange("gender", val)}
           options={["Male", "Female", "Other"]}
-          error={errors.gender}
-          disabled={!isEditing}
+          editing={isEditing}
         />
         <InputField
+          control={control}
+          name="designation"
           label="Designation"
-          value={formData.designation}
-          onChange={(v) => handleChange("designation", v)}
-          error={errors.designation}
-          disabled={!isEditing}
+          editing={isEditing}
         />
         <InputField
+          control={control}
+          name="affiliation"
           label="Affiliation"
-          requiredIndicator={<span className="text-red-500">*</span>}
-          value={formData.affiliation}
-          onChange={(v) => handleChange("affiliation", v)}
-          error={errors.affiliation}
-          disabled={!isEditing}
+          required
+          editing={isEditing}
         />
         <InputField
+          control={control}
+          name="medicalCouncilState"
           label="Medical Council State"
-          value={formData.medicalCouncilState}
-          onChange={(v) => handleChange("medicalCouncilState", v)}
-          error={errors.medicalCouncilState}
-          disabled={!isEditing}
+          editing={isEditing}
         />
         <InputField
+          control={control}
+          name="medicalCouncilRegistration"
           label="Medical Council Registration"
-          value={formData.medicalCouncilRegistration}
-          onChange={(v) => handleChange("medicalCouncilRegistration", v)}
-          error={errors.medicalCouncilRegistration}
-          disabled={!isEditing}
+          editing={isEditing}
         />
         <SelectField
+          control={control}
+          name="mealPreference"
           label="Meal Preference"
-          value={formData.mealPreference}
-          onChange={(val) => handleChange("mealPreference", val)}
           options={["Veg", "Non-Veg", "Vegan"]}
-          error={errors.mealPreference}
-          disabled={!isEditing}
+          editing={isEditing}
         />
         <InputField
+          control={control}
+          name="phone"
           label="Mobile No."
-          requiredIndicator={<span className="text-red-500">*</span>}
-          value={formData.phone}
-          onChange={(v) => handleChange("phone", v)}
-          error={errors.phone}
-          disabled={!isEditing}
+          required
+          editing={isEditing}
         />
         <InputField
+          control={control}
+          name="email"
           label="Email"
-          value={formData.email}
-          onChange={(v) => handleChange("email", v)}
           disabled
-          error={errors.email}
+          editing={isEditing}
         />
-        <InputField
-          label="Country"
-          requiredIndicator={<span className="text-red-500">*</span>}
-          value={formData.country}
-          onChange={(val) => handleChange("country", val)}
-          error={errors.country}
-          disabled={!isEditing}
-        />
-        <InputField
-          label="State"
-          value={formData.state}
-          onChange={(val) => handleChange("state", val)}
-          error={errors.state}
-          disabled={!isEditing}
-        />
-        <InputField
-          label="City"
-          value={formData.city}
-          onChange={(val) => handleChange("city", val)}
-          error={errors.city}
-          disabled={!isEditing}
-        />
-        <InputField
-          label="Pincode"
-          value={formData.pincode}
-          onChange={(v) => handleChange("pincode", v)}
-          error={errors.pincode}
-          disabled={!isEditing}
+
+        {/* Country / State / City / Pincode */}
+        <CountryStateCitySelect
+          control={control}
+          watch={watch}
+          errors={errors}
+          showCountry={true}
+          disableCountry={true}
+          showState={true}
+          showCity={true}
+          showPincode={true}
+          editing={isEditing}
         />
       </div>
 
@@ -428,7 +355,7 @@ export default function MyProfileForm({
               type="button"
               className="bg-gray-300 hover:bg-gray-400 text-black cursor-pointer"
               onClick={() => {
-                setFormData(initialData); // reset changes
+                reset(initialData);
                 setIsEditing(false);
               }}
             >
@@ -441,64 +368,85 @@ export default function MyProfileForm({
   );
 }
 
+// ---------------------
+// Helpers
+// ---------------------
+
 const InputField = ({
+  control,
+  name,
   label,
-  requiredIndicator,
-  value,
-  onChange,
+  required,
+  editing,
   disabled,
-  error,
 }: {
+  control: any;
+  name: string;
   label: string;
-  requiredIndicator?: React.ReactNode;
-  value: string;
-  onChange: (v: string) => void;
+  required?: boolean;
+  editing: boolean;
   disabled?: boolean;
-  error?: string;
 }) => (
-  <div>
-    <Label>
-      {label}
-      {requiredIndicator}
-    </Label>
-    <Input
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      disabled={disabled}
-    />
-    {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
-  </div>
+  <Controller
+    name={name}
+    control={control}
+    render={({ field, fieldState }) => (
+      <div>
+        <Label>
+          {label} {required && <span className="text-red-500">*</span>}
+        </Label>
+        <Input {...field} disabled={!editing || disabled} />
+        {fieldState.error && (
+          <p className="text-sm text-red-500 mt-1">
+            {fieldState.error.message}
+          </p>
+        )}
+      </div>
+    )}
+  />
 );
 
 const SelectField = ({
+  control,
+  name,
   label,
-  value,
-  onChange,
   options,
-  error,
-  disabled,
+  editing,
 }: {
+  control: any;
+  name: string;
   label: string;
-  value: string;
-  onChange: (v: string) => void;
   options: string[];
-  error?: string;
-  disabled?: boolean; // 👈 ADD
+  editing: boolean;
 }) => (
-  <div>
-    <Label>{label}</Label>
-    <Select value={value} onValueChange={onChange} disabled={disabled}>
-      <SelectTrigger className="w-full cursor-pointer" disabled={disabled}>
-        <SelectValue placeholder="-Select-" />
-      </SelectTrigger>
-      <SelectContent>
-        {options.map((option) => (
-          <SelectItem key={option} value={option}>
-            {option}
-          </SelectItem>
-        ))}
-      </SelectContent>
-    </Select>
-    {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
-  </div>
+  <Controller
+    name={name}
+    control={control}
+    render={({ field, fieldState }) => (
+      <div>
+        <Label>{label}</Label>
+        <Select
+          value={field.value || ""}
+          onValueChange={field.onChange}
+          disabled={!editing}
+        >
+          <SelectTrigger className="w-full cursor-pointer">
+            <SelectValue placeholder="-Select-" />
+          </SelectTrigger>
+          <SelectContent>
+            {options.map((option) => (
+              <SelectItem key={option} value={option}>
+                {option}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {fieldState.error && (
+          <p className="text-sm text-red-500 mt-1">
+            {fieldState.error.message}
+          </p>
+        )}
+      </div>
+    )}
+  />
 );

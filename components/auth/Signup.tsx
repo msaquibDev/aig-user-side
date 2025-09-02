@@ -7,21 +7,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "@/components/ui/select";
 //import ReCAPTCHA from "react-google-recaptcha";
-import { useRef, useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import CountryStateCitySelect from "../common/CountryStateCitySelect";
 
 countries.registerLocale(enLocale);
 
@@ -67,15 +61,13 @@ export default function Signup() {
   //const recaptchaRef = useRef<ReCAPTCHA>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [countryList, setCountryList] = useState<
-    { code: string; name: string }[]
-  >([]);
   const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
     handleSubmit,
-    setValue,
+    control,
+    watch,
     formState: { errors },
     reset,
   } = useForm<FormData>({
@@ -85,14 +77,6 @@ export default function Signup() {
       // ...other defaults like name, email etc
     },
   });
-
-  useEffect(() => {
-    const countryNames = countries.getNames("en", { select: "official" });
-    const mapped = Object.entries(countryNames)
-      .map(([code, name]) => ({ code, name }))
-      .sort((a, b) => a.name.localeCompare(b.name)); // ✅ sort alphabetically
-    setCountryList(mapped);
-  }, []);
 
   const onSubmit = async (data: z.infer<typeof schema>) => {
     try {
@@ -209,24 +193,16 @@ export default function Signup() {
           </div>
 
           <div className="grid gap-1">
-            <Label htmlFor="country">
-              Country<span className="text-red-500">*</span>
-            </Label>
-            <Select onValueChange={(value) => setValue("country", value)}>
-              <SelectTrigger id="country" className="w-full cursor-pointer">
-                <SelectValue placeholder="Select Country" />
-              </SelectTrigger>
-              <SelectContent className="w-full h-60">
-                {countryList.map((country) => (
-                  <SelectItem key={country.code} value={country.name}>
-                    {country.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {errors.country && (
-              <p className="text-sm text-red-600">{errors.country.message}</p>
-            )}
+            <CountryStateCitySelect
+              control={control}
+              watch={watch}
+              errors={errors}
+              showCountry={true}
+              disableCountry={false}
+              showState={false}
+              showCity={false}
+              showPincode={false}
+            />
           </div>
 
           <div className="grid gap-1">

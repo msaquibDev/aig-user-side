@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,19 +22,19 @@ export function DashboardHeader({
   const { photo, fullName } = useUserStore(); // Zustand store
   const setUser = useUserStore((state) => state.setUser);
   const { currentEvent } = useEventStore();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const eventIdFromUrl = searchParams.get("eventId");
+
+  // Only show event info on registration routes when eventId is present
+  const showEventInfo =
+    pathname?.startsWith("/registration") && eventIdFromUrl && currentEvent;
 
   const [loggingOut, setLoggingOut] = useState(false);
 
   // Replace with dynamic values if needed
   // const eventTitle = "AIG IBD Summit 2025";
   // const eventDateTime = "Sat Aug 2, 2025 | 08:00 PM (IST)";
-
-  const eventTitle = currentEvent?.eventName;
-  const eventDateTime = currentEvent
-    ? `${formatEventDate(currentEvent.startDate)} | ${currentEvent.startTime} ${
-        currentEvent.timeZone
-      }`
-    : "";
 
   // ✅ Fetch latest user profile on mount
   useEffect(() => {
@@ -91,8 +91,20 @@ export function DashboardHeader({
         </Link>
 
         <div className="hidden md:flex flex-col justify-center text-white ml-6">
-          <h1 className="text-lg font-semibold leading-tight">{eventTitle}</h1>
-          <p className="text-sm text-gray-200">{eventDateTime}</p>
+          {showEventInfo ? (
+            <>
+              <h1 className="text-lg font-semibold leading-tight">
+                {currentEvent?.eventName}
+              </h1>
+              <p className="text-sm text-gray-200">
+                {currentEvent
+                  ? `${formatEventDate(currentEvent.startDate)} | ${
+                      currentEvent.startTime
+                    } ${currentEvent.timeZone}`
+                  : ""}
+              </p>
+            </>
+          ) : null}
         </div>
       </div>
 

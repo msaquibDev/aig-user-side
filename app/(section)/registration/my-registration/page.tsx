@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useRegistrationStore } from "@/app/store/useRegistrationStore";
 import RegistrationStepper from "@/components/registrations/myRegistration/RegistrationStepper";
@@ -11,22 +11,29 @@ import Step4ConfirmPay from "@/components/registrations/myRegistration/Step4Conf
 import { useEventStore } from "@/app/store/useEventStore";
 
 export default function RegistrationPage() {
-  const { eventId } = useParams<{ eventId: string }>();
-  const { setCurrentEvent } = useEventStore();
   const { currentStep, setStep, updateBasicDetails } = useRegistrationStore();
+  const { events, currentEvent, setCurrentEvent, fetchEvents } =
+    useEventStore();
+
+  const searchParams = useSearchParams();
+  const eventIdFromUrl = searchParams.get("eventId");
 
   useEffect(() => {
-    const fetchUserDetails = async () => {
+    const fetchUserProfile = async () => {
       try {
-        const res = await fetch("/api/user/registration", {
+        const res = await fetch("/api/user/profile", {
           method: "GET",
           credentials: "include",
           cache: "no-store",
         });
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const result = await res.json();
-        const user = result?.data?.user;
-        console.log("Fetched user details:", user);
+
+        if (!res.ok) {
+          throw new Error(`Failed to fetch profile: ${res.status}`);
+        }
+
+        const user = await res.json(); // user document is returned directly
+        console.log("Fetched user profile:", user);
+
         if (user) {
           updateBasicDetails({
             prefix: user.prefix ?? "",
@@ -45,41 +52,34 @@ export default function RegistrationPage() {
             mealPreference: user.mealPreference ?? "veg",
           });
         }
-      } catch (error) {
-        // toast.error("Error loading profile");
-        console.error(error);
+      } catch (err) {
+        console.error("Error fetching profile:", err);
       }
     };
-    fetchUserDetails();
-  }, []);
+
+    fetchUserProfile();
+  }, [updateBasicDetails]);
 
   useEffect(() => {
-    async function fetchEvent() {
-      try {
-        if (!eventId) return;
+    if (!events.length) fetchEvents();
+  }, [events, fetchEvents]);
 
-        const res = await fetch(`/api/events/${eventId}`, {
-          cache: "no-store",
-        });
-        const result = await res.json();
+  // ✅ Set current event based on URL
+  useEffect(() => {
+    if (!eventIdFromUrl || !events.length) return;
 
-        console.log("Event API response:", result);
-
-        if (!res.ok || !result?.success)
-          throw new Error("Failed to fetch event");
-
-        // result.data is an array of categories
-        setCurrentEvent(result.data);
-      } catch (err) {
-        console.error("Error fetching event:", err);
-        setCurrentEvent(null);
-      }
+    const foundEvent = events.find((e) => e._id === eventIdFromUrl);
+    if (foundEvent) {
+      setCurrentEvent(foundEvent);
+      updateBasicDetails({
+        eventId: foundEvent._id,
+        eventName: foundEvent.eventName,
+      });
     }
-
-    fetchEvent();
-  }, [eventId, setCurrentEvent]);
+  }, [events, eventIdFromUrl, setCurrentEvent, updateBasicDetails]);
 
   // const goNext = () => setStep(Math.min(currentStep + 1, 4));
+
   const goNext = () => setStep(Math.min(currentStep + 1, 2));
   const goBack = () => setStep(Math.max(currentStep - 1, 1));
 
