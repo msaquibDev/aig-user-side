@@ -179,11 +179,12 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
               Basic Details
             </h3>
             <Button
+              className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200 cursor-pointer hover:text-wh"
               size="sm"
               variant="ghost"
-              onClick={() => toggleEdit("basic")}
+              onClick={() => onBack()} // or router.push if you’re routing steps
             >
-              ✎ {editingSection === "basic" ? "Save" : "Edit"}
+              ✎ Edit
             </Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
@@ -267,7 +268,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200"
+            className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200 cursor-pointer"
           >
             {loading ? (
               <>
