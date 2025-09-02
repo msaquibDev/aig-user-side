@@ -44,9 +44,11 @@ const schema = z.object({
     required_error: "Gender is required",
   }),
 
-  mealPreference: z.enum(["Veg", "Non-Veg", "Jain"], {
-    required_error: "Meal preference is required",
-  }),
+  // mealPreference: z.enum(["Veg", "Non-Veg", "Jain"], {
+  //   required_error: "Meal preference is required",
+  // }),
+
+  mealPreference: z.string().min(1, "Meal preference is required"),
 
   // registrationCategory: z.enum(["Member", "Trade", "Student", "Non-Member"], {
   // required_error: "Registration category is required",
@@ -63,6 +65,7 @@ type FormData = z.infer<typeof schema>;
 export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
   const { basicDetails, updateBasicDetails } = useRegistrationStore();
   const [categories, setCategories] = useState([]);
+  const [mealPreferences, setMealPreferences] = useState<any[]>([]);
 
   const {
     register,
@@ -106,6 +109,23 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
     }
 
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    async function fetchMealPreferences() {
+      try {
+        const res = await fetch("/api/user/mealPreference", { method: "GET" });
+        const data = await res.json();
+        console.log("Meal Preference Response:", data);
+        if (data.success) {
+          setMealPreferences(data.data); // [{_id, mealName}, ...]
+        }
+      } catch (err) {
+        console.error("GET meal preferences error:", err);
+      }
+    }
+
+    fetchMealPreferences();
   }, []);
 
   return (
@@ -234,22 +254,23 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Meal Preference</Label>
+          <Label>
+            Meal Preference <span className="text-red-600">*</span>
+          </Label>
           <Controller
             name="mealPreference"
             control={control}
             render={({ field }) => (
-              <Select
-                onValueChange={field.onChange}
-                value={field.value || ""} // ✅ controlled
-              >
+              <Select onValueChange={field.onChange} value={field.value || ""}>
                 <SelectTrigger className="w-full cursor-pointer">
                   <SelectValue placeholder="Select Meal Preference" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Veg">Veg</SelectItem>
-                  <SelectItem value="Non-Veg">Non-Veg</SelectItem>
-                  <SelectItem value="Jain">Jain</SelectItem>
+                  {mealPreferences.map((meal) => (
+                    <SelectItem key={meal._id} value={meal.mealName}>
+                      {meal.mealName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}

@@ -251,14 +251,14 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
 
               <span>₹ {regAmount.toLocaleString("en-IN")}.00</span>
             </div>
-            <div className="flex justify-between">
+            {/* <div className="flex justify-between">
               <span>Tax</span>
               <span>₹ {tax.toLocaleString("en-IN")}.00</span>
-            </div>
+            </div> */}
             <hr />
             <div className="flex justify-between font-semibold text-base">
               <span>Total</span>
-              <span>₹ {total.toLocaleString("en-IN")}.00</span>
+              <span>₹ {regAmount.toLocaleString("en-IN")}.00</span>
             </div>
           </div>
         </section>

@@ -8,7 +8,8 @@ export type RegistrationCategory = {
 };
 
 export type Gender = "Male" | "Female" | "Other";
-export type MealPreference = "Veg" | "Non-Veg" | "Jain";
+// export type MealPreference = "Veg" | "Non-Veg" | "Jain";
+export type MealPreference = string; // now dynamic, not limited to 3
 
 // Main form type
 export type BasicDetails = {
@@ -87,7 +88,7 @@ const initialBasicDetails: BasicDetails = {
   state: "",
   city: "",
   pincode: "",
-  mealPreference: "Veg",
+  mealPreference: "",
   gender: "Male",
   registrationCategory: undefined as any,
 };
