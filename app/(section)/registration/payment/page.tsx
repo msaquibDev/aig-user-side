@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 export default function PaymentPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const registrationId = searchParams.get("registrationId");
 
   const [loading, setLoading] = useState(false);
   const [registration, setRegistration] = useState<any>(null);
-  console.log("Registration:", registration);
   const [order, setOrder] = useState<any>(null);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // Fetch registration & create order
   useEffect(() => {
@@ -23,20 +22,21 @@ export default function PaymentPage() {
       try {
         setLoading(true);
 
+        // ✅ Uncomment later if you want to show registration details
         // const regRes = await fetch(`/api/user/registration/${registrationId}`);
         // if (!regRes.ok) throw new Error("Failed to fetch registration");
         // const regData = await regRes.json();
-        // setRegistration(regData); // ✅ set registration
-        // console.log("Fetched registration:", regData);
+        // setRegistration(regData);
 
         const orderRes = await fetch("/api/user/payment/order", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ registrationId }),
         });
+
         if (!orderRes.ok) throw new Error("Failed to create order");
+
         const orderData = await orderRes.json();
-        console.log("Created order:", orderData);
         setOrder(orderData.order);
       } catch (error) {
         console.error(error);
@@ -49,6 +49,7 @@ export default function PaymentPage() {
     initPayment();
   }, [registrationId]);
 
+  // Load Razorpay script
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -82,7 +83,7 @@ export default function PaymentPage() {
 
           if (verifyRes.ok) {
             toast.success("Payment successful!");
-            // router.push("/registration/success/badge");
+            setPaymentSuccess(true); // ✅ Show success message
           } else {
             toast.error("Payment verification failed");
           }
@@ -104,28 +105,38 @@ export default function PaymentPage() {
   };
 
   return (
-    <div className="p-6">
-      <h1 className="text-xl font-bold mb-4">Payment</h1>
+    <Suspense fallback={<div className="p-6">Loading payment details...</div>}>
+      <div className="p-6">
+        <h1 className="text-xl font-bold mb-4">Payment</h1>
 
-      {loading && <p>Loading...</p>}
+        {loading && <p>Loading...</p>}
 
-      {registration && (
-        <div className="mb-6">
-          <p>
-            <strong>Name:</strong> {registration.fullName}
-          </p>
-          <p>
-            <strong>Email:</strong> {registration.email}
-          </p>
-          <p>
-            <strong>Amount:</strong> ₹{order?.amount / 100}
-          </p>
-        </div>
-      )}
+        {paymentSuccess ? (
+          <div className="p-4 rounded-lg bg-green-100 text-green-700">
+            ✅ Payment successful! Thank you for completing your registration.
+          </div>
+        ) : (
+          <>
+            {registration && (
+              <div className="mb-6">
+                <p>
+                  <strong>Name:</strong> {registration.fullName}
+                </p>
+                <p>
+                  <strong>Email:</strong> {registration.email}
+                </p>
+                <p>
+                  <strong>Amount:</strong> ₹{order?.amount / 100}
+                </p>
+              </div>
+            )}
 
-      <Button onClick={handlePay} disabled={!order}>
-        Pay Now
-      </Button>
-    </div>
+            <Button onClick={handlePay} disabled={!order}>
+              Pay Now
+            </Button>
+          </>
+        )}
+      </div>
+    </Suspense>
   );
 }
