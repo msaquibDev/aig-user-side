@@ -12,7 +12,7 @@ export type MealPreference = {
   mealName: string;
 };
 
-export type Gender = "Male" | "Female" | "Other";
+// export type Gender = "Male" | "Female" | "Other";
 // export type MealPreference = "Veg" | "Non-Veg" | "Jain";
 // export type MealPreference = string; // now dynamic, not limited to 3
 
@@ -35,7 +35,7 @@ export type BasicDetails = {
   city?: string;
   pincode?: string;
   mealPreference?: MealPreference;
-  gender?: Gender;
+  gender?: string;
   registrationCategory: RegistrationCategory;
 };
 
@@ -43,7 +43,7 @@ export type BasicDetails = {
 export type AccompanyingPerson = {
   name: string;
   age: string;
-  gender: Gender;
+  gender: string;
   relation: string;
   mealPreference: MealPreference;
 };
@@ -95,7 +95,7 @@ const initialBasicDetails: BasicDetails = {
   city: "",
   pincode: "",
   mealPreference: { _id: "", mealName: "" },
-  gender: "Male",
+  gender: "",
   registrationCategory: undefined as any,
 };
 

@@ -77,7 +77,9 @@ export default function CountryStateCitySelect({
       {/* State */}
       {showState && (
         <div className="space-y-1.5">
-          <Label>State</Label>
+          <Label>
+            State <span className="text-red-600">*</span>
+          </Label>
           <Controller
             name="state"
             control={control}
@@ -104,13 +106,18 @@ export default function CountryStateCitySelect({
               </Select>
             )}
           />
+          {errors?.state && (
+            <p className="text-sm text-red-600">{errors.state.message}</p>
+          )}
         </div>
       )}
 
       {/* City */}
       {showCity && (
         <div className="space-y-1.5">
-          <Label>City</Label>
+          <Label>
+            City <span className="text-red-600">*</span>
+          </Label>
           <Controller
             name="city"
             control={control}
@@ -142,13 +149,18 @@ export default function CountryStateCitySelect({
               </Select>
             )}
           />
+          {errors?.city && (
+            <p className="text-sm text-red-600">{errors.city.message}</p>
+          )}
         </div>
       )}
 
       {/* Pincode */}
       {showPincode && (
         <div className="space-y-1.5">
-          <Label>Postal Code</Label>
+          <Label>
+            Postal Code <span className="text-red-600">*</span>
+          </Label>
           <Controller
             name="pincode"
             control={control}
@@ -161,6 +173,9 @@ export default function CountryStateCitySelect({
               />
             )}
           />
+          {errors?.pincode && (
+            <p className="text-sm text-red-600">{errors.pincode.message}</p>
+          )}
         </div>
       )}
     </>

@@ -31,18 +31,16 @@ const schema = z.object({
   phone: z.string().regex(/^\d{10}$/, { message: "Mobile must be 10 digits" }),
   email: z.string().email("Invalid email"),
   affiliation: z.string().min(1, "Affiliation is required"),
-  designation: z.string().optional(),
+  designation: z.string().min(1, "Designation is required"),
   medicalCouncilRegistration: z.string().min(1, "Registration is required"),
-  medicalCouncilState: z.string().optional(),
-  address: z.string().optional(),
+  medicalCouncilState: z.string().min(1, "Medical Council State is required"),
+  address: z.string().min(1, "Address is required"),
   country: z.string().min(1, "Country is required"),
-  state: z.string().optional(),
-  city: z.string().optional(),
-  pincode: z.string().optional(),
+  state: z.string().min(1, "State is required"),
+  city: z.string().min(1, "City is required"),
+  pincode: z.string().min(1, "Pincode is required"),
 
-  gender: z.enum(["Male", "Female", "Other"], {
-    required_error: "Gender is required",
-  }),
+  gender: z.string().min(1, "Gender is required"),
 
   // mealPreference: z.enum(["Veg", "Non-Veg", "Jain"], {
   //   required_error: "Meal preference is required",
@@ -243,7 +241,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Designation</Label>
+          <Label>
+            Designation <span className="text-red-600">*</span>
+          </Label>
           <Input {...register("designation")} />
         </div>
 
@@ -290,7 +290,6 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
               </Select>
             )}
           />
-
           {errors.mealPreference && (
             <p className="text-sm text-red-600">
               {errors.mealPreference.message}
@@ -299,13 +298,25 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Medical Council State</Label>
+          <Label>
+            Medical Council State <span className="text-red-600">*</span>
+          </Label>
           <Input {...register("medicalCouncilState")} />
+          {errors.medicalCouncilState && (
+            <p className="text-sm text-red-600">
+              {errors.medicalCouncilState.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
-          <Label>Primary Address</Label>
+          <Label>
+            Primary Address <span className="text-red-600">*</span>
+          </Label>
           <Textarea {...register("address")} />
+          {errors.address && (
+            <p className="text-sm text-red-600">{errors.address.message}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
@@ -324,7 +335,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <Label className="font-medium">Select Registration Category</Label>
+        <Label className="font-medium">
+          Select Registration Category <span className="text-red-600">*</span>
+        </Label>
         <RadioGroup
           defaultValue={
             basicDetails.registrationCategory
