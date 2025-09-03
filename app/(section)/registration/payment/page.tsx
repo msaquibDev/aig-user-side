@@ -82,7 +82,7 @@ export default function PaymentPage() {
 
           if (verifyRes.ok) {
             toast.success("Payment successful!");
-            router.push("/registration/success/badge");
+            // router.push("/registration/success/badge");
           } else {
             toast.error("Payment verification failed");
           }
