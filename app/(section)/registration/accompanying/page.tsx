@@ -5,30 +5,30 @@ import AccompanyingTable from "@/components/registrations/accompanying/Accompany
 import { useState } from "react";
 
 export default function AccompanyingPage() {
-  const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  // const [open, setOpen] = useState(false);
+  // const [editId, setEditId] = useState<number | null>(null);
 
-  return (
-    <>
-      <AccompanyingTable
-        onAddClick={() => {
-          setEditId(null); // clear edit mode
-          setOpen(true);
-        }}
-        onEditClick={(id) => {
-          setEditId(id);
-          setOpen(true);
-        }}
-      />
+  // return (
+  //   <>
+  //     <AccompanyingTable
+  //       onAddClick={() => {
+  //         setEditId(null); // clear edit mode
+  //         setOpen(true);
+  //       }}
+  //       onEditClick={(id) => {
+  //         setEditId(id);
+  //         setOpen(true);
+  //       }}
+  //     />
 
-      <AccompanyingFormSidebar
-        open={open}
-        onClose={() => {
-          setOpen(false);
-          setEditId(null); // reset edit ID
-        }}
-        editId={editId}
-      />
-    </>
-  );
+  //     <AccompanyingFormSidebar
+  //       open={open}
+  //       onClose={() => {
+  //         setOpen(false);
+  //         setEditId(null); // reset edit ID
+  //       }}
+  //       editId={editId}
+  //     />
+  //   </>
+  // );
 }

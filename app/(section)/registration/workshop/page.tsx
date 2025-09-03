@@ -6,16 +6,16 @@ import { useState } from "react";
 
 
 export default function WorkshopPage() {
-  const [open, setOpen] = useState(false);
+  // const [open, setOpen] = useState(false);
 
-  return (
-    <>
-      <WorkshopTable
-        onAddClick={() => setOpen(true)}
-        onEditClick={() => setOpen(true)} // You can handle edit separately later
-      />
+  // return (
+  //   <>
+  //     <WorkshopTable
+  //       onAddClick={() => setOpen(true)}
+  //       onEditClick={() => setOpen(true)} // You can handle edit separately later
+  //     />
 
-      <WorkshopFormSidebar open={open} onClose={() => setOpen(false)} />
-    </>
-  );
+  //     <WorkshopFormSidebar open={open} onClose={() => setOpen(false)} />
+  //   </>
+  // );
 }
