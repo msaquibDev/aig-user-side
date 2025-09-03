@@ -1,7 +1,6 @@
 "use client";
 
-
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useAuthorStore } from "@/app/store/useAuthorStore";
 import MyAuthorsTable from "@/components/abstract/authors/MyAuthorsTable";
 import AuthorFormSidebar from "@/components/abstract/authors/AuthorFormSidebar";
@@ -24,17 +23,19 @@ export default function MyAuthorsPage() {
 
   return (
     <>
-      <MyAuthorsTable onEdit={handleEditClick} onView={handleViewClick} />
+      <Suspense fallback={<div>Loading authors...</div>}>
+        <MyAuthorsTable onEdit={handleEditClick} onView={handleViewClick} />
 
-      {/* Abstract Form Sidebar (Add/Edit) */}
-      <AuthorFormSidebar
-        open={open}
-        onClose={() => {
-          setOpen(false);
-          setEditId(null);
-        }}
-        defaultData={defaultData}
-      />
+        {/* Abstract Form Sidebar (Add/Edit) */}
+        <AuthorFormSidebar
+          open={open}
+          onClose={() => {
+            setOpen(false);
+            setEditId(null);
+          }}
+          defaultData={defaultData}
+        />
+      </Suspense>
     </>
   );
 }
