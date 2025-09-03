@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import {
   Table,
   TableBody,
@@ -72,6 +72,7 @@ export default function PresentationsTable() {
   };
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <div className="p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-semibold text-[#00509E]">Presentations</h2>
@@ -191,5 +192,6 @@ export default function PresentationsTable() {
         </div>
       </div>
     </div>
+    </Suspense>
   );
 }

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import BackButton from "../common/BackButton";
+import { Suspense } from "react";
 
 type SidebarItem = {
   label: string;
@@ -58,8 +59,10 @@ export function SubSidebar({
 }) {
   const pathname = usePathname();
   const items = sidebarMap[section] || [];
+  console.log('pathname ', pathname)
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <aside
       className={cn(
         "fixed top-[74px] left-25 h-[calc(100vh-74px)] border-r bg-[#eaf3ff] transition-all duration-300 z-30",
@@ -106,5 +109,6 @@ export function SubSidebar({
         })}
       </nav>
     </aside>
+    </Suspense>
   );
 }
