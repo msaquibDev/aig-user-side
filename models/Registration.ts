@@ -1,23 +1,23 @@
 // models/Registration.ts
 import mongoose, { Document, Schema, Model } from "mongoose";
 import { IUser } from "./User";
-import { IMealPreference } from "./MealPreference";
-import { IRegistrationCategory } from "./RegistrationCategory";
 
 /**
  * IRegistration Interface
  * -----------------------
  * Represents a single registration entry in the system.
- * Links a user with registration details, meal preferences,
- * category, event, and payment status.
+ * Stores mealPreference and registrationCategory as strings (names),
+ * instead of ObjectIds.
  */
 export interface IRegistration extends Document {
   _id: mongoose.Types.ObjectId;
 
   // References
   user: IUser["_id"];
-  mealPreference: IMealPreference["_id"];
-  registrationCategory: IRegistrationCategory["_id"];
+
+  // Instead of ObjectId, store names directly
+  mealPreference: string;
+  registrationCategory: string;
 
   // Personal Information
   prefix: string;
@@ -55,8 +55,7 @@ export interface IRegistration extends Document {
  * Registration Schema
  * -------------------
  * Stores detailed information for event registrations.
- * Includes references to User, MealPreference, RegistrationCategory,
- * and the Event itself. Tracks payment and registration status.
+ * mealPreference & registrationCategory are stored as strings.
  */
 const RegistrationSchema = new Schema<IRegistration>(
   {
@@ -68,15 +67,17 @@ const RegistrationSchema = new Schema<IRegistration>(
       ref: "User",
       required: [true, "User is required for registration"],
     },
+
+    // Store names instead of ObjectIds
     registrationCategory: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "RegistrationCategory",
+      type: String,
       required: [true, "Registration category is required"],
+      trim: true,
     },
     mealPreference: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "MealPreference",
+      type: String,
       required: [true, "Meal preference is required"],
+      trim: true,
     },
 
     /** ------------------------

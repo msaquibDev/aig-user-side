@@ -25,6 +25,7 @@ const RegistrationCategorySchema: Schema<IRegistrationCategory> = new Schema(
   { timestamps: true }
 );
 
+
 const RegistrationCategory: Model<IRegistrationCategory> =
   mongoose.models.RegistrationCategory ||
   mongoose.model<IRegistrationCategory>(

@@ -6,6 +6,8 @@ import { authOptions } from "@/utils/authOptions";
 import { connectDB } from "@/lib/mongodb";
 import Registration from "@/models/Registration";
 import User from "@/models/User";
+import MealPreference from "@/models/MealPreference";
+import RegistrationCategory from "@/models/RegistrationCategory";
 
 /**
  * @route   POST /api/user/registration/[eventId]
@@ -14,19 +16,16 @@ import User from "@/models/User";
  */
 export async function POST(
   req: NextRequest,
-  { params }: { params: { eventId: string } }
+  context: { params: Promise<{ eventId: string }> }
 ) {
   try {
-    //  Connect to MongoDB
     await connectDB();
 
-    //  Get user session from NextAuth
     const session = await getServerSession(authOptions);
     if (!session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    //  Fetch user details from DB
     const user = await User.findOne({ email: session.user.email }).select(
       "-password -resetPasswordToken -resetPasswordExpire"
     );
@@ -34,20 +33,47 @@ export async function POST(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    //  Ensure eventId is passed
-    if (!params.eventId) {
+    const { eventId } = await context.params;
+    if (!eventId) {
       return NextResponse.json(
         { error: "Event ID required in URL" },
         { status: 400 }
       );
     }
 
-    //  Parse request body
     const body = await req.json();
 
-    //  Create a new registration (unpaid state initially)
+    // 🔹 Validate mealPreference
+    let mealName = null;
+    if (body.mealPreference) {
+      const meal = await MealPreference.findOne({ mealName: body.mealPreference });
+      if (!meal) {
+        return NextResponse.json(
+          { error: `Invalid mealPreference name: ${body.mealPreference}` },
+          { status: 400 }
+        );
+      }
+      mealName = meal.mealName; // ✅ store name only
+    }
+
+    // 🔹 Validate registrationCategory
+    let categoryName = null;
+    if (body.registrationCategory) {
+      const category = await RegistrationCategory.findOne({
+        categoryName: body.registrationCategory,
+      });
+      if (!category) {
+        return NextResponse.json(
+          { error: `Invalid registrationCategory name: ${body.registrationCategory}` },
+          { status: 400 }
+        );
+      }
+      categoryName = category.categoryName; // ✅ store name only
+    }
+
+    // 🔹 Create new registration (store strings instead of ObjectId)
     const newRegistration = await Registration.create({
-      user: user._id, // Link registration to user
+      user: user._id,
       prefix: user.prefix,
       fullName: user.fullname,
       gender: user.gender || body.gender,
@@ -68,17 +94,16 @@ export async function POST(
         user.medicalCouncilRegistration || body.medicalCouncilRegistration,
       medicalCouncilState: user.medicalCouncilState || body.medicalCouncilState,
 
-      // Preferences
-      mealPreference: body.mealPreference,
-      registrationCategory: body.registrationCategory,
+      // Preferences (store as string names)
+      mealPreference: mealName,
+      registrationCategory: categoryName,
 
       // Event info
-      eventId: params.eventId,
-      isPaid: false, // Payment pending
-      regNumGenerated: false, // Will be generated later
+      eventId,
+      isPaid: false,
+      regNumGenerated: false,
     });
 
-    //  Send success response
     return NextResponse.json(
       {
         message: "Registration created (unpaid). Proceed to payment.",
@@ -88,12 +113,54 @@ export async function POST(
     );
   } catch (error: any) {
     console.error("POST /registration error:", error);
-
     return NextResponse.json(
-      {
-        error: "Failed to create registration",
-        details: error.message,
-      },
+      { error: "Failed to create registration", details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * @route   GET /api/user/registration/[eventId]
+ * @desc    Get the logged-in user’s registrations for a specific event
+ * @access  Authenticated users only
+ */
+export async function GET(
+  req: NextRequest,
+  context: { params: Promise<{ eventId: string }> }
+) {
+  try {
+    await connectDB();
+
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const user = await User.findOne({ email: session.user.email });
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    const { eventId } = await context.params;
+    if (!eventId) {
+      return NextResponse.json(
+        { error: "Event ID required in URL" },
+        { status: 400 }
+      );
+    }
+
+    // Fetch registrations (no populate needed since we store strings)
+    const registrations = await Registration.find({
+      user: user._id,
+      eventId,
+    });
+
+    return NextResponse.json({ registrations }, { status: 200 });
+  } catch (error: any) {
+    console.error("GET /registration error:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch registrations", details: error.message },
       { status: 500 }
     );
   }
