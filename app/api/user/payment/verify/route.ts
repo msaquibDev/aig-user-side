@@ -56,7 +56,12 @@ export async function POST(req: NextRequest) {
       }
 
       // Fetch eventCode from Admin repo
-      const eventRes = await axios.get(`${process.env.ADMIN_API_BASE_URL}/events/${registration.eventId}`);
+      // line 59 replacement
+      //const eventRes = await axios.get(`${process.env.ADMIN_API_BASE_URL}/events/${registration.eventId}`);
+      const eventUrl = new URL(`/api/events/${registration.eventId}`, process.env.ADMIN_API_BASE_URL);
+      const eventRes = await axios.get(eventUrl.toString());
+
+      
       const eventCode = eventRes.data?.eventCode;
       if (!eventCode) {
         return NextResponse.json({ success: false, message: "Event code not found from Admin" }, { status: 400 });
