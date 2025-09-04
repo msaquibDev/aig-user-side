@@ -95,7 +95,7 @@ const userSchema = new Schema<IUser>(
       type: String,
     },
 
-    // 🔒 Password Reset
+    //  Password Reset
     resetPasswordToken: {
       type: String,
       select: false,

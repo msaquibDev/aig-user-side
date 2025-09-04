@@ -17,40 +17,66 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
+    // 🔹 Authenticate user
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
-      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
     }
 
+    // 🔹 Extract registrationId from request
     const { registrationId } = await req.json();
     if (!registrationId) {
-      return NextResponse.json({ success: false, message: "registrationId is required" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "registrationId is required" },
+        { status: 400 }
+      );
     }
 
     // 🔹 Fetch registration
     const registration = await Registration.findById(registrationId);
     if (!registration) {
-      return NextResponse.json({ success: false, message: "Registration not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "Registration not found" },
+        { status: 404 }
+      );
     }
 
-    // 🔹 Fetch category to get amount
-    const category = await RegistrationCategory.findById(registration.registrationCategory);
+    // 🔹 Use categoryName stored in Registration
+    const categoryName = registration.registrationCategory;
+
+    // 🔹 Fetch amount from RegistrationCategory collection
+    const category = await RegistrationCategory.findOne({ categoryName });
     if (!category) {
-      return NextResponse.json({ success: false, message: "Registration category not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: `Category not found: ${categoryName}` },
+        { status: 404 }
+      );
     }
+
     const amount = category.amount;
+    if (!amount) {
+      return NextResponse.json(
+        { success: false, message: "Amount not set for category" },
+        { status: 400 }
+      );
+    }
 
     // 🔹 Razorpay order options
     const options = {
-      amount: amount * 100, // convert to paise
+      amount: amount * 100, // paise
       currency: "INR",
       receipt: `receipt_${registration._id.toString()}`,
       notes: {
         registrationId: registration._id.toString(),
         fullName: registration.fullName,
+        registrationCategory: categoryName, //  same as in Registration table
       },
     };
 
+    // 🔹 Create Razorpay order
     const order = await razorpay.orders.create(options);
 
     // 🔹 Save payment record
@@ -72,6 +98,9 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: any) {
     console.error("Order Error:", err);
-    return NextResponse.json({ success: false, message: err.message || "Something went wrong" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: err.message || "Something went wrong" },
+      { status: 500 }
+    );
   }
 }
