@@ -8,6 +8,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/utils/authOptions";
 import { razorpay } from "@/lib/razorpay";
 import mongoose from "mongoose";
+import axios from "axios";
+
 
 /**
  * POST /api/user/payment/order
@@ -89,12 +91,33 @@ export async function POST(req: NextRequest) {
       paymentProvider: "razorpay",
       razorpayOrderId: order.id,
     });
+    
+    // 🔹 Fetch event details from Admin repo
+    let eventData: { eventName?: string; eventImage?: string } = {};
+    try {
+      const eventUrl = new URL(
+        `/api/events/${registration.eventId}`,
+        process.env.ADMIN_API_BASE_URL
+      );
+      const eventRes = await axios.get(eventUrl.toString());
+      eventData = {
+        eventName: eventRes.data?.data?.eventName,
+        eventImage: eventRes.data?.data?.eventImage,
+      };
+    } catch (err) {
+      console.error("Failed to fetch event details from Admin API:", err);
+    }
+
 
     return NextResponse.json({
       success: true,
       order,
       registrationId: registration._id.toString(),
       paymentId: payment._id.toString(),
+      event: {
+        eventId: registration.eventId.toString(),
+        ...eventData, //  eventName + eventImage if available
+      },
     });
   } catch (err: any) {
     console.error("Order Error:", err);
