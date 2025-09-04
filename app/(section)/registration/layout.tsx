@@ -7,7 +7,8 @@ import { SubSidebar } from "@/components/dashboard/SubSidebar";
 import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
 
 import { useRouter, usePathname } from "next/navigation";
-import { useState } from "react";
+import Script from "next/script";
+import { Suspense, useState } from "react";
 
 export default function SectionLayout({
   children,
@@ -39,6 +40,7 @@ export default function SectionLayout({
   return (
     <html>
       <body className="h-screen overflow-hidden">
+      <Suspense fallback={<div>Loading...</div>}>
         <SessionProviderWrapper>
           {/* Fixed Header */}
           <div className="fixed top-0 left-0 right-0 z-50">
@@ -85,6 +87,7 @@ export default function SectionLayout({
             </main>
           </div>
         </SessionProviderWrapper>
+    </Suspense>
       </body>
     </html>
   );

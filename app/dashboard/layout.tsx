@@ -3,7 +3,7 @@ import "@/app/globals.css";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
-import { ReactNode, useState } from "react";
+import { ReactNode, Suspense, useState } from "react";
 import { Toaster } from "sonner";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
@@ -12,6 +12,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <html>
       <body className="h-screen overflow-hidden">
+        <Suspense fallback={<div>Loading...</div>}>
         <SessionProviderWrapper>
           <div className="flex h-screen w-screen overflow-hidden">
             {/* Fixed Sidebar (starts after header) */}
@@ -39,6 +40,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           {/* Sidebar (responsive) */}
           <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         </SessionProviderWrapper>
+        </Suspense>
       </body>
     </html>
   );

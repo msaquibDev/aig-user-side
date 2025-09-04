@@ -31,21 +31,25 @@ const schema = z.object({
   phone: z.string().regex(/^\d{10}$/, { message: "Mobile must be 10 digits" }),
   email: z.string().email("Invalid email"),
   affiliation: z.string().min(1, "Affiliation is required"),
-  designation: z.string().optional(),
+  designation: z.string().min(1, "Designation is required"),
   medicalCouncilRegistration: z.string().min(1, "Registration is required"),
-  medicalCouncilState: z.string().optional(),
-  address: z.string().optional(),
+  medicalCouncilState: z.string().min(1, "Medical Council State is required"),
+  address: z.string().min(1, "Address is required"),
   country: z.string().min(1, "Country is required"),
-  state: z.string().optional(),
-  city: z.string().optional(),
-  pincode: z.string().optional(),
+  state: z.string().min(1, "State is required"),
+  city: z.string().min(1, "City is required"),
+  pincode: z.string().min(1, "Pincode is required"),
 
-  gender: z.enum(["Male", "Female", "Other"], {
-    required_error: "Gender is required",
-  }),
+  gender: z.string().min(1, "Gender is required"),
 
-  mealPreference: z.enum(["Veg", "Non-Veg", "Jain"], {
-    required_error: "Meal preference is required",
+  // mealPreference: z.enum(["Veg", "Non-Veg", "Jain"], {
+  //   required_error: "Meal preference is required",
+  // }),
+
+  // mealPreference: z.string().min(1, "Meal preference is required"),
+  mealPreference: z.object({
+    _id: z.string(),
+    mealName: z.string(),
   }),
 
   // registrationCategory: z.enum(["Member", "Trade", "Student", "Non-Member"], {
@@ -63,6 +67,7 @@ type FormData = z.infer<typeof schema>;
 export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
   const { basicDetails, updateBasicDetails } = useRegistrationStore();
   const [categories, setCategories] = useState([]);
+  const [mealPreferences, setMealPreferences] = useState<any[]>([]);
 
   const {
     register,
@@ -106,6 +111,23 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
     }
 
     fetchCategories();
+  }, []);
+
+  useEffect(() => {
+    async function fetchMealPreferences() {
+      try {
+        const res = await fetch("/api/user/mealPreference", { method: "GET" });
+        const data = await res.json();
+        console.log("Meal Preference Response:", data);
+        if (data.success) {
+          setMealPreferences(data.data); // [{_id, mealName}, ...]
+        }
+      } catch (err) {
+        console.error("GET meal preferences error:", err);
+      }
+    }
+
+    fetchMealPreferences();
   }, []);
 
   return (
@@ -219,7 +241,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Designation</Label>
+          <Label>
+            Designation <span className="text-red-600">*</span>
+          </Label>
           <Input {...register("designation")} />
         </div>
 
@@ -234,22 +258,34 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Meal Preference</Label>
+          <Label>
+            Meal Preference <span className="text-red-600">*</span>
+          </Label>
           <Controller
             name="mealPreference"
             control={control}
             render={({ field }) => (
               <Select
-                onValueChange={field.onChange}
-                value={field.value || ""} // ✅ controlled
+                onValueChange={(value) => {
+                  const selected = mealPreferences.find((m) => m._id === value);
+                  if (selected) {
+                    field.onChange({
+                      _id: selected._id, // ✅ for backend
+                      mealName: selected.mealName, // ✅ for UI/review
+                    });
+                  }
+                }}
+                value={field.value?._id || ""} // keep controlled
               >
                 <SelectTrigger className="w-full cursor-pointer">
                   <SelectValue placeholder="Select Meal Preference" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Veg">Veg</SelectItem>
-                  <SelectItem value="Non-Veg">Non-Veg</SelectItem>
-                  <SelectItem value="Jain">Jain</SelectItem>
+                  {mealPreferences.map((meal) => (
+                    <SelectItem key={meal._id} value={meal._id}>
+                      {meal.mealName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             )}
@@ -262,13 +298,25 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         </div>
 
         <div className="space-y-1.5">
-          <Label>Medical Council State</Label>
+          <Label>
+            Medical Council State <span className="text-red-600">*</span>
+          </Label>
           <Input {...register("medicalCouncilState")} />
+          {errors.medicalCouncilState && (
+            <p className="text-sm text-red-600">
+              {errors.medicalCouncilState.message}
+            </p>
+          )}
         </div>
 
         <div className="space-y-1.5 md:col-span-2">
-          <Label>Primary Address</Label>
+          <Label>
+            Primary Address <span className="text-red-600">*</span>
+          </Label>
           <Textarea {...register("address")} />
+          {errors.address && (
+            <p className="text-sm text-red-600">{errors.address.message}</p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:col-span-2">
@@ -287,7 +335,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
       </div>
 
       <div className="space-y-2">
-        <Label className="font-medium">Select Registration Category</Label>
+        <Label className="font-medium">
+          Select Registration Category <span className="text-red-600">*</span>
+        </Label>
         <RadioGroup
           defaultValue={
             basicDetails.registrationCategory

@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRegistrationStore } from "@/app/store/useRegistrationStore";
 import RegistrationStepper from "@/components/registrations/myRegistration/RegistrationStepper";
 import Step1BasicDetails from "@/components/registrations/myRegistration/Step1BasicDetails";
@@ -17,6 +17,10 @@ export default function RegistrationPage() {
 
   const searchParams = useSearchParams();
   const eventIdFromUrl = searchParams.get("eventId");
+  console.log("Event ID from URL:", eventIdFromUrl);
+  console.log("search params" , searchParams.get('eventId'))
+  
+
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -84,6 +88,7 @@ export default function RegistrationPage() {
   const goBack = () => setStep(Math.max(currentStep - 1, 1));
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <main className="px-4 sm:px-6 pb-10 relative mt-6">
       {/* Heading + optional action (if needed in future) */}
       <div className="flex justify-between items-center mb-4">
@@ -116,5 +121,6 @@ export default function RegistrationPage() {
         </div>
       </div>
     </main>
+    </Suspense>
   );
 }
