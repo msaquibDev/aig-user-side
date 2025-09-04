@@ -53,7 +53,7 @@ export async function POST(
           { status: 400 }
         );
       }
-      mealName = meal.mealName; // ✅ store name only
+      mealName = meal.mealName; //  store name only
     }
 
     // 🔹 Validate registrationCategory
@@ -68,7 +68,7 @@ export async function POST(
           { status: 400 }
         );
       }
-      categoryName = category.categoryName; // ✅ store name only
+      categoryName = category.categoryName; // store name only
     }
 
     // 🔹 Create new registration (store strings instead of ObjectId)
