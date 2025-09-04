@@ -31,24 +31,27 @@ export default function AnnouncementCard({ data }: { data: Announcement }) {
     doc.setFontSize(16);
     doc.text("Event Announcement", 105, 15, { align: "center" });
 
+    // Safely render title
+    const title = data?.title ?? "Untitled Announcement";
     doc.setFontSize(14);
-    doc.text(data.title, 10, 30);
+    doc.text(String(title), 10, 30);
 
     // Date & Author
     doc.setFontSize(11);
     doc.setFont("helvetica", "normal");
     doc.text(`Date: ${formatDate(data.updatedAt)} `, 10, 40);
-    doc.text(`Author: ${data.postedBy}`, 10, 47);
+    doc.text(`Author: ${data.postedBy ?? "Unknown"}`, 10, 47);
 
     // Description (multi-line)
     doc.setFontSize(12);
     doc.text("Description:", 10, 60);
     doc.setFontSize(11);
-    const splitText = doc.splitTextToSize(data.description, 180);
+    const description = data?.description ?? "No description provided.";
+    const splitText = doc.splitTextToSize(String(description), 180);
     doc.text(splitText, 10, 68);
 
     // Save PDF
-    doc.save(`${data.title.replace(/\s+/g, "_")}.pdf`);
+    doc.save(`${title.replace(/\s+/g, "_")}.pdf`);
   };
 
   return (
