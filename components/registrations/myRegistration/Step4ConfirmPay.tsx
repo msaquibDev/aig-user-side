@@ -82,8 +82,8 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
       const payload = {
         eventId: basicDetails.eventId,
         eventName: basicDetails.eventName,
-        registrationCategory: basicDetails.registrationCategory._id,
-        mealPreference: basicDetails.mealPreference?._id,
+        registrationCategory: basicDetails.registrationCategory?.categoryName,
+        mealPreference: basicDetails.mealPreference?.mealName,
         prefix: basicDetails.prefix,
         fullName: basicDetails.fullName,
         phone: basicDetails.phone,
