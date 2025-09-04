@@ -16,6 +16,7 @@ export async function GET(
   req: NextRequest,
   context: { params: Promise<{ eventId: string; registrationId: string }> }
 ) {
+  
   try {
     await connectDB();
 
