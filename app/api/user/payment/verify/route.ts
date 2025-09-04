@@ -9,26 +9,46 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
-    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, registrationId } = await req.json();
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      registrationId,
+    } = await req.json();
     if (!razorpay_order_id || !razorpay_payment_id || !registrationId) {
-      return NextResponse.json({ success: false, message: "Missing required fields" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "Missing required fields" },
+        { status: 400 }
+      );
     }
 
     // 🔹 Verify payment with Razorpay API
     const authHeader =
-      "Basic " + Buffer.from(process.env.RAZORPAY_KEY_ID + ":" + process.env.RAZORPAY_KEY_SECRET).toString("base64");
+      "Basic " +
+      Buffer.from(
+        process.env.RAZORPAY_KEY_ID + ":" + process.env.RAZORPAY_KEY_SECRET
+      ).toString("base64");
 
-    const response = await fetch(`https://api.razorpay.com/v1/payments/${razorpay_payment_id}`, {
-      method: "GET",
-      headers: { Authorization: authHeader },
-    });
+    const response = await fetch(
+      `https://api.razorpay.com/v1/payments/${razorpay_payment_id}`,
+      {
+        method: "GET",
+        headers: { Authorization: authHeader },
+      }
+    );
     if (!response.ok) {
-      return NextResponse.json({ success: false, message: "Failed to verify payment with Razorpay" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "Failed to verify payment with Razorpay" },
+        { status: 400 }
+      );
     }
 
     const paymentData = await response.json();
     if (paymentData.order_id !== razorpay_order_id) {
-      return NextResponse.json({ success: false, message: "Order ID mismatch" }, { status: 400 });
+      return NextResponse.json(
+        { success: false, message: "Order ID mismatch" },
+        { status: 400 }
+      );
     }
 
     // 🔹 Update payment record
@@ -45,30 +65,44 @@ export async function POST(req: NextRequest) {
     );
 
     if (!updatedPayment) {
-      return NextResponse.json({ success: false, message: "Payment record not found" }, { status: 404 });
+      return NextResponse.json(
+        { success: false, message: "Payment record not found" },
+        { status: 404 }
+      );
     }
 
     // 🔹 If payment success → update registration
     if (updatedPayment.status === "success") {
       const registration = await Registration.findById(registrationId);
       if (!registration) {
-        return NextResponse.json({ success: false, message: "Registration not found" }, { status: 404 });
+        return NextResponse.json(
+          { success: false, message: "Registration not found" },
+          { status: 404 }
+        );
       }
 
       // Fetch eventCode from Admin repo
       // line 59 replacement
       //const eventRes = await axios.get(`${process.env.ADMIN_API_BASE_URL}/events/${registration.eventId}`);
-      const eventUrl = new URL(`/api/events/${registration.eventId}`, process.env.ADMIN_API_BASE_URL);
+      const eventUrl = new URL(
+        `/api/events/${registration.eventId}`,
+        process.env.ADMIN_API_BASE_URL
+      );
       const eventRes = await axios.get(eventUrl.toString());
 
-      
-      const eventCode = eventRes.data?.eventCode;
+      const eventCode = eventRes.data?.eventCode || "REG";
       if (!eventCode) {
-        return NextResponse.json({ success: false, message: "Event code not found from Admin" }, { status: 400 });
+        return NextResponse.json(
+          { success: false, message: "Event code not found from Admin" },
+          { status: 400 }
+        );
       }
 
       // Generate regNum like AIGLC-1, AIGLC-2...
-      const count = await Registration.countDocuments({ eventId: registration.eventId, regNumGenerated: true });
+      const count = await Registration.countDocuments({
+        eventId: registration.eventId,
+        regNumGenerated: true,
+      });
       const regNum = `${eventCode}-${count + 1}`;
 
       registration.isPaid = true;
@@ -80,6 +114,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, payment: updatedPayment });
   } catch (err: any) {
     console.error("Verify Error:", err);
-    return NextResponse.json({ success: false, message: err.message || "Something went wrong" }, { status: 500 });
+    return NextResponse.json(
+      { success: false, message: err.message || "Something went wrong" },
+      { status: 500 }
+    );
   }
 }

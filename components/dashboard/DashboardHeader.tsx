@@ -28,7 +28,7 @@ export function DashboardHeader({
 
   // Only show event info on registration routes when eventId is present
   const showEventInfo =
-    pathname?.startsWith("/registration") && eventIdFromUrl && currentEvent;
+    pathname?.startsWith("/registration")  && currentEvent;
 
   const [loggingOut, setLoggingOut] = useState(false);
 

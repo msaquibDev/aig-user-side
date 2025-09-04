@@ -10,7 +10,6 @@ import { razorpay } from "@/lib/razorpay";
 import mongoose from "mongoose";
 import axios from "axios";
 
-
 /**
  * POST /api/user/payment/order
  * Create a Razorpay order for a registration
@@ -91,9 +90,16 @@ export async function POST(req: NextRequest) {
       paymentProvider: "razorpay",
       razorpayOrderId: order.id,
     });
-    
+
     // 🔹 Fetch event details from Admin repo
-    let eventData: { eventName?: string; eventImage?: string } = {};
+    let eventData: {
+      eventName?: string;
+      eventImage?: string;
+      startDate?: string;
+      startTime?: string;
+      endDate?: string;
+      endTime?: string;
+    } = {};
     try {
       const eventUrl = new URL(
         `/api/events/${registration.eventId}`,
@@ -103,11 +109,14 @@ export async function POST(req: NextRequest) {
       eventData = {
         eventName: eventRes.data?.data?.eventName,
         eventImage: eventRes.data?.data?.eventImage,
+        startDate: eventRes.data?.data?.startDate,
+        startTime: eventRes.data?.data?.startTime,
+        endDate: eventRes.data?.data?.endDate,
+        endTime: eventRes.data?.data?.endTime,
       };
     } catch (err) {
       console.error("Failed to fetch event details from Admin API:", err);
     }
-
 
     return NextResponse.json({
       success: true,

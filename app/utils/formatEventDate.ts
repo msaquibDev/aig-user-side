@@ -1,6 +1,7 @@
 // utils/formatEventDate.ts
-export function formatEventDate(startDate: string, endDate?: string) {
-  // Parse "21/07/2025" into JS Date
+export function formatEventDate(startDate?: string, endDate?: string) {
+  if (!startDate) return ""; // ✅ early return if startDate missing
+
   const parseDate = (dateStr: string) => {
     const [day, month, year] = dateStr.split("/").map(Number);
     return new Date(year, month - 1, day);
