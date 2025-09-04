@@ -2,52 +2,58 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import CheckoutSummary from "@/components/registrations/myRegistration/CheckoutSummary";
+import { useEventStore } from "@/app/store/useEventStore";
 
 export default function PaymentPage() {
   const searchParams = useSearchParams();
   const registrationId = searchParams.get("registrationId");
 
+  const { events, currentEvent, setCurrentEvent, fetchEvents } =
+    useEventStore();
+
   const [loading, setLoading] = useState(false);
-  const [registration, setRegistration] = useState<any>(null);
   const [order, setOrder] = useState<any>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-  // Fetch registration & create order
   useEffect(() => {
-    if (!registrationId) return;
+    if (!events.length) fetchEvents();
+  }, [events, fetchEvents]);
 
-    const initPayment = async () => {
-      try {
-        setLoading(true);
+  // Fetch registration + event + create order
+   useEffect(() => {
+     if (!registrationId || !events.length) return;
 
-        // ✅ Uncomment later if you want to show registration details
-        // const regRes = await fetch(`/api/user/registration/${registrationId}`);
-        // if (!regRes.ok) throw new Error("Failed to fetch registration");
-        // const regData = await regRes.json();
-        // setRegistration(regData);
+     const initPayment = async () => {
+       try {
+         setLoading(true);
+         const res = await fetch("/api/user/payment/order", {
+           method: "POST",
+           headers: { "Content-Type": "application/json" },
+           body: JSON.stringify({ registrationId }),
+         });
 
-        const orderRes = await fetch("/api/user/payment/order", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ registrationId }),
-        });
+         if (!res.ok) throw new Error("Failed to create order");
+         const data = await res.json();
+         console.log("🔍 Payment API Response:", data);
 
-        if (!orderRes.ok) throw new Error("Failed to create order");
+         // ✅ Order object will include event + accompanyingCount
+         setOrder({
+           ...data.order,
+           event: data.event,
+           // accompanyingCount: data.accompanyingCount,
+         });
+       } catch (error) {
+         console.error(error);
+         toast.error("Failed to load payment info");
+       } finally {
+         setLoading(false);
+       }
+     };
 
-        const orderData = await orderRes.json();
-        setOrder(orderData.order);
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to load payment info");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initPayment();
-  }, [registrationId]);
+     initPayment();
+   }, [registrationId, events, setCurrentEvent]);
 
   // Load Razorpay script
   useEffect(() => {
@@ -83,7 +89,7 @@ export default function PaymentPage() {
 
           if (verifyRes.ok) {
             toast.success("Payment successful!");
-            setPaymentSuccess(true); // ✅ Show success message
+            setPaymentSuccess(true);
           } else {
             toast.error("Payment verification failed");
           }
@@ -91,11 +97,6 @@ export default function PaymentPage() {
           console.error(error);
           toast.error("Payment verification error");
         }
-      },
-      prefill: {
-        name: registration?.fullName || "Guest",
-        email: registration?.email || "guest@example.com",
-        contact: registration?.phone || "9999999999",
       },
       theme: { color: "#3399cc" },
     };
@@ -107,34 +108,19 @@ export default function PaymentPage() {
   return (
     <Suspense fallback={<div className="p-6">Loading payment details...</div>}>
       <div className="p-6">
-        <h1 className="text-xl font-bold mb-4">Payment</h1>
-
         {loading && <p>Loading...</p>}
-
         {paymentSuccess ? (
           <div className="p-4 rounded-lg bg-green-100 text-green-700">
             ✅ Payment successful! Thank you for completing your registration.
           </div>
         ) : (
-          <>
-            {registration && (
-              <div className="mb-6">
-                <p>
-                  <strong>Name:</strong> {registration.fullName}
-                </p>
-                <p>
-                  <strong>Email:</strong> {registration.email}
-                </p>
-                <p>
-                  <strong>Amount:</strong> ₹{order?.amount / 100}
-                </p>
-              </div>
-            )}
-
-            <Button onClick={handlePay} disabled={!order}>
-              Pay Now
-            </Button>
-          </>
+          order && (
+            <CheckoutSummary
+              order={order}
+              onPay={handlePay}
+              event={currentEvent}
+            />
+          )
         )}
       </div>
     </Suspense>
