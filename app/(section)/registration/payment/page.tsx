@@ -13,19 +13,18 @@ export default function PaymentPage() {
   const registrationId = searchParams.get("registrationId");
   const eventId = searchParams.get("eventId"); // ✅ grab eventId from query string
 
-  const { events, currentEvent, setCurrentEvent, fetchEvents } =
-    useEventStore();
+  const { events, currentEvent, setCurrentEvent, fetchEvents } = useEventStore();
 
   const [loading, setLoading] = useState(false);
   const [order, setOrder] = useState<any>(null);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
-  // Fetch events on mount
+  // ✅ Fetch events on mount
   useEffect(() => {
     if (!events.length) fetchEvents();
   }, [events, fetchEvents]);
 
-  // Fetch registration + event + create order
+  // ✅ Fetch registration + event + create order
   useEffect(() => {
     if (!registrationId || !events.length) return;
 
@@ -83,7 +82,7 @@ export default function PaymentPage() {
     initPayment();
   }, [registrationId, events, setCurrentEvent]);
 
-  // Load Razorpay script
+  // ✅ Load Razorpay script
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
@@ -91,7 +90,7 @@ export default function PaymentPage() {
     document.body.appendChild(script);
   }, []);
 
-  // Razorpay handler
+  // ✅ Razorpay handler
   const handlePay = () => {
     if (!order) return;
 
@@ -126,16 +125,24 @@ export default function PaymentPage() {
             toast.success("Payment successful!");
             setPaymentSuccess(true);
 
-            // ✅ redirect user to Badge page
-            setTimeout(() => {
-              if (eventId) {
-                router.push(`/badge/${eventId}`);
-              } else if (order?.event?.eventId) {
-                router.push(`/badge/${order.event.eventId}`);
-              }
-            }, 1000);
+              console.log("🔎 Redirecting to badge with:", {
+    eventId,
+    registrationId,
+    orderEventId: order?.event?.eventId,
+  });
+
+         // ✅ Redirect user to Badge page with registrationId so we can fetch badge data
+setTimeout(() => {
+  const badgeEventId = eventId || order?.event?.eventId;
+  if (badgeEventId) {
+    router.push(
+      `/registration/my-registration/badge/${badgeEventId}?registrationId=${registrationId}`
+    );
+  }
+}, 1000);
+
           } else {
-            toast.error("Payment verification failed");
+            toast.error("Payment verification failed");          
           }
         } catch (error) {
           console.error(error);
@@ -152,7 +159,11 @@ export default function PaymentPage() {
   return (
     <Suspense fallback={<div className="p-6">Loading payment details...</div>}>
       <div className="p-6">
-        {loading && <p>Loading...</p>}
+        {loading && <div className="flex justify-center items-center h-40">
+        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+        <span className="ml-3 text-blue-500 font-medium">
+        </span>
+      </div>}
         {paymentSuccess ? (
           <div className="p-4 rounded-lg bg-green-100 text-green-700">
             ✅ Payment successful! Redirecting to your badge...
