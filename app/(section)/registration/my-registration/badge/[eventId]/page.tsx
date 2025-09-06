@@ -10,6 +10,8 @@ export default function BadgePage({ params }: { params: Promise<{ eventId: strin
   const searchParams = useSearchParams();
   const registrationId = searchParams.get("registrationId");
   const [registration, setRegistration] = useState<any>(null);
+  console.log("Event ID from params:", eventId);
+  console.log("Registration ID from query:", registrationId);
 
   useEffect(() => {
     if (!registrationId || !eventId) return;

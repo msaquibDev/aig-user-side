@@ -41,6 +41,9 @@ export interface IRegistration extends Document {
 
   // Event & Payment
   eventId: mongoose.Types.ObjectId; // Event reference
+  eventName?: string;
+  eventCode?: string;
+  eventImage?: string;
   isPaid: boolean;
 
   // Registration Number Tracking
@@ -174,6 +177,19 @@ const RegistrationSchema = new Schema<IRegistration>(
       required: [true, "Event ID is required"],
       ref: "Event", // optional if you have an Event model
     },
+    eventName: {
+      type: String,
+      trim: true,
+    },
+    eventCode: {
+      type: String,
+      trim: true,
+    },
+    eventImage: {
+      type: String,
+      trim: true,
+    },
+    
     isPaid: {
       type: Boolean,
       default: false,

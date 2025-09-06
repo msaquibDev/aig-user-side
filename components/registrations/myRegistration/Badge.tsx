@@ -69,10 +69,10 @@ export function Badge({ registration }: BadgeProps) {
   };
 
   const qrValue = JSON.stringify({
-    regId: registration._id,
     name: registration.fullName,
     regNum: registration.regNum,
-    eventId: registration.eventId,
+    eventName: registration.eventName,
+    eventCode: registration.eventCode,
   });
 
   return (
@@ -82,7 +82,7 @@ export function Badge({ registration }: BadgeProps) {
         className="w-[320px] bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200"
       >
         {/* Event Banner */}
-        <img src="/eventImg/event1.png" alt="Event" className="w-full h-50 object-cover" />
+        <img src={registration.eventImage || "/eventImg/event1.png"} alt={registration.eventName || "Event Image"} className="w-full h-50 object-cover" />
 
         <CardContent className="flex flex-col items-center p-6">
           {/* QR Code */}

@@ -8,6 +8,8 @@ import Registration from "@/models/Registration";
 import User from "@/models/User";
 import MealPreference from "@/models/MealPreference";
 import RegistrationCategory from "@/models/RegistrationCategory";
+import axios from "axios";
+
 
 /**
  * @route   POST /api/user/registration/[eventId]
@@ -71,6 +73,24 @@ export async function POST(
       categoryName = category.categoryName; // store name only
     }
 
+    // 🔹 Fetch event details from Admin repo API (using eventId)
+    let eventData: { eventName?: string; eventCode?: string; eventImage?: string } = {};
+    try {
+      const eventUrl = new URL(
+        `/api/events/${eventId}`,
+        process.env.ADMIN_API_BASE_URL // must be defined in your env
+      );
+      const eventRes = await axios.get(eventUrl.toString());
+
+      eventData = {
+        eventName: eventRes.data?.data?.eventName,
+        eventCode: eventRes.data?.data?.eventCode,
+        eventImage: eventRes.data?.data?.eventImage,
+      };
+    } catch (err) {
+      console.error("Failed to fetch event details from Admin API:", err);
+    }
+
     // 🔹 Create new registration (store strings instead of ObjectId)
     const newRegistration = await Registration.create({
       user: user._id,
@@ -98,8 +118,11 @@ export async function POST(
       mealPreference: mealName,
       registrationCategory: categoryName,
 
-      // Event info
+      // Event info (store id + name + code + image)
       eventId,
+      eventName: eventData.eventName,
+      eventCode: eventData.eventCode,
+      eventImage: eventData.eventImage,
       isPaid: false,
       regNumGenerated: false,
     });

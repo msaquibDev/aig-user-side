@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import Payment from "@/models/Payment";
 import Registration from "@/models/Registration";
-import axios from "axios";
 
 export async function POST(req: NextRequest) {
   try {
@@ -81,19 +80,14 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Fetch eventCode from Admin repo
-      // line 59 replacement
-      //const eventRes = await axios.get(`${process.env.ADMIN_API_BASE_URL}/events/${registration.eventId}`);
-      const eventUrl = new URL(
-        `/api/events/${registration.eventId}`,
-        process.env.ADMIN_API_BASE_URL
-      );
-      const eventRes = await axios.get(eventUrl.toString());
+      /**
+       * We directly use `eventCode` stored in Registration model
+       */
+      const eventCode = registration.eventCode; // already stored in registration
 
-      const eventCode = eventRes.data?.eventCode || "REG";
       if (!eventCode) {
         return NextResponse.json(
-          { success: false, message: "Event code not found from Admin" },
+          { success: false, message: "Event code missing in registration" },
           { status: 400 }
         );
       }
