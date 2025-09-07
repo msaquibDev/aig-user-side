@@ -10,7 +10,6 @@ import MealPreference from "@/models/MealPreference";
 import RegistrationCategory from "@/models/RegistrationCategory";
 import axios from "axios";
 
-
 /**
  * @route   POST /api/user/registration/[eventId]
  * @desc    Create a new event registration (unpaid initially)
@@ -48,7 +47,9 @@ export async function POST(
     // 🔹 Validate mealPreference
     let mealName = null;
     if (body.mealPreference) {
-      const meal = await MealPreference.findOne({ mealName: body.mealPreference });
+      const meal = await MealPreference.findOne({
+        mealName: body.mealPreference,
+      });
       if (!meal) {
         return NextResponse.json(
           { error: `Invalid mealPreference name: ${body.mealPreference}` },
@@ -66,7 +67,9 @@ export async function POST(
       });
       if (!category) {
         return NextResponse.json(
-          { error: `Invalid registrationCategory name: ${body.registrationCategory}` },
+          {
+            error: `Invalid registrationCategory name: ${body.registrationCategory}`,
+          },
           { status: 400 }
         );
       }
@@ -74,7 +77,11 @@ export async function POST(
     }
 
     // 🔹 Fetch event details from Admin repo API (using eventId)
-    let eventData: { eventName?: string; eventCode?: string; eventImage?: string } = {};
+    let eventData: {
+      eventName?: string;
+      eventCode?: string;
+      eventImage?: string;
+    } = {};
     try {
       const eventUrl = new URL(
         `/api/events/${eventId}`,
@@ -177,6 +184,7 @@ export async function GET(
     const registrations = await Registration.find({
       user: user._id,
       eventId,
+      isPaid: true,
     });
 
     return NextResponse.json({ registrations }, { status: 200 });

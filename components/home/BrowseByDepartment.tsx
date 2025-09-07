@@ -13,19 +13,25 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { CalendarDays, MapPin } from "lucide-react";
-// import { departments } from "@/app/data/departments";
 import { useEventStore } from "@/app/store/useEventStore";
 import { formatEventDate } from "@/app/utils/formatEventDate";
 import { useSession } from "next-auth/react";
+import { useUserRegistrationsStore } from "@/app/store/useRegistrationStore";
+import { Badge } from "@/components/ui/badge";
 
 export default function BrowseByDepartment() {
   const { events, fetchEvents } = useEventStore();
+  const { registrations, fetchRegistrations } = useUserRegistrationsStore();
   const router = useRouter();
-  console.log("All events from store:", events);
 
   const [selectedDept, setSelectedDept] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest" | "">("");
   const { data: session } = useSession();
+
+  useEffect(() => {
+    fetchEvents();
+    if (session) fetchRegistrations(); // ✅ load only if logged in
+  }, [fetchEvents, fetchRegistrations, session]);
 
   const handleRegister = (eventId: string) => {
     if (!session) {
@@ -35,9 +41,11 @@ export default function BrowseByDepartment() {
     }
   };
 
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+  const handleViewBadge = (eventId: string, registrationId: string) => {
+    router.push(
+      `/registration/my-registration/badge/${eventId}?registrationId=${registrationId}`
+    );
+  };
 
   const filteredEvents = selectedDept
     ? events.filter(
@@ -96,58 +104,90 @@ export default function BrowseByDepartment() {
         </div>
       </div>
 
-      {/* Cards Grid or No Results */}
+      {/* Cards Grid */}
       {sortedEvents.length === 0 ? (
         <p className="text-gray-500 text-center mt-8">No results found.</p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5">
-          {sortedEvents.map((event) => (
-            <Card
-              key={event._id}
-              className="group flex flex-col rounded-xl overflow-hidden shadow-md border bg-white w-full mx-auto hover:shadow-lg transition-all duration-300 h-full"
-              style={{ maxWidth: "350px" }}
-            >
-              {/* Image container */}
-              <div
-                className="w-full p-0 m-0 overflow-hidden"
-                style={{ aspectRatio: "1/1.414" }}
-              >
-                <img
-                  src={event.eventImage}
-                  alt={event.eventName}
-                  className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
-                  loading="lazy"
-                />
-              </div>
+          {sortedEvents.map((event) => {
+            const isPast =
+              !!event.endDate && new Date(event.endDate) < new Date();
+            const userReg = registrations.find(
+              (r) => r.eventId === event._id && r.isPaid
+            );
 
-              {/* Content */}
-              <div className="flex flex-col flex-grow px-4 py-3">
-                <div className="flex-grow space-y-2">
-                  <h3 className="text-lg font-bold text-black line-clamp-2 leading-tight">
-                    {event.eventName}
-                  </h3>
-                  <div className="flex items-center text-sm text-muted-foreground gap-2 mt-1">
-                    <CalendarDays className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
-                    <span className="truncate">
-                      {formatEventDate(event.startDate, event.endDate)}
-                    </span>
-                  </div>
-                  <div className="flex items-center text-sm text-muted-foreground gap-2">
-                    <MapPin className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
-                    <span className="truncate">{event.city}</span>
-                  </div>
+            return (
+              <Card
+                key={event._id}
+                className="relative group flex flex-col rounded-xl overflow-hidden shadow-md border bg-white w-full mx-auto hover:shadow-lg transition-all duration-300 h-full"
+                style={{ maxWidth: "350px" }}
+              >
+                {/* ✅ Registered Badge */}
+                {userReg && (
+                  <Badge className="absolute top-3 right-3 bg-green-600 text-white text-xs px-2 py-1 rounded-full shadow-md">
+                    Registered
+                  </Badge>
+                )}
+
+                {/* Image container */}
+                <div
+                  className="w-full p-0 m-0 overflow-hidden"
+                  style={{ aspectRatio: "1/1.414" }}
+                >
+                  <img
+                    src={event.eventImage}
+                    alt={event.eventName}
+                    className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
+                    loading="lazy"
+                  />
                 </div>
 
-                {/* Register Button */}
-                <Button
-                  onClick={() => handleRegister(event._id)}
-                  className="mt-4 w-full text-sm py-2 bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer"
-                >
-                  Register
-                </Button>
-              </div>
-            </Card>
-          ))}
+                {/* Content */}
+                <div className="flex flex-col flex-grow px-4 py-3">
+                  <div className="flex-grow space-y-2">
+                    <h3 className="text-lg font-bold text-black line-clamp-2 leading-tight">
+                      {event.eventName}
+                    </h3>
+                    <div className="flex items-center text-sm text-muted-foreground gap-2 mt-1">
+                      <CalendarDays className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
+                      <span className="truncate">
+                        {formatEventDate(event.startDate, event.endDate)}
+                      </span>
+                    </div>
+                    <div className="flex items-center text-sm text-muted-foreground gap-2">
+                      <MapPin className="w-4 h-4 flex-shrink-0 text-[#00509E]" />
+                      <span className="truncate">{event.city}</span>
+                    </div>
+                  </div>
+
+                  {/* Register / View Badge Button */}
+                  <Button
+                    onClick={() => {
+                      if (userReg) {
+                        handleViewBadge(event._id, userReg._id);
+                      } else if (!isPast) {
+                        handleRegister(event._id);
+                      }
+                    }}
+                    disabled={!userReg && isPast} // ✅ disable if event ended and not registered
+                    className={`mt-4 w-full text-sm py-2 transition-colors cursor-pointer ${
+                      userReg
+                        ? "bg-green-600 hover:bg-green-700"
+                        : isPast
+                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                        : "bg-[#00509E] hover:bg-[#003B73]"
+                    }`}
+                  >
+                    {userReg
+                      ? "View Badge"
+                      : isPast
+                      ? "Registration Closed"
+                      : "Register"}
+                  </Button>
+                </div>
+              </Card>
+            );
+          })}
         </div>
       )}
     </section>

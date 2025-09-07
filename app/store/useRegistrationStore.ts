@@ -16,7 +16,6 @@ export type MealPreference = {
 // export type MealPreference = "Veg" | "Non-Veg" | "Jain";
 // export type MealPreference = string; // now dynamic, not limited to 3
 
-
 // Main form type
 export type BasicDetails = {
   eventId: any;
@@ -99,6 +98,19 @@ const initialBasicDetails: BasicDetails = {
   registrationCategory: undefined as any,
 };
 
+export interface UserRegistration {
+  _id: string;
+  eventId: string;
+  eventName: string;
+  regNum: string;
+  isPaid: boolean;
+}
+
+interface UserRegistrationsState {
+  registrations: UserRegistration[];
+  fetchRegistrations: () => Promise<void>;
+}
+
 export const useRegistrationStore = create<RegistrationState>((set) => ({
   currentStep: 1,
   basicDetails: initialBasicDetails,
@@ -141,3 +153,22 @@ export const useRegistrationStore = create<RegistrationState>((set) => ({
       skippedWorkshops: false,
     }),
 }));
+
+export const useUserRegistrationsStore = create<UserRegistrationsState>(
+  (set) => ({
+    registrations: [],
+    fetchRegistrations: async () => {
+      try {
+        const res = await fetch("/api/user/registration", {
+          method: "GET",
+        });
+        if (!res.ok) return;
+
+        const data = await res.json();
+        set({ registrations: data });
+      } catch (err) {
+        console.error("Error loading user registrations", err);
+      }
+    },
+  })
+);
