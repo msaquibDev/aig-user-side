@@ -49,7 +49,8 @@ const schema = z.object({
   // mealPreference: z.string().min(1, "Meal preference is required"),
   mealPreference: z.object({
     _id: z.string(),
-    mealName: z.string(),
+    mealName: z.string()
+    
   }),
 
   // registrationCategory: z.enum(["Member", "Trade", "Student", "Non-Member"], {
