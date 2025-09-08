@@ -1,6 +1,7 @@
 "use client";
 
 import "@/app/globals.css";
+import Loading from "@/components/common/Loading";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MainSectionSidebar } from "@/components/dashboard/MainSectionSidebar";
 import { SubSidebar } from "@/components/dashboard/SubSidebar";
@@ -39,7 +40,7 @@ export default function SectionLayout({
   return (
     <html>
       <body className="h-screen overflow-hidden">
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<Loading />}>
         <SessionProviderWrapper>
           {/* Fixed Header */}
           <div className="fixed top-0 left-0 right-0 z-50">

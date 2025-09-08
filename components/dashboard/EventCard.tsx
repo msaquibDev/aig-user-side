@@ -11,7 +11,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
@@ -183,7 +182,7 @@ export default function EventTabs() {
                   ) : (
                     <Button
                       onClick={() => handleViewBadge(event._id, userReg._id)}
-                      className="mt-4 w-full text-sm py-2 bg-green-600 hover:bg-green-700 text-white"
+                      className="mt-4 w-full text-sm py-2 bg-green-600 hover:bg-green-700 text-white cursor-pointer"
                     >
                       View Badge
                     </Button>
@@ -199,7 +198,7 @@ export default function EventTabs() {
                       disabled={!userReg && isPast} // ✅ Disable only if past and NOT registered
                       className={`mt-4 w-full text-sm py-2 transition-colors cursor-pointer ${
                         userReg
-                          ? "bg-green-600 hover:bg-green-700"
+                          ? "bg-green-600 hover:bg-green-700 cursor-pointer"
                           : isPast
                           ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                           : "bg-[#00509E] hover:bg-[#003B73]"
