@@ -36,7 +36,7 @@
     "country-state-city": "^3.2.1",
     "date-fns": "^2.30.0",
     "formidable": "^3.5.4",
-    "html2canvas": "^1.4.1",
+    "html-to-image": "^1.11.13",
     "i18n-iso-countries": "^7.14.0",
     "jsonwebtoken": "^9.0.2",
     "jspdf": "^3.0.2",

@@ -5,8 +5,7 @@ import { CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Download, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
-import html2canvas from "html2canvas";
-import jsPDF from "jspdf";
+import { toPng } from "html-to-image";
 
 interface BadgeProps {
   registration: any;
@@ -16,42 +15,22 @@ export function Badge({ registration }: BadgeProps) {
   const badgeRef = useRef<HTMLDivElement>(null);
   const [isSharing, setIsSharing] = useState(false);
 
-  const generateBadgeImage = async () => {
-    if (!badgeRef.current) return null;
-
-    // wait a tick to ensure DOM is painted
-    await new Promise((res) => setTimeout(res, 100));
-
-    const canvas = await html2canvas(badgeRef.current, {
-      scale: 2,
-      useCORS: true,
-    });
-    return canvas.toDataURL("image/png");
-  };
-
-  const handleDownloadPDF = async () => {
-    const imgData = await generateBadgeImage();
-    if (!imgData) return;
-
-    const pdf = new jsPDF({ orientation: "portrait", unit: "pt", format: "a4" });
-    const imgProps = pdf.getImageProperties(imgData);
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const ratio = pageWidth / imgProps.width;
-    const imgHeight = imgProps.height * ratio;
-
-    pdf.addImage(imgData, "PNG", 0, 40, pageWidth, imgHeight);
-    pdf.save(`badge-${registration.regNum}.pdf`);
+  const handleDownloadBadge = async () => {
+    const imgData = await toPng(badgeRef.current!);
+    const link = document.createElement("a");
+    link.href = imgData;
+    link.download = `badge-${registration.regNum}.png`;
+    link.click();
   };
 
   const handleShareBadge = async () => {
+    if (!badgeRef.current) return;
     try {
       setIsSharing(true);
-      const imgData = await generateBadgeImage();
+      const imgData = await toPng(badgeRef.current!);
       if (!imgData) return;
-
       const blob = await (await fetch(imgData)).blob();
       const file = new File([blob], `badge-${registration.regNum}.png`, { type: "image/png" });
-
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: `Badge for ${registration.fullName}`,
@@ -68,6 +47,7 @@ export function Badge({ registration }: BadgeProps) {
     }
   };
 
+  // QR Code value
   const qrValue = JSON.stringify({
     name: registration.fullName,
     regNum: registration.regNum,
@@ -106,9 +86,9 @@ export function Badge({ registration }: BadgeProps) {
           {/* Buttons */}
           <div className="flex gap-3 mt-4">
             <Button
-              onClick={handleDownloadPDF}
+              onClick={handleDownloadBadge}
               variant="default"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 cursor-pointer"
             >
               <Download className="w-4 h-4" /> Download
             </Button>
@@ -116,7 +96,7 @@ export function Badge({ registration }: BadgeProps) {
               onClick={handleShareBadge}
               variant="outline"
               disabled={isSharing}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 cursor-pointer"
             >
               <Share2 className="w-4 h-4" />
               {isSharing ? "Sharing..." : "Share"}
