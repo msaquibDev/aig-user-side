@@ -82,7 +82,8 @@ export function Badge({ registration }: BadgeProps) {
           <div className="bg-gradient-to-r from-orange-400 to-yellow-400 text-white font-bold text-center py-2 rounded-lg w-full">
             {registration.registrationCategory?.toUpperCase()}
           </div>
-
+        </CardContent>
+      </div>
           {/* Buttons */}
           <div className="flex gap-3 mt-4">
             <Button
@@ -102,8 +103,6 @@ export function Badge({ registration }: BadgeProps) {
               {isSharing ? "Sharing..." : "Share"}
             </Button>
           </div>
-        </CardContent>
-      </div>
     </div>
   );
 }
