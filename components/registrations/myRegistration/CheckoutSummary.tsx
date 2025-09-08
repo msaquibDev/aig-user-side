@@ -38,7 +38,7 @@ export default function CheckoutSummary({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <img
-                src={event?.eventImage || "/images/event-placeholder.png"}
+                src={event?.eventImage || "/eventImg/event1.png"}
                 alt={event?.eventName || "Event"}
                 width={70}
                 height={70}

@@ -9,6 +9,7 @@ import Step2AccompanyingPerson from "@/components/registrations/myRegistration/S
 import Step3SelectWorkshop from "@/components/registrations/myRegistration/Step3SelectWorkshop";
 import Step4ConfirmPay from "@/components/registrations/myRegistration/Step4ConfirmPay";
 import { useEventStore } from "@/app/store/useEventStore";
+import Loading from "@/components/common/Loading";
 
 export default function RegistrationPage() {
   const { currentStep, setStep, updateBasicDetails } = useRegistrationStore();
@@ -18,9 +19,7 @@ export default function RegistrationPage() {
   const searchParams = useSearchParams();
   const eventIdFromUrl = searchParams.get("eventId");
   console.log("Event ID from URL:", eventIdFromUrl);
-  console.log("search params" , searchParams.get('eventId'))
-  
-
+  console.log("search params", searchParams.get("eventId"));
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -88,39 +87,39 @@ export default function RegistrationPage() {
   const goBack = () => setStep(Math.max(currentStep - 1, 1));
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-    <main className="px-4 sm:px-6 pb-10 relative mt-6">
-      {/* Heading + optional action (if needed in future) */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-[#00509E]">
-          My Registration
-        </h2>
-        {/* 
+    <Suspense fallback={<Loading />}>
+      <main className="px-4 sm:px-6 pb-10 relative mt-6">
+        {/* Heading + optional action (if needed in future) */}
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-[#00509E]">
+            My Registration
+          </h2>
+          {/* 
         Optional Add Button here (if you want to allow adding outside the stepper flow)
         <Button className="bg-[#00509E] hover:bg-[#003B73]">
           <PlusCircle className="w-4 h-4 mr-2" />
           Add
         </Button>
       */}
-      </div>
+        </div>
 
-      <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8">
-        {/* Stepper */}
-        <RegistrationStepper currentStep={currentStep} />
+        <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6 sm:p-8">
+          {/* Stepper */}
+          <RegistrationStepper currentStep={currentStep} />
 
-        {/* Step Content */}
-        <div className="mt-10">
-          {currentStep === 1 && <Step1BasicDetails onNext={goNext} />}
-          {/* {currentStep === 2 && (
+          {/* Step Content */}
+          <div className="mt-10">
+            {currentStep === 1 && <Step1BasicDetails onNext={goNext} />}
+            {/* {currentStep === 2 && (
             <Step2AccompanyingPerson onNext={goNext} onBack={goBack} />
           )}
           {currentStep === 3 && (
             <Step3SelectWorkshop onNext={goNext} onBack={goBack} />
           )} */}
-          {currentStep === 2 && <Step4ConfirmPay onBack={goBack} />}
+            {currentStep === 2 && <Step4ConfirmPay onBack={goBack} />}
+          </div>
         </div>
-      </div>
-    </main>
+      </main>
     </Suspense>
   );
 }

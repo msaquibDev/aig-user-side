@@ -1,25 +1,38 @@
 "use client";
 
-import { useState } from "react";
-import { dummyPayments } from "@/app/data/paymentHistory";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Filter, ChevronLeft, ChevronRight } from "lucide-react";
 
-type PaymentStatus = "Success" | "Failed" | "Pending";
+type PaymentStatus = "success" | "failed" | "pending";
 
 export default function PaymentHistoryTable() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [allPayments, setAllPayments] = useState<any[]>([]);
   const itemsPerPage = 15;
-  const allPayments = dummyPayments();
+
+  useEffect(() => {
+    async function fetchPayments() {
+      try {
+        const res = await fetch("/api/user/payment/paymentHistory");
+        const data = await res.json();
+        console.log("Fetched payments:", data);
+        if (data.success) setAllPayments(data.payments);
+      } catch (err) {
+        console.error("Error fetching payments:", err);
+      }
+    }
+    fetchPayments();
+  }, []);
 
   const filteredPayments = allPayments.filter(
     (payment) =>
-      payment.id.toString().includes(search.toLowerCase()) ||
-      payment.mode.toLowerCase().includes(search.toLowerCase()) ||
-      (payment.status as string).toLowerCase().includes(search.toLowerCase())
+      payment.razorpayPaymentId?.toLowerCase().includes(search.toLowerCase()) ||
+      payment.paymentProvider?.toLowerCase().includes(search.toLowerCase()) ||
+      payment.status?.toLowerCase().includes(search.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
@@ -36,12 +49,12 @@ export default function PaymentHistoryTable() {
   };
 
   const getStatusBadge = (status: PaymentStatus) => {
-    switch (status) {
-      case "Success":
+    switch (status.toLowerCase()) {
+      case "success":
         return "bg-green-100 text-green-700";
-      case "Failed":
+      case "failed":
         return "bg-red-100 text-red-700";
-      case "Pending":
+      case "pending":
         return "bg-yellow-100 text-yellow-700";
       default:
         return "bg-gray-100 text-gray-700";
@@ -87,24 +100,30 @@ export default function PaymentHistoryTable() {
           </thead>
           <tbody>
             {currentPayments.map((payment) => (
-              <tr key={payment.id} className="border-t hover:bg-gray-50">
+              <tr key={payment._id} className="border-t hover:bg-gray-50">
                 <td className="px-4 py-3">
                   <input type="checkbox" />
                 </td>
-                <td className="px-4 py-3 font-medium">{payment.id}</td>
-                <td className="px-4 py-3">{payment.dateTime}</td>
-                <td className="px-4 py-3">{payment.mode}</td>
-                <td className="px-4 py-3">{payment.amount}</td>
+                <td className="px-4 py-3 font-medium">
+                  {payment.razorpayPaymentId}
+                </td>
                 <td className="px-4 py-3">
-                  <Badge
-                    className={getStatusBadge(payment.status as PaymentStatus)}
-                  >
+                  {new Date(payment.createdAt).toLocaleString()}
+                </td>
+                <td className="px-4 py-3">
+                  {payment.razorpayDetails?.method || payment.paymentProvider}
+                </td>
+                <td className="px-4 py-3">
+                  ₹ {payment.amount.toLocaleString()}
+                </td>
+                <td className="px-4 py-3">
+                  <Badge className={getStatusBadge(payment.status)}>
                     {payment.status}
                   </Badge>
                 </td>
                 <td className="px-4 py-3 text-right">
                   <a
-                    href={payment.orderUrl}
+                    // href={`/registration/payment/${payment._id}`}
                     className="text-sm text-blue-600 hover:underline"
                   >
                     Order Details

@@ -47,11 +47,12 @@ const schema = z.object({
   // }),
 
   // mealPreference: z.string().min(1, "Meal preference is required"),
-  mealPreference: z.object({
-    _id: z.string(),
-    mealName: z.string()
-    
-  }),
+  mealPreference: z
+    .object({
+      _id: z.string(),
+      mealName: z.string(),
+    })
+    .refine((val) => val._id !== "", "Meal preference is required"),
 
   // registrationCategory: z.enum(["Member", "Trade", "Student", "Non-Member"], {
   // required_error: "Registration category is required",
