@@ -4,7 +4,7 @@ import AnnouncementCard from "@/components/dashboard/Announcement";
 export type Announcement = {
   _id: string;
   updatedAt: string;
-  title: string;
+  heading: string;
   description: string;
   postedBy: string;
   downloadUrl: string;

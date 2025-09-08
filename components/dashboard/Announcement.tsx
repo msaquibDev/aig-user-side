@@ -32,7 +32,7 @@ export default function AnnouncementCard({ data }: { data: Announcement }) {
     doc.text("Event Announcement", 105, 15, { align: "center" });
 
     // Safely render title
-    const title = data?.title ?? "Untitled Announcement";
+    const title = data?.heading ?? "Untitled Announcement";
     doc.setFontSize(14);
     doc.text(String(title), 10, 30);
 
@@ -68,7 +68,7 @@ export default function AnnouncementCard({ data }: { data: Announcement }) {
         />
       </div>
 
-      <h3 className="text-base font-semibold mb-1">{data.title}</h3>
+      <h3 className="text-base font-semibold mb-1">{data.heading}</h3>
       <p className="text-sm text-gray-700 mb-3">{data.description}</p>
 
       <div className="flex items-center gap-2 text-sm text-gray-500">
