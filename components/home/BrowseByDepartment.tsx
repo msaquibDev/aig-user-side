@@ -18,6 +18,7 @@ import { formatEventDate } from "@/app/utils/formatEventDate";
 import { useSession } from "next-auth/react";
 import { useUserRegistrationsStore } from "@/app/store/useRegistrationStore";
 import { Badge } from "@/components/ui/badge";
+import SkeletonCard from "../common/SkeletonCard";
 
 export default function BrowseByDepartment() {
   const { events, fetchEvents } = useEventStore();
@@ -27,10 +28,16 @@ export default function BrowseByDepartment() {
   const [selectedDept, setSelectedDept] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest" | "">("");
   const { data: session } = useSession();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchEvents();
-    if (session) fetchRegistrations(); // ✅ load only if logged in
+    async function fetchData() {
+      setLoading(true);
+      await fetchEvents();
+      if (session) await fetchRegistrations();
+      setLoading(false);
+    }
+    fetchData();
   }, [fetchEvents, fetchRegistrations, session]);
 
   const handleRegister = (eventId: string) => {
@@ -60,6 +67,8 @@ export default function BrowseByDepartment() {
     if (sortOrder === "oldest") return dateA - dateB;
     return 0;
   });
+
+  if (loading) return <SkeletonCard count={10} />;
 
   return (
     <section className="px-4 md:px-12 py-12 bg-white">

@@ -7,9 +7,10 @@ import { CalendarDays, MapPin } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEventStore } from "@/app/store/useEventStore";
 import { useUserRegistrationsStore } from "@/app/store/useRegistrationStore";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { formatEventDate } from "@/app/utils/formatEventDate";
 import { useSession } from "next-auth/react";
+import SkeletonCard from "../common/SkeletonCard";
 
 interface UpcomingEventsSectionProps {
   title: string;
@@ -26,6 +27,7 @@ export default function UpcomingEventsSection({
   const { events, fetchEvents } = useEventStore();
   const { registrations, fetchRegistrations } = useUserRegistrationsStore();
   const { data: session } = useSession();
+  const [loading, setLoading] = useState(true);
 
   const handleRegister = (eventId: string) => {
     if (!session) {
@@ -42,8 +44,13 @@ export default function UpcomingEventsSection({
   };
 
   useEffect(() => {
-    fetchEvents();
-    if (session) fetchRegistrations(); // ✅ fetch only if user is logged in
+    async function fetchData() {
+      setLoading(true);
+      await fetchEvents();
+      if (session) await fetchRegistrations();
+      setLoading(false);
+    }
+    fetchData();
   }, [fetchEvents, fetchRegistrations, session]);
 
   // ✅ Filter by category
@@ -66,6 +73,8 @@ export default function UpcomingEventsSection({
     CME: "/cmes",
   };
   const viewAllLink = categoryToPath[eventCategory];
+
+  if (loading) return <SkeletonCard count={5} />;
 
   return (
     <section className="bg-[#F8FAFC] px-4 md:px-12 py-12">

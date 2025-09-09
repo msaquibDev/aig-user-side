@@ -8,22 +8,37 @@ import { Filter, ChevronLeft, ChevronRight } from "lucide-react";
 
 type PaymentStatus = "success" | "failed" | "pending";
 
+const itemsPerPage = 15;
+
+function SkeletonRow() {
+  return (
+    <tr className="border-t animate-pulse bg-gray-50">
+      {Array.from({ length: 7 }).map((_, idx) => (
+        <td key={idx} className="px-4 py-3 bg-gray-200 rounded h-4">
+          &nbsp;
+        </td>
+      ))}
+    </tr>
+  );
+}
+
 export default function PaymentHistoryTable() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [allPayments, setAllPayments] = useState<any[]>([]);
-  const itemsPerPage = 15;
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchPayments() {
+      setLoading(true);
       try {
         const res = await fetch("/api/user/payment/paymentHistory");
         const data = await res.json();
-        console.log("Fetched payments:", data);
         if (data.success) setAllPayments(data.payments);
       } catch (err) {
         console.error("Error fetching payments:", err);
       }
+      setLoading(false);
     }
     fetchPayments();
   }, []);
@@ -99,72 +114,83 @@ export default function PaymentHistoryTable() {
             </tr>
           </thead>
           <tbody>
-            {currentPayments.map((payment) => (
-              <tr key={payment._id} className="border-t hover:bg-gray-50">
-                <td className="px-4 py-3">
-                  <input type="checkbox" />
-                </td>
-                <td className="px-4 py-3 font-medium">
-                  {payment.razorpayPaymentId}
-                </td>
-                <td className="px-4 py-3">
-                  {new Date(payment.createdAt).toLocaleString()}
-                </td>
-                <td className="px-4 py-3">
-                  {payment.razorpayDetails?.method || payment.paymentProvider}
-                </td>
-                <td className="px-4 py-3">
-                  ₹ {payment.amount.toLocaleString()}
-                </td>
-                <td className="px-4 py-3">
-                  <Badge className={getStatusBadge(payment.status)}>
-                    {payment.status}
-                  </Badge>
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <a
-                    // href={`/registration/payment/${payment._id}`}
-                    className="text-sm text-blue-600 hover:underline"
-                  >
-                    Order Details
-                  </a>
+            {loading ? (
+              Array.from({ length: 15 }).map((_, idx) => (
+                <SkeletonRow key={idx} />
+              ))
+            ) : currentPayments.length === 0 ? (
+              <tr>
+                <td colSpan={7} className="text-center py-6 text-gray-500">
+                  No results found.
                 </td>
               </tr>
-            ))}
+            ) : (
+              currentPayments.map((payment) => (
+                <tr key={payment._id} className="border-t hover:bg-gray-50">
+                  <td className="px-4 py-3">
+                    <input type="checkbox" />
+                  </td>
+                  <td className="px-4 py-3 font-medium">
+                    {payment.razorpayPaymentId}
+                  </td>
+                  <td className="px-4 py-3">
+                    {new Date(payment.createdAt).toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    {payment.razorpayDetails?.method || payment.paymentProvider}
+                  </td>
+                  <td className="px-4 py-3">
+                    ₹ {payment.amount.toLocaleString()}
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge className={getStatusBadge(payment.status)}>
+                      {payment.status}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <a className="text-sm text-blue-600 hover:underline">
+                      Order Details
+                    </a>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
 
-        <div className="flex items-center justify-between text-sm text-gray-600 px-4 py-2 border-t bg-gray-200">
-          <span>
-            Showing {startIndex + 1}-
-            {Math.min(endIndex, filteredPayments.length)} of{" "}
-            {filteredPayments.length}
-          </span>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevious}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-
+        {!loading && currentPayments.length > 0 && (
+          <div className="flex items-center justify-between text-sm text-gray-600 px-4 py-2 border-t bg-gray-200">
             <span>
-              Page {currentPage} of {totalPages}
+              Showing {startIndex + 1}-
+              {Math.min(endIndex, filteredPayments.length)} of{" "}
+              {filteredPayments.length}
             </span>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNext}
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+
+              <span>
+                Page {currentPage} of {totalPages}
+              </span>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
