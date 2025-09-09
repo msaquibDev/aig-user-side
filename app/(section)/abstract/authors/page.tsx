@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import { useAuthorStore } from "@/app/store/useAuthorStore";
 import MyAuthorsTable from "@/components/abstract/authors/MyAuthorsTable";
 import AuthorFormSidebar from "@/components/abstract/authors/AuthorFormSidebar";
+import Loading from "@/components/common/Loading";
 
 export default function MyAuthorsPage() {
   const [open, setOpen] = useState(false);
@@ -23,7 +24,7 @@ export default function MyAuthorsPage() {
 
   return (
     <>
-      <Suspense fallback={<div>Loading authors...</div>}>
+      <Suspense fallback={<Loading />}>
         <MyAuthorsTable onEdit={handleEditClick} onView={handleViewClick} />
 
         {/* Abstract Form Sidebar (Add/Edit) */}

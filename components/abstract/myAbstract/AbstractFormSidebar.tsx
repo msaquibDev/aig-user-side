@@ -35,7 +35,17 @@ type AbstractFormValues = {
   interventionStatus?: "yes" | "notRelevant";
 };
 
-export default function AbstractFormSidebar() {
+type AbstractFormSidebarProps = {
+  open: boolean;
+  onClose: () => void;
+  editId: number | null;
+};
+
+export default function AbstractFormSidebar({
+  open,
+  onClose,
+  editId,
+}: AbstractFormSidebarProps) {
   const {
     isSidebarOpen,
     addAbstract,
@@ -102,7 +112,7 @@ export default function AbstractFormSidebar() {
   const values = getValues();
 
   return (
-    <Dialog open={isSidebarOpen} onOpenChange={closeSidebar}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="mt-10 w-full max-w-[80vw] sm:max-w-[700px] lg:max-w-[800px] max-h-[90vh] overflow-y-auto rounded-md animate-in fade-in-90 slide-in-from-top-10">
         <div className="border-b pb-4 mb-4">
           <DialogTitle className="text-xl font-semibold">

@@ -14,8 +14,8 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import BackButton from "../common/BackButton";
 import { Suspense } from "react";
+import Loading from "../common/Loading";
 
 type SidebarItem = {
   label: string;
@@ -34,16 +34,17 @@ const sidebarMap: Record<string, SidebarItem[]> = {
     // { label: 'Workshop', path: '/registration/workshop', icon: Hammer },
     // { label: 'Banquet', path: '/registration/banquet', icon: UtensilsCrossed },
     // ],
-    // abstract: [
-    //   { label: 'My Abstract', path: '/abstract/my-abstracts', icon: Notebook },
-    //   { label: 'Authors', path: '/abstract/authors', icon: UserPen },
-    // ],
-    // presentation: [
-    //   {
-    //     label: 'My Presentation',
-    //     path: '/presentation/my-presentations',
-    //     icon: Presentation,
-    //   },
+  ],
+  abstract: [
+    { label: "My Abstract", path: "/abstract/my-abstracts", icon: Notebook },
+    { label: "Authors", path: "/abstract/authors", icon: UserPen },
+  ],
+  presentation: [
+    {
+      label: "My Presentation",
+      path: "/presentation/my-presentations",
+      icon: Presentation,
+    },
   ],
   // Add more...
 };
@@ -59,56 +60,52 @@ export function SubSidebar({
 }) {
   const pathname = usePathname();
   const items = sidebarMap[section] || [];
-  console.log('pathname ', pathname)
+
+  const isBadgePage = pathname.startsWith(
+    "/registration/my-registration/badge"
+  );
 
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-    <aside
-      className={cn(
-        "fixed top-[74px] left-25 h-[calc(100vh-74px)] border-r bg-[#eaf3ff] transition-all duration-300 z-30",
-        isOpen ? "w-64 px-8 py-4" : "w-0 px-0 py-0 overflow-hidden"
-      )}
-    >
-      <nav className="mt-3 space-y-2 relative">
-        {items.map(({ label, path, icon: Icon }, idx) => {
-          const isActive = pathname === path;
-          // Only for the first menu item (My Registration)
-          if (idx === 0) {
-            return (
-              <div key={path} className="relative flex items-center">
-                <Link
-                  href={path}
-                  className={cn(
-                    "flex items-center gap-2 text-sm rounded-md px-3 py-2 font-medium transition w-full",
-                    isActive
-                      ? "bg-white text-blue-600 shadow-sm"
-                      : "text-gray-700 hover:bg-white hover:text-blue-600"
-                  )}
-                >
-                  <Icon size={16} />
-                  <span>{label}</span>
-                </Link>
+    <Suspense fallback={<Loading />}>
+      <aside
+        className={cn(
+          "fixed top-[74px] left-25 h-[calc(100vh-74px)] border-r bg-[#eaf3ff] transition-all duration-300 z-30",
+          isOpen ? "w-64 px-8 py-4" : "w-0 px-0 py-0 overflow-hidden"
+        )}
+      >
+        <nav className="mt-11 space-y-2 relative">
+          {items.map(({ label, path, icon: Icon }, idx) => {
+            const isActive =
+              pathname === path ||
+              (isBadgePage && path === "/registration/my-registration");
+
+            const content = (
+              <div
+                className={cn(
+                  "flex items-center gap-2 text-sm rounded-md px-3 py-2 Px-2 font-medium w-full transition",
+                  isActive
+                    ? "bg-white text-blue-600 shadow-sm cursor-not-allowed"
+                    : "text-gray-700 hover:bg-white hover:text-blue-600"
+                )}
+              >
+                <Icon size={16} />
+                <span>{label}</span>
               </div>
             );
-          }
-          return (
-            <Link
-              key={path}
-              href={path}
-              className={cn(
-                "flex items-center gap-2 text-sm rounded-md px-3 py-2 font-medium transition",
-                isActive
-                  ? "bg-white text-blue-600 shadow-sm"
-                  : "text-gray-700 hover:bg-white hover:text-blue-600"
-              )}
-            >
-              <Icon size={16} />
-              <span>{label}</span>
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
+
+            // Disable only for My Registration when on badge page
+            if (isBadgePage && path === "/registration/my-registration") {
+              return <div key={path}>{content}</div>;
+            }
+
+            return (
+              <Link key={path} href={path}>
+                {content}
+              </Link>
+            );
+          })}
+        </nav>
+      </aside>
     </Suspense>
   );
 }
