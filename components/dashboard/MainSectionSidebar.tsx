@@ -70,7 +70,7 @@ export const MainSectionSidebar = ({
       </button>
 
       {/* Sidebar toggle button - always visible, same style */}
-      <button
+      {/* <button
         onClick={onBackToggle}
         className={cn(
           "absolute right-[-20px] top-[37px] z-40 bg-white border border-blue-200 shadow rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-blue-50",
@@ -84,7 +84,7 @@ export const MainSectionSidebar = ({
         ) : (
           <ChevronRight className="w-5 h-5 text-blue-600" />
         )}
-      </button>
+      </button> */}
 
       <nav className="flex flex-col gap-6 mt-10">
         {sections.map(({ label, href, icon: Icon, key }) => {
