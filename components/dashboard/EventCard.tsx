@@ -143,7 +143,14 @@ export default function EventTabs() {
               (r) => r.eventId === event._id && r.isPaid
             );
             const isPast =
-              !!event.endDate && new Date(event.endDate) < new Date();
+              !!event.endDate &&
+              (() => {
+                const [day, month, year] = event.endDate.split("/"); // DD/MM/YYYY
+                const parsedEndDate = new Date(
+                  `${year}-${month}-${day}T23:59:59`
+                );
+                return parsedEndDate < new Date();
+              })();
 
             return (
               <Card

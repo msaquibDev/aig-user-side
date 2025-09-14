@@ -206,7 +206,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           <Label>
             Email Id <span className="text-red-600">*</span>
           </Label>
-          <Input {...register("email")} />
+          <Input {...register("email")} disabled={true} />
           {errors.email && (
             <p className="text-sm text-red-600">{errors.email.message}</p>
           )}
@@ -221,6 +221,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             inputMode="numeric"
             maxLength={10} // still keeps native mobile keypad correct
             {...register("phone")}
+            disabled={true}
             onInput={(e) => {
               let val = e.currentTarget.value.replace(/\D/g, ""); // allow only digits
               if (val.length > 10) val = val.slice(0, 10); // trim to 10 digits

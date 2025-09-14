@@ -66,6 +66,8 @@ export function SubSidebar({
   return (
     <Suspense fallback={<Loading />}>
       {/* Chevron toggle button (always visible) */}
+
+      {/* Sub Sidebar */}
       <button
         onClick={onToggle}
         className={cn(
@@ -84,8 +86,6 @@ export function SubSidebar({
           <ChevronRight className="w-5 h-5 text-blue-600" />
         )}
       </button>
-
-      {/* Sub Sidebar */}
       <aside
         className={cn(
           "fixed top-[74px] left-[100px] h-[calc(100vh-74px)] border-r bg-[#eaf3ff] transition-all duration-300 z-30",

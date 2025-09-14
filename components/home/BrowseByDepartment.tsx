@@ -120,7 +120,15 @@ export default function BrowseByDepartment() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5">
           {sortedEvents.map((event) => {
             const isPast =
-              !!event.endDate && new Date(event.endDate) < new Date();
+              !!event.endDate &&
+              (() => {
+                const [day, month, year] = event.endDate.split("/"); // DD/MM/YYYY
+                const parsedEndDate = new Date(
+                  `${year}-${month}-${day}T23:59:59`
+                );
+                return parsedEndDate < new Date();
+              })();
+
             const userReg = registrations.find(
               (r) => r.eventId === event._id && r.isPaid
             );
