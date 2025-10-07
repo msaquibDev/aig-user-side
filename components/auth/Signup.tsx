@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 //import ReCAPTCHA from "react-google-recaptcha";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import countries from "i18n-iso-countries";
 import enLocale from "i18n-iso-countries/langs/en.json";
@@ -16,6 +16,7 @@ import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 import CountryStateCitySelect from "../common/CountryStateCitySelect";
+import ReCAPTCHA from "react-google-recaptcha";
 
 countries.registerLocale(enLocale);
 
@@ -46,9 +47,9 @@ const schema = z
     confirmPassword: z
       .string()
       .min(6, { message: "Please confirm your password" }),
-    // agree: z
-    //   .boolean()
-    //   .refine((val) => val, { message: "You must accept Terms & Conditions" }),
+    agree: z
+      .boolean()
+      .refine((val) => val, { message: "You must accept Terms & Conditions" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     path: ["confirmPassword"], // this targets confirmPassword only
@@ -58,7 +59,7 @@ const schema = z
 type FormData = z.infer<typeof schema>;
 
 export default function Signup() {
-  //const recaptchaRef = useRef<ReCAPTCHA>(null);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -73,7 +74,7 @@ export default function Signup() {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
     defaultValues: {
-      // agree: false,
+      agree: false,
       // ...other defaults like name, email etc
     },
   });
@@ -246,11 +247,11 @@ export default function Signup() {
             )}
           </div>
 
-          {/* <div className="mt-2">
+          <div className="mt-2">
             <ReCAPTCHA ref={recaptchaRef} sitekey="your_site_key" />
-          </div> */}
+          </div> 
 
-          {/* <label
+          <label
             htmlFor="agree"
             className="flex items-center space-x-2 mt-2 cursor-pointer"
           >
@@ -269,7 +270,7 @@ export default function Signup() {
 
           {errors.agree && (
             <p className="text-sm text-red-600">{errors.agree.message}</p>
-          )} */}
+          )}
 
           <Button
             type="submit"
