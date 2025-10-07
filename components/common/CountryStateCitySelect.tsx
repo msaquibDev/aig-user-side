@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "../ui/input";
+import { XCircle } from "lucide-react";
 
 interface Props {
   control: any;
@@ -69,7 +70,10 @@ export default function CountryStateCitySelect({
             )}
           />
           {errors?.country && (
-            <p className="text-sm text-red-600">{errors.country.message}</p>
+            <p className="text-sm text-red-600 flex items-center gap-1">
+              <XCircle className="w-3 h-3" />
+              {errors.country.message}
+            </p>
           )}
         </div>
       )}
