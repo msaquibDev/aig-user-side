@@ -88,6 +88,11 @@ export default function ResetPassword() {
       setLoading(true);
       setSubmitStatus("idle");
 
+      // ❌ Current (query parameter) - doesn't match your backend
+      // const res = await fetch(
+      //   `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/reset-password?token=${token}`,
+
+      // ✅ Fixed (URL parameter) - matches your backend route
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/reset-password/${token}`,
         {
