@@ -1,66 +1,39 @@
-// components/auth/ProtectedRoute.jsx
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Loader2 } from "lucide-react";
 
-import { ReactNode } from "react";
-
-export default function ProtectedRoute({ children }: { children: ReactNode }) {
+export default function ProtectedRoute({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const pathname = usePathname();
+  const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {
-    // Check for the access token in localStorage
+    // ✅ Run only on client side
     const token = localStorage.getItem("accessToken");
 
     if (!token) {
-      // If no token, redirect to login
-      router.push("/login");
+      // 🚨 No token: redirect to login with callbackUrl
+      router.replace(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
     } else {
-      // Optional: Verify token validity with your backend
-      verifyToken(token).then((isValid) => {
-        if (!isValid) {
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("user");
-          router.push("/login");
-        } else {
-          setIsAuthenticated(true);
-        }
-        setIsLoading(false);
-      });
+      setIsAuthorized(true);
     }
-  }, [router]);
+  }, [pathname, router]);
 
-  if (isLoading) {
+  if (!isAuthorized) {
+    // ⏳ Loading screen while checking auth
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-[#00509E]" />
-          <p className="text-gray-600">Verifying authentication...</p>
-        </div>
+      <div className="flex items-center justify-center h-screen">
+        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+        <p className="ml-2 text-gray-600">Checking authentication...</p>
       </div>
     );
   }
 
-  return isAuthenticated ? children : null;
-}
-
-// Optional: Function to verify token with backend
-async function verifyToken(token: string) {
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/verify-token`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return response.ok;
-  } catch (error) {
-    return false;
-  }
+  return <>{children}</>;
 }

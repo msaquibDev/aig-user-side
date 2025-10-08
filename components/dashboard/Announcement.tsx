@@ -5,7 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
 // import { Announcement } from "@/app/data/announcement";
 import { jsPDF } from "jspdf";
-import { Announcement } from "@/app/dashboard/announcements/page";
+import { Announcement } from "@/app/store/useAnnouncementStore";
 
 export default function AnnouncementCard({ data }: { data: Announcement }) {
   const formatDate = (isoString: string) => {

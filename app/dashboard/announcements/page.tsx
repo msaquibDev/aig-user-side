@@ -1,58 +1,70 @@
-// app/dashboard/announcements/page.tsx
+// app/dashboard/announcements/page.tsx (Using Store)
+"use client";
+
+import { useEffect } from "react";
 import AnnouncementCard from "@/components/dashboard/Announcement";
+import { useAnnouncementStore } from "@/app/store/useAnnouncementStore";
+import { Loader2, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export type Announcement = {
-  _id: string;
-  updatedAt: string;
-  heading: string;
-  description: string;
-  postedBy: string;
-  downloadUrl: string;
-};
+export default function AnnouncementsPage() {
+  const { announcements, loading, error, fetchAnnouncements, clearError } =
+    useAnnouncementStore();
 
-async function getAnnouncements(): Promise<Announcement[]> {
-  try {
-    const res = await fetch("https://admin.aigevent.tech/api/announcements", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      // SSR cache settings
-      cache: "no-store", // so it always fetches fresh data
-    });
+  useEffect(() => {
+    fetchAnnouncements();
+  }, [fetchAnnouncements]);
 
-    const json = await res.json();
-    // console.log("SSR Announcements JSON:", json);
-
-    if (json.success && Array.isArray(json.data)) {
-      return json.data;
-    } else if (Array.isArray(json)) {
-      return json;
-    } else if (json.announcements) {
-      return json.announcements;
-    }
-    return [];
-  } catch (error) {
-    console.error("Error fetching announcements (server):", error);
-    return [];
-  }
-}
-
-export default async function AnnouncementsPage() {
-  const announcements = await getAnnouncements();
-
-  if (!announcements || announcements.length === 0) {
-    return <p className="p-4 text-red-500">No announcements found.</p>;
-  }
+  const handleRetry = () => {
+    clearError();
+    fetchAnnouncements();
+  };
 
   return (
-    <div className="p-4">
-      <h1 className="text-2xl font-semibold mb-4 text-[#00509E]">
-        Announcements
-      </h1>
-      {announcements.map((announcement) => (
-        <AnnouncementCard key={announcement._id} data={announcement} />
-      ))}
+    <div className="p-4 md:p-6 max-w-10xl mx-auto">
+      <div className="mb-6">
+        <h1 className="text-2xl md:text-3xl font-bold text-[#00509E] mb-2">
+          Announcements
+        </h1>
+        <p className="text-gray-600">
+          Stay updated with the latest news and updates
+        </p>
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <Loader2 className="w-8 h-8 animate-spin text-[#00509E] mb-4" />
+          <p className="text-gray-600">Loading announcements...</p>
+        </div>
+      ) : error ? (
+        <div className="text-center py-12">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
+            <p className="text-red-700 font-medium mb-3">{error}</p>
+            <Button
+              onClick={handleRetry}
+              className="bg-[#00509E] hover:bg-[#003B73] text-white"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        </div>
+      ) : !announcements || announcements.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 max-w-md mx-auto">
+            <p className="text-gray-500 text-lg mb-2">No announcements found</p>
+            <p className="text-gray-400 text-sm">
+              There are no announcements at the moment. Please check back later.
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {announcements.map((announcement) => (
+            <AnnouncementCard key={announcement._id} data={announcement} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

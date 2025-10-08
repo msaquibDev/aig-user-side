@@ -1,6 +1,5 @@
 // store/useEventStore.ts
 import { create } from "zustand";
-import axios from "axios";
 
 interface Organizer {
   _id: string;
@@ -30,6 +29,9 @@ interface Venue {
   city: string;
   website: string;
   googleMapLink: string;
+  distanceFromAirport: string;
+  distanceFromRailwayStation: string;
+  nearestMetroStation: string;
 }
 
 export interface Event {
@@ -38,23 +40,26 @@ export interface Event {
   shortName: string;
   eventImage: string;
   eventCode: string;
-  regNumber?: string;
+  regNum: string;
   organizer: Organizer;
   department: Department;
-  startDate: string;
-  endDate: string;
-  startTime: string;
-  endTime: string;
+  startDate: string; // Format: "28/10/2025"
+  endDate: string; // Format: "28/10/2025"
+  startTime: string; // Format: "09:00 AM"
+  endTime: string; // Format: "06:00 AM"
   timeZone: string;
   venueName: Venue;
   country: string;
   state: string;
   city: string;
   eventType: string;
-  registrationType: string;
-  currencyType: string;
-  eventCategory: string; // Conference | CME | Workshop
+  registrationType: "free" | "paid";
+  currencyType?: string;
+  eventCategory: string; // Conference | Workshop | CME
   isEventApp: boolean;
+  dynamicStatus: "Live" | "Past" | "Upcoming";
+  createdAt: string;
+  updatedAt: string;
 }
 
 interface EventState {
@@ -64,9 +69,10 @@ interface EventState {
   error: string | null;
   fetchEvents: () => Promise<void>;
   setCurrentEvent: (event: Event | null) => void;
+  getEventById: (id: string) => Event | undefined;
 }
 
-export const useEventStore = create<EventState>((set) => ({
+export const useEventStore = create<EventState>((set, get) => ({
   events: [],
   currentEvent: null,
   loading: false,
@@ -75,12 +81,38 @@ export const useEventStore = create<EventState>((set) => ({
   fetchEvents: async () => {
     try {
       set({ loading: true, error: null });
-      const res = await axios.get("https://admin.aigevent.tech/api/events"); // ✅ external API
-      set({ events: res.data.data, loading: false });
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events`,
+        {
+          method: "GET",
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch events: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && Array.isArray(data.data)) {
+        set({ events: data.data, loading: false });
+      } else {
+        throw new Error("Invalid response format from events API");
+      }
     } catch (err: any) {
-      set({ error: err.message, loading: false });
+      console.error("Error fetching events:", err);
+      set({
+        error: err.message || "Failed to fetch events",
+        loading: false,
+      });
     }
   },
 
   setCurrentEvent: (event) => set({ currentEvent: event }),
+
+  getEventById: (id: string) => {
+    const { events } = get();
+    return events.find((event) => event._id === id);
+  },
 }));
