@@ -1,3 +1,4 @@
+//components/registrations/myRegistration/RegistrationStepper.tsx
 "use client";
 
 import { cn } from "@/lib/utils";

@@ -1,16 +1,15 @@
+//app/store/useRegistrationStore.ts
 import { create } from "zustand";
 
 // Types
-export type RegistrationCategory = {
+// In your store/useRegistrationStore.ts
+export interface RegistrationCategory {
   _id: string;
-  categoryName: string;
+  slabName: string; // Changed from categoryName
   amount: number;
-};
-
-export type MealPreference = {
-  _id: string;
-  mealName: string;
-};
+  startDate?: string;
+  endDate?: string;
+}
 
 // export type Gender = "Male" | "Female" | "Other";
 // export type MealPreference = "Veg" | "Non-Veg" | "Jain";
@@ -33,7 +32,7 @@ export type BasicDetails = {
   state?: string;
   city?: string;
   pincode?: string;
-  mealPreference?: MealPreference;
+  mealPreference?: string;
   gender?: string;
   registrationCategory: RegistrationCategory;
 };
@@ -44,7 +43,7 @@ export type AccompanyingPerson = {
   age: string;
   gender: string;
   relation: string;
-  mealPreference: MealPreference;
+  mealPreference: string;
 };
 
 // Badge info type for success page
@@ -93,7 +92,7 @@ const initialBasicDetails: BasicDetails = {
   state: "",
   city: "",
   pincode: "",
-  mealPreference: { _id: "", mealName: "" },
+  mealPreference: "",
   gender: "",
   registrationCategory: undefined as any,
 };

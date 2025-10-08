@@ -1,3 +1,4 @@
+// components/registrations/myRegistration/Step1BasicDetails.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -23,6 +24,7 @@ import { toast } from "sonner";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import CountryStateCitySelect from "@/components/common/CountryStateCitySelect";
+import { useEventStore } from "@/app/store/useEventStore";
 
 // ✅ Schema for validation
 const schema = z.object({
@@ -39,27 +41,11 @@ const schema = z.object({
   state: z.string().min(1, "State is required"),
   city: z.string().min(1, "City is required"),
   pincode: z.string().min(1, "Pincode is required"),
-
   gender: z.string().min(1, "Gender is required"),
-
-  // mealPreference: z.enum(["Veg", "Non-Veg", "Jain"], {
-  //   required_error: "Meal preference is required",
-  // }),
-
-  // mealPreference: z.string().min(1, "Meal preference is required"),
-  mealPreference: z
-    .object({
-      _id: z.string(),
-      mealName: z.string(),
-    })
-    .refine((val) => val._id !== "", "Meal preference is required"),
-
-  // registrationCategory: z.enum(["Member", "Trade", "Student", "Non-Member"], {
-  // required_error: "Registration category is required",
-  // }),
+  mealPreference: z.string().min(1, "Meal preference is required"),
   registrationCategory: z.object({
     _id: z.string(),
-    categoryName: z.string(),
+    slabName: z.string(), // ✅ Changed from categoryName to slabName
     amount: z.number(),
   }),
 });
@@ -68,8 +54,9 @@ type FormData = z.infer<typeof schema>;
 
 export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
   const { basicDetails, updateBasicDetails } = useRegistrationStore();
+  const { currentEvent } = useEventStore(); // Get current event from store
   const [categories, setCategories] = useState([]);
-  const [mealPreferences, setMealPreferences] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
 
   const {
     register,
@@ -95,62 +82,61 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
     onNext();
   };
 
+  // Fetch registration slabs based on event ID
   useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await fetch("/api/user/registrationCategory", {
-          method: "GET",
-        });
-        const data = await res.json();
-        console.log("Category Response:", data);
+    async function fetchRegistrationSlabs() {
+      if (!currentEvent?._id) {
+        console.log("No event ID available");
+        return;
+      }
 
-        if (data.success) {
-          setCategories(data.data);
+      try {
+        setLoading(true);
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${currentEvent._id}/slabs`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await res.json();
+        console.log("Registration Slabs Response:", data);
+
+        if (data.success && Array.isArray(data.data)) {
+          // Transform the data to match your existing structure
+          const transformedCategories = data.data.map((slab: any) => ({
+            _id: slab._id,
+            slabName: slab.slabName, // Using slabName instead of categoryName
+            amount: slab.amount,
+            // Add any additional fields you need
+            startDate: slab.startDate,
+            endDate: slab.endDate,
+          }));
+
+          setCategories(transformedCategories);
+        } else {
+          console.error("Invalid response format:", data);
+          toast.error("Failed to load registration options");
         }
       } catch (err) {
-        console.error("GET categories error:", err);
+        console.error("GET registration slabs error:", err);
+        toast.error("Error loading registration options");
+      } finally {
+        setLoading(false);
       }
     }
 
-    fetchCategories();
-  }, []);
-
-  useEffect(() => {
-    async function fetchMealPreferences() {
-      try {
-        const res = await fetch("/api/user/mealPreference", { method: "GET" });
-        const data = await res.json();
-        console.log("Meal Preference Response:", data);
-        if (data.success) {
-          setMealPreferences(data.data); // [{_id, mealName}, ...]
-        }
-      } catch (err) {
-        console.error("GET meal preferences error:", err);
-      }
-    }
-
-    fetchMealPreferences();
-  }, []);
+    fetchRegistrationSlabs();
+  }, [currentEvent?._id]); // Re-fetch when event ID changes
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10">
       {/* Grid of Inputs */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-1.5">
-          {/* <Label>Prefix</Label>
-          <Select
-            onValueChange={(val) => setValue("prefix", val)}
-            defaultValue={basicDetails.prefix || ""}
-          >
-            <SelectTrigger className="w-full cursor-pointer">
-              <SelectValue placeholder="Select Prefix" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Mr">Mr</SelectItem>
-              <SelectItem value="Ms">Ms</SelectItem>
-              <SelectItem value="Dr">Dr</SelectItem>
-            </SelectContent>
-          </Select> */}
           <Label htmlFor="prefix">
             Prefix <span className="text-red-600">*</span>
           </Label>
@@ -182,10 +168,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             name="gender"
             control={control}
             render={({ field }) => (
-              <Select
-                onValueChange={field.onChange}
-                value={field.value || ""} // ✅ controlled
-              >
+              <Select onValueChange={field.onChange} value={field.value || ""}>
                 <SelectTrigger className="w-full cursor-pointer">
                   <SelectValue placeholder="Select Gender" />
                 </SelectTrigger>
@@ -219,11 +202,11 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           <Input
             type="tel"
             inputMode="numeric"
-            maxLength={10} // still keeps native mobile keypad correct
+            maxLength={10}
             {...register("phone")}
             onInput={(e) => {
-              let val = e.currentTarget.value.replace(/\D/g, ""); // allow only digits
-              if (val.length > 10) val = val.slice(0, 10); // trim to 10 digits
+              let val = e.currentTarget.value.replace(/\D/g, "");
+              if (val.length > 10) val = val.slice(0, 10);
               e.currentTarget.value = val;
             }}
           />
@@ -267,27 +250,16 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             name="mealPreference"
             control={control}
             render={({ field }) => (
-              <Select
-                onValueChange={(value) => {
-                  const selected = mealPreferences.find((m) => m._id === value);
-                  if (selected) {
-                    field.onChange({
-                      _id: selected._id, // ✅ for backend
-                      mealName: selected.mealName, // ✅ for UI/review
-                    });
-                  }
-                }}
-                value={field.value?._id || ""} // keep controlled
-              >
+              <Select onValueChange={field.onChange} value={field.value || ""}>
                 <SelectTrigger className="w-full cursor-pointer">
                   <SelectValue placeholder="Select Meal Preference" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mealPreferences.map((meal) => (
-                    <SelectItem key={meal._id} value={meal._id}>
-                      {meal.mealName}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="Vegetarian">Vegetarian</SelectItem>
+                  <SelectItem value="Non-Vegetarian">Non-Vegetarian</SelectItem>
+                  <SelectItem value="Vegan">Vegan</SelectItem>
+                  <SelectItem value="Jain">Jain</SelectItem>
+                  <SelectItem value="No Preference">No Preference</SelectItem>
                 </SelectContent>
               </Select>
             )}
@@ -327,46 +299,76 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             watch={watch}
             errors={errors}
             showCountry={true}
-            disableCountry={true} // ✅ allow country change
+            disableCountry={true}
             showState={true}
             showCity={true}
             showPincode={true}
-            editing={true} // ✅ allow state/city/pincode change
+            editing={true}
           />
         </div>
       </div>
 
+      {/* Registration Category Section */}
       <div className="space-y-2">
         <Label className="font-medium">
           Select Registration Category <span className="text-red-600">*</span>
         </Label>
-        <RadioGroup
-          defaultValue={
-            basicDetails.registrationCategory
-              ? JSON.stringify(basicDetails.registrationCategory)
-              : ""
-          }
-          onValueChange={(val) =>
-            setValue("registrationCategory", JSON.parse(val))
-          }
-          className="space-y-2"
-        >
-          {categories.map((cat: RegistrationCategory) => (
-            <Label
-              key={cat._id}
-              htmlFor={cat._id}
-              className="flex items-center justify-between border rounded-lg p-3 cursor-pointer hover:bg-gray-50"
-            >
-              <div className="flex items-center gap-2">
-                <RadioGroupItem value={JSON.stringify(cat)} id={cat._id} />
-                <span>{cat.categoryName}</span>
-              </div>
-              <div className="text-right">
-                <p>₹ {cat.amount.toLocaleString("en-IN")}.00</p>
-              </div>
-            </Label>
-          ))}
-        </RadioGroup>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00509E] mx-auto mb-2"></div>
+              <p className="text-gray-600">Loading registration options...</p>
+            </div>
+          </div>
+        ) : categories.length === 0 ? (
+          <div className="text-center py-8 border rounded-lg bg-gray-50">
+            <p className="text-gray-500">
+              No registration options available for this event.
+            </p>
+            <p className="text-gray-400 text-sm mt-1">
+              Please contact event organizers.
+            </p>
+          </div>
+        ) : (
+          <RadioGroup
+            defaultValue={
+              basicDetails.registrationCategory
+                ? JSON.stringify(basicDetails.registrationCategory)
+                : ""
+            }
+            onValueChange={(val) =>
+              setValue("registrationCategory", JSON.parse(val))
+            }
+            className="space-y-2"
+          >
+            {categories.map((cat: any) => (
+              <Label
+                key={cat._id}
+                htmlFor={cat._id}
+                className="flex items-center justify-between border rounded-lg p-3 cursor-pointer hover:bg-gray-50 transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <RadioGroupItem value={JSON.stringify(cat)} id={cat._id} />
+                  <div>
+                    <span className="font-medium">{cat.slabName}</span>
+                    {cat.startDate && cat.endDate && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Valid: {new Date(cat.startDate).toLocaleDateString()} -{" "}
+                        {new Date(cat.endDate).toLocaleDateString()}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-green-600">
+                    ₹ {cat.amount.toLocaleString("en-IN")}.00
+                  </p>
+                </div>
+              </Label>
+            ))}
+          </RadioGroup>
+        )}
 
         {errors.registrationCategory && (
           <p className="text-sm text-red-600">
@@ -380,8 +382,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         <Button
           type="submit"
           className="bg-[#00509E] hover:bg-[#003B73] px-8 cursor-pointer"
+          disabled={loading || categories.length === 0}
         >
-          Save & Continue
+          {loading ? "Loading..." : "Save & Continue"}
         </Button>
       </div>
     </form>

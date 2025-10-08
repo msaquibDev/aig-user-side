@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRegistrationStore } from "@/app/store/useRegistrationStore";
-import { useEventStore } from "@/app/store/useEventStore"; // ✅ import event store
+import { useEventStore } from "@/app/store/useEventStore";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -42,6 +42,8 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
     () => accompanyingPersons[0] || {},
     [accompanyingPersons]
   );
+
+  // Updated to handle slabName instead of categoryName
   const regAmount = basicDetails?.registrationCategory?.amount || 0;
   const tax = Math.round(regAmount * 0.18);
   const total = regAmount + tax;
@@ -79,11 +81,12 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
     try {
       setLoading(true);
 
+      // Updated payload to match new structure
       const payload = {
         eventId: basicDetails.eventId,
         eventName: basicDetails.eventName,
-        registrationCategory: basicDetails.registrationCategory?.categoryName,
-        mealPreference: basicDetails.mealPreference?.mealName,
+        registrationCategory: basicDetails.registrationCategory?.slabName, // ✅ Changed to slabName
+        mealPreference: basicDetails.mealPreference, // ✅ Now a string directly
         prefix: basicDetails.prefix,
         fullName: basicDetails.fullName,
         phone: basicDetails.phone,
@@ -98,31 +101,45 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
         city: basicDetails.city,
         pincode: basicDetails.pincode,
         gender: basicDetails.gender,
+        registrationSlabId: basicDetails.registrationCategory?._id, // ✅ Send slab ID
+        amount: basicDetails.registrationCategory?.amount, // ✅ Send amount
       };
 
       console.log("Submitting Registration Payload:", payload);
+
+      const token = localStorage.getItem("accessToken");
       const registrationRes = await fetch(
-        `/api/user/registration/${basicDetails.eventId}`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/registration/${basicDetails.eventId}`,
         {
           method: "POST",
           credentials: "include",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify(payload),
         }
       );
 
       if (!registrationRes.ok) {
         const err = await registrationRes.json();
-        throw new Error(err?.error || "Registration failed");
+        throw new Error(err?.message || err?.error || "Registration failed");
       }
 
       const registrationData = await registrationRes.json();
       const registrationId = registrationData.registration?._id;
 
-      router.push(`/registration/payment?registrationId=${registrationId}`);
+      if (registrationId) {
+        toast.success("Registration submitted successfully!");
+        router.push(`/registration/payment?registrationId=${registrationId}`);
+      } else {
+        throw new Error("No registration ID received");
+      }
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Something went wrong");
+      console.error("Registration Error:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Something went wrong"
+      );
     } finally {
       setLoading(false);
     }
@@ -141,7 +158,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
               className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200 cursor-pointer hover:text-wh"
               size="sm"
               variant="ghost"
-              onClick={() => onBack()} // or router.push if you’re routing steps
+              onClick={() => onBack()}
             >
               ✎ Edit
             </Button>
@@ -173,9 +190,8 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
                 </p>
                 <Input
                   value={
-                    key === "mealPreference"
-                      ? tempBasic.mealPreference?.mealName || "" // ✅ show mealName
-                      : (tempBasic as any)[key] || ""
+                    // Handle mealPreference as string now
+                    (tempBasic as any)[key] || ""
                   }
                   onChange={(e) =>
                     setTempBasic({ ...tempBasic, [key]: e.target.value })
@@ -188,6 +204,30 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
                 />
               </div>
             ))}
+
+            {/* Registration Category Display */}
+            <div className="sm:col-span-2">
+              <p className="text-gray-600">Registration Category</p>
+              <Input
+                value={
+                  tempBasic.registrationCategory?.slabName || "Not selected"
+                }
+                disabled
+                className="bg-gray-50"
+              />
+            </div>
+
+            {/* Registration Amount Display */}
+            <div>
+              <p className="text-gray-600">Registration Fee</p>
+              <Input
+                value={`₹ ${(
+                  tempBasic.registrationCategory?.amount || 0
+                ).toLocaleString("en-IN")}.00`}
+                disabled
+                className="bg-gray-50"
+              />
+            </div>
           </div>
         </section>
 
@@ -201,10 +241,10 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
               <span>
                 {currentEvent?.eventName
                   ? `${currentEvent.eventName} - ${
-                      basicDetails?.registrationCategory?.categoryName ||
+                      basicDetails?.registrationCategory?.slabName || // ✅ Changed to slabName
                       "Registration"
                     }`
-                  : basicDetails?.registrationCategory?.categoryName ||
+                  : basicDetails?.registrationCategory?.slabName || // ✅ Changed to slabName
                     "Registration"}
 
                 {!skippedAccompanying && accompanyingPersons.length > 0 && (
@@ -231,11 +271,12 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200 cursor-pointer"
+            className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200 cursor-pointer px-8 py-2 text-lg min-w-40"
           >
             {loading ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Processing...
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                Processing...
               </>
             ) : (
               "Confirm & Pay"
