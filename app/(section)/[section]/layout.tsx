@@ -2,10 +2,10 @@
 export const dynamic = "force-dynamic";
 
 import "@/app/globals.css";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MainSectionSidebar } from "@/components/dashboard/MainSectionSidebar";
 import { SubSidebar } from "@/components/dashboard/SubSidebar";
-import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
 
 import { useRouter, usePathname } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -37,7 +37,7 @@ export default function SectionLayout({
   };
 
   return (
-    <SessionProviderWrapper>
+    <ProtectedRoute>
       {/* Header */}
       <div className="fixed top-0 left-0 right-0 z-50">
         <DashboardHeader
@@ -78,6 +78,6 @@ export default function SectionLayout({
           {children}
         </main>
       </div>
-    </SessionProviderWrapper>
+    </ProtectedRoute>
   );
 }

@@ -57,19 +57,19 @@ export default function Step2AccompanyingPerson({
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      accompanyingPersons: accompanyingPersons.length
-        ? accompanyingPersons
-        : [
-            {
-              name: "",
-              age: "",
-              gender: "male",
-              relation: "",
-              mealPreference: "veg",
-            },
-          ],
-    },
+    // defaultValues: {
+    //   accompanyingPersons: accompanyingPersons.length
+    //     ? accompanyingPersons
+    //     : [
+    //         {
+    //           name: "",
+    //           age: "",
+    //           gender: "male",
+    //           relation: "",
+    //           mealPreference: "veg",
+    //         },
+    //       ],
+    // },
   });
 
   const { fields, append, remove } = useFieldArray({
@@ -78,7 +78,7 @@ export default function Step2AccompanyingPerson({
   });
 
   const onSubmit = (data: FormData) => {
-    setAccompanyingPersons(data.accompanyingPersons);
+    // setAccompanyingPersons(data.accompanyingPersons);
     toast.success("Accompanying persons saved!");
     onNext();
   };

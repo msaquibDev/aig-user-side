@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { signOut, useSession } from "next-auth/react";
+// import { signOut, useSession } from "next-auth/react";
 import { useUserStore } from "@/app/store/useUserStore";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
@@ -25,43 +25,43 @@ export default function Header() {
   const [loggingOut, setLoggingOut] = useState(false);
   const router = useRouter();
 
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const { photo, fullName, setUser } = useUserStore();
 
-  const isLoggedIn = !!session?.user;
+  // const isLoggedIn = !!session?.user;
 
   // ✅ Fetch latest profile on mount
-  useEffect(() => {
-    async function fetchProfile() {
-      if (!isLoggedIn) return;
+  // useEffect(() => {
+  //   async function fetchProfile() {
+  //     if (!isLoggedIn) return;
 
-      try {
-        const res = await fetch("/api/user/profile");
-        if (!res.ok) throw new Error("Failed to fetch profile");
-        const data = await res.json();
+  //     try {
+  //       const res = await fetch("/api/user/profile");
+  //       if (!res.ok) throw new Error("Failed to fetch profile");
+  //       const data = await res.json();
 
-        setUser({
-          photo: data.profilePicture || "/authImg/user.png",
-          fullName: data.fullName || session.user?.name || "",
-        });
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-      }
-    }
+  //       setUser({
+  //         photo: data.profilePicture || "/authImg/user.png",
+  //         fullName: data.fullName || session.user?.name || "",
+  //       });
+  //     } catch (err) {
+  //       console.error("Error fetching profile:", err);
+  //     }
+  //   }
 
-    fetchProfile();
-  }, [isLoggedIn, session?.user?.email, setUser]);
+  //   fetchProfile();
+  // }, [isLoggedIn, session?.user?.email, setUser]);
 
-  const handleLogout = async () => {
-    setLoggingOut(true);
-    try {
-      await signOut({ redirect: false });
-      setUser({ photo: "/authImg/user.png", fullName: "" });
-      router.push("/");
-    } finally {
-      setLoggingOut(false);
-    }
-  };
+  // const handleLogout = async () => {
+  //   setLoggingOut(true);
+  //   try {
+  //     await signOut({ redirect: false });
+  //     setUser({ photo: "/authImg/user.png", fullName: "" });
+  //     router.push("/");
+  //   } finally {
+  //     setLoggingOut(false);
+  //   }
+  // };
 
   return (
     <header className="w-full bg-gradient-to-r from-[#02075d] to-[#1e3a8a] text-white sticky top-0 z-50">
@@ -92,7 +92,7 @@ export default function Header() {
 
         {/* Right Side */}
         <div className="hidden md:flex items-center gap-4">
-          {isLoggedIn ? (
+          {/* {isLoggedIn ? (
             <>
               <Link href="/dashboard/profile">
                 <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
@@ -103,7 +103,7 @@ export default function Header() {
                 </Avatar>
               </Link>
               <Button
-                onClick={handleLogout}
+                // onClick={handleLogout}
                 variant="outline"
                 disabled={loggingOut}
                 className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
@@ -127,7 +127,7 @@ export default function Header() {
                 Login / Sign Up
               </Button>
             </Link>
-          )}
+          )} */}
         </div>
 
         {/* Mobile Hamburger */}
@@ -152,7 +152,7 @@ export default function Header() {
               {item.label}
             </Link>
           ))}
-          {isLoggedIn ? (
+          {/* {isLoggedIn ? (
             <>
               <Link
                 href="/dashboard/profile"
@@ -169,7 +169,7 @@ export default function Header() {
                 </div>
               </Link>
               <Button
-                onClick={handleLogout}
+                // onClick={handleLogout}
                 variant="outline"
                 disabled={loggingOut}
                 className="w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
@@ -193,7 +193,7 @@ export default function Header() {
                 Login / Sign Up
               </Button>
             </Link>
-          )}
+          )} */}
         </div>
       )}
 

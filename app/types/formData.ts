@@ -1,5 +1,5 @@
 import {
-  Gender,
+  // Gender,
   MealPreference,
   RegistrationCategory,
 } from '@/app/store/useRegistrationStore'
@@ -19,6 +19,6 @@ export type FormData = {
   city?: string;
   pincode?: string;
   mealPreference: MealPreference;
-  gender: Gender;
+  // gender: Gender;
   registrationCategory: RegistrationCategory;
 };

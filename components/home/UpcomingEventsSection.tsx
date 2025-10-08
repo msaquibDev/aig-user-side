@@ -9,7 +9,7 @@ import { useEventStore } from "@/app/store/useEventStore";
 import { useUserRegistrationsStore } from "@/app/store/useRegistrationStore";
 import { useEffect, useState } from "react";
 import { formatEventDate } from "@/app/utils/formatEventDate";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import SkeletonCard from "../common/SkeletonCard";
 
 interface UpcomingEventsSectionProps {
@@ -26,16 +26,16 @@ export default function UpcomingEventsSection({
   const router = useRouter();
   const { events, fetchEvents } = useEventStore();
   const { registrations, fetchRegistrations } = useUserRegistrationsStore();
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
 
-  const handleRegister = (eventId: string) => {
-    if (!session) {
-      router.push("/login");
-    } else {
-      router.push(`/registration/my-registration?eventId=${eventId}`);
-    }
-  };
+  // const handleRegister = (eventId: string) => {
+  //   if (!session) {
+  //     router.push("/login");
+  //   } else {
+  //     router.push(`/registration/my-registration?eventId=${eventId}`);
+  //   }
+  // };
 
   const handleViewBadge = (eventId: string, registrationId: string) => {
     router.push(
@@ -43,15 +43,15 @@ export default function UpcomingEventsSection({
     );
   };
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      await fetchEvents();
-      if (session) await fetchRegistrations();
-      setLoading(false);
-    }
-    fetchData();
-  }, [fetchEvents, fetchRegistrations, session]);
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     setLoading(true);
+  //     await fetchEvents();
+  //     if (session) await fetchRegistrations();
+  //     setLoading(false);
+  //   }
+  //   fetchData();
+  // }, [fetchEvents, fetchRegistrations, session]);
 
   // ✅ Filter by category
   const filteredEvents = events.filter(
@@ -154,8 +154,8 @@ export default function UpcomingEventsSection({
                 <Button
                   onClick={() =>
                     userReg
-                      ? handleViewBadge(event._id!, userReg._id)
-                      : handleRegister(event._id!)
+                      // ? handleViewBadge(event._id!, userReg._id)
+                      // : handleRegister(event._id!)
                   }
                   disabled={!userReg && isPast}
                   className={`mt-4 w-full text-sm py-2 transition-colors cursor-pointer ${

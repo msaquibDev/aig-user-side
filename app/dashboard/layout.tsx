@@ -1,11 +1,12 @@
+// app/dashboard/layout.tsx
 "use client";
 import "@/app/globals.css";
 import Loading from "@/components/common/Loading";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { Sidebar } from "@/components/dashboard/Sidebar";
-import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
 import { ReactNode, Suspense, useState } from "react";
 import { Toaster } from "sonner";
+import ProtectedRoute from "@/components/auth/ProtectedRoute"; // Add this import
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -13,8 +14,9 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   return (
     <html>
       <body className="h-screen overflow-hidden">
-        <Suspense fallback={<Loading />}>
-          <SessionProviderWrapper>
+          <ProtectedRoute>
+            {" "}
+            {/* Wrap with ProtectedRoute */}
             <div className="flex h-screen w-screen overflow-hidden">
               {/* Fixed Sidebar (starts after header) */}
               <div className="hidden lg:block fixed top-[80px] left-0 h-[calc(100vh-60px)] w-64 z-40 bg-blue-100">
@@ -43,8 +45,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
               isOpen={sidebarOpen}
               onClose={() => setSidebarOpen(false)}
             />
-          </SessionProviderWrapper>
-        </Suspense>
+          </ProtectedRoute>
       </body>
     </html>
   );

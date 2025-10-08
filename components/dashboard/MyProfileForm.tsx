@@ -34,7 +34,7 @@ type Profile = {
   photo?: string;
 };
 import { useUserStore } from "@/app/store/useUserStore";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import { Loader2, Pencil } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import CountryStateCitySelect from "../common/CountryStateCitySelect";
@@ -109,7 +109,7 @@ export default function MyProfileForm({
   const [loading, setLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
 
-  const { update } = useSession();
+  // const { update } = useSession();
   const setUser = useUserStore((state) => state.setUser);
 
   // ✅ Setup react-hook-form
@@ -183,10 +183,10 @@ export default function MyProfileForm({
       const updatedUser = await res.json();
       setUser({ photo: updatedUser.photo, fullName: updatedUser.fullName });
 
-      await update({
-        image: updatedUser.photo,
-        name: updatedUser.fullName,
-      });
+      // await update({
+      //   image: updatedUser.photo,
+      //   name: updatedUser.fullName,
+      // });
 
       toast.success("Profile updated successfully!");
       setIsEditing(false);

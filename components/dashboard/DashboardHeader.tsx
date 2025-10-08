@@ -5,7 +5,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { signOut } from "next-auth/react";
 import { useUserStore } from "@/app/store/useUserStore";
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -27,28 +26,45 @@ export function DashboardHeader({
   const eventIdFromUrl = searchParams.get("eventId");
 
   // Only show event info on registration routes when eventId is present
-  const showEventInfo =
-    pathname?.startsWith("/registration")  && currentEvent;
+  const showEventInfo = pathname?.startsWith("/registration") && currentEvent;
 
   const [loggingOut, setLoggingOut] = useState(false);
 
-  // Replace with dynamic values if needed
-  // const eventTitle = "AIG IBD Summit 2025";
-  // const eventDateTime = "Sat Aug 2, 2025 | 08:00 PM (IST)";
-
   // ✅ Fetch latest user profile on mount
+  // In your DashboardHeader component
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const res = await fetch("/api/user/profile");
-        if (!res.ok) throw new Error("Failed to fetch user profile");
-        const data = await res.json();
-        if (!data) throw new Error("No user data found");
+        const token = localStorage.getItem("accessToken");
+        if (!token) {
+          router.push("/login");
+          return;
+        }
 
-        // Use the latest profile picture and full name
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/user/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`, // ✅ Backend checks this first
+            },
+            credentials: "include", // ✅ Also sends cookies
+          }
+        );
+
+        if (!res.ok) {
+          if (res.status === 401) {
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("user");
+            router.push("/login");
+            return;
+          }
+          throw new Error("Failed to fetch user profile");
+        }
+
+        const data = await res.json();
         setUser({
           photo: data.profilePicture || "/authImg/user.png",
-          fullName: data.fullName || "",
+          fullName: data.fullName || data.name || "",
         });
       } catch (err) {
         console.error("Error fetching profile:", err);
@@ -56,13 +72,35 @@ export function DashboardHeader({
     }
 
     fetchProfile();
-  }, [setUser]);
+  }, [setUser, router]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
-      await signOut({ redirect: false });
-      router.push("/");
+      // Clear localStorage tokens
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
+
+      // Optional: Call your backend logout endpoint
+      try {
+        await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/logout`,
+          {
+            method: "POST",
+            credentials: "include",
+          }
+        );
+      } catch (error) {
+        console.log("Backend logout optional - frontend cleared");
+      }
+
+      // Clear user store
+      setUser({ photo: "", fullName: "" });
+
+      // Redirect to login page
+      router.push("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
     } finally {
       setLoggingOut(false);
     }
@@ -113,7 +151,9 @@ export function DashboardHeader({
         <Link href="/dashboard/profile" className="cursor-pointer">
           <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
             <AvatarImage src={photo || "/authImg/user.png"} />
-            <AvatarFallback>{fullName?.[0] ?? "U"}</AvatarFallback>
+            <AvatarFallback>
+              {fullName?.[0]?.toUpperCase() ?? "U"}
+            </AvatarFallback>
           </Avatar>
         </Link>
         <Button

@@ -1,11 +1,11 @@
 "use client";
 
 import "@/app/globals.css";
+import ProtectedRoute from "@/components/auth/ProtectedRoute";
 import Loading from "@/components/common/Loading";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { MainSectionSidebar } from "@/components/dashboard/MainSectionSidebar";
 import { SubSidebar } from "@/components/dashboard/SubSidebar";
-import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper";
 import { useRouter, usePathname } from "next/navigation";
 import { Suspense, useState } from "react";
 
@@ -40,7 +40,7 @@ export default function SectionLayout({
     <html>
       <body className="h-screen overflow-hidden">
         <Suspense fallback={<Loading />}>
-          <SessionProviderWrapper>
+          <ProtectedRoute>
             {/* Fixed Header */}
             <div className="fixed top-0 left-0 right-0 z-50">
               <DashboardHeader
@@ -85,7 +85,7 @@ export default function SectionLayout({
                 {children}
               </main>
             </div>
-          </SessionProviderWrapper>
+          </ProtectedRoute>
         </Suspense>
       </body>
     </html>

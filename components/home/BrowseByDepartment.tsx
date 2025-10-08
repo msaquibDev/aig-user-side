@@ -15,7 +15,7 @@ import {
 import { CalendarDays, MapPin } from "lucide-react";
 import { useEventStore } from "@/app/store/useEventStore";
 import { formatEventDate } from "@/app/utils/formatEventDate";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import { useUserRegistrationsStore } from "@/app/store/useRegistrationStore";
 import { Badge } from "@/components/ui/badge";
 import SkeletonCard from "../common/SkeletonCard";
@@ -27,26 +27,26 @@ export default function BrowseByDepartment() {
 
   const [selectedDept, setSelectedDept] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest" | "">("");
-  const { data: session } = useSession();
+  // const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      await fetchEvents();
-      if (session) await fetchRegistrations();
-      setLoading(false);
-    }
-    fetchData();
-  }, [fetchEvents, fetchRegistrations, session]);
+  // useEffect(() => {
+  //   async function fetchData() {
+  //     setLoading(true);
+  //     await fetchEvents();
+  //     if (session) await fetchRegistrations();
+  //     setLoading(false);
+  //   }
+  //   fetchData();
+  // }, [fetchEvents, fetchRegistrations, session]);
 
-  const handleRegister = (eventId: string) => {
-    if (!session) {
-      router.push("/login");
-    } else {
-      router.push(`/registration/my-registration?eventId=${eventId}`);
-    }
-  };
+  // const handleRegister = (eventId: string) => {
+  //   if (!session) {
+  //     router.push("/login");
+  //   } else {
+  //     router.push(`/registration/my-registration?eventId=${eventId}`);
+  //   }
+  // };
 
   const handleViewBadge = (eventId: string, registrationId: string) => {
     router.push(
@@ -175,7 +175,7 @@ export default function BrowseByDepartment() {
                       if (userReg) {
                         handleViewBadge(event._id, userReg._id);
                       } else if (!isPast) {
-                        handleRegister(event._id);
+                        // handleRegister(event._id);
                       }
                     }}
                     disabled={!userReg && isPast} // ✅ disable if event ended and not registered

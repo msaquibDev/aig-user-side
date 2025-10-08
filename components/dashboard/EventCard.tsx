@@ -1,3 +1,4 @@
+// components/dashboard/EventCard.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -17,7 +18,6 @@ import { useRouter } from "next/navigation";
 import { useEventStore } from "@/app/store/useEventStore";
 import { useUserRegistrationsStore } from "@/app/store/useRegistrationStore";
 import { formatEventDate } from "@/app/utils/formatEventDate";
-import { useSession } from "next-auth/react";
 import { UserRegistration } from "@/app/store/useRegistrationStore";
 import SkeletonCard from "../common/SkeletonCard";
 
@@ -31,7 +31,6 @@ export default function EventTabs() {
 
   const { events, fetchEvents } = useEventStore();
   const { registrations, fetchRegistrations } = useUserRegistrationsStore();
-  const { data: session } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -39,15 +38,13 @@ export default function EventTabs() {
     async function fetchData() {
       setLoading(true);
       await fetchEvents();
-      if (session) await fetchRegistrations();
       setLoading(false);
     }
     fetchData();
-  }, [fetchEvents, fetchRegistrations, session]);
+  }, [fetchEvents, fetchRegistrations]);
 
   const handleRegister = (eventId?: string) => {
     if (!eventId) return;
-    if (!session) router.push("/login");
     else router.push(`/registration/my-registration?eventId=${eventId}`);
   };
 
