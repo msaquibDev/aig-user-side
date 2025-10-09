@@ -52,15 +52,26 @@ export default function PaymentHistoryTable() {
           }
         );
 
+        console.log("Fetch payments response status:", res.status);
+
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(errorData.message || "Failed to fetch payments");
         }
 
         const data = await res.json();
+        console.log("Fetched payments data:", data); // Debug log
 
         if (data.success && Array.isArray(data.data)) {
           setAllPayments(data.data);
+          // Debug: Check first payment structure
+          if (data.data.length > 0) {
+            console.log("First payment structure:", data.data[0]);
+            console.log(
+              "Event data:",
+              data.data[0].eventRegistrationId?.eventId
+            );
+          }
         } else {
           throw new Error("Invalid response format");
         }
@@ -76,14 +87,32 @@ export default function PaymentHistoryTable() {
     fetchPayments();
   }, []);
 
+  // Safe data access function
+  const getEventName = (payment: any) => {
+    if (!payment.eventRegistrationId) {
+      console.log("No eventRegistrationId for payment:", payment._id);
+      return "Event";
+    }
+    if (!payment.eventRegistrationId.eventId) {
+      console.log("No eventId for payment:", payment._id);
+      return "Event";
+    }
+    return payment.eventRegistrationId.eventId.eventName || "Event";
+  };
+
+  const getEventDate = (payment: any) => {
+    if (!payment.eventRegistrationId?.eventId?.startDate) {
+      return "Date not available";
+    }
+    return payment.eventRegistrationId.eventId.startDate;
+  };
+
   const filteredPayments = allPayments.filter(
     (payment) =>
       payment.razorpayOrderId?.toLowerCase().includes(search.toLowerCase()) ||
       payment.razorpayPaymentId?.toLowerCase().includes(search.toLowerCase()) ||
       payment.status?.toLowerCase().includes(search.toLowerCase()) ||
-      payment.eventRegistrationId?.eventId?.title
-        ?.toLowerCase()
-        .includes(search.toLowerCase())
+      getEventName(payment).toLowerCase().includes(search.toLowerCase())
   );
 
   const totalPages = Math.ceil(filteredPayments.length / itemsPerPage);
@@ -261,15 +290,9 @@ export default function PaymentHistoryTable() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="font-medium">
-                        {payment.eventRegistrationId?.eventId?.title || "Event"}
-                      </div>
+                      <div className="font-medium">{getEventName(payment)}</div>
                       <div className="text-xs text-gray-500 mt-1">
-                        {payment.eventRegistrationId?.eventId?.startDate
-                          ? new Date(
-                              payment.eventRegistrationId.eventId.startDate
-                            ).toLocaleDateString()
-                          : "Date not available"}
+                        {getEventDate(payment)}
                       </div>
                     </td>
                     <td className="px-4 py-3">
