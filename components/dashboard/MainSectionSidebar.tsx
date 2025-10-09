@@ -18,12 +18,12 @@ const sections = [
     icon: FileText,
     key: "registrations",
   },
-  {
-    label: "Abstract",
-    href: "/abstract/my-abstracts",
-    icon: FileSignature,
-    key: "abstract",
-  },
+  // {
+  //   label: "Abstract",
+  //   href: "/abstract/my-abstracts",
+  //   icon: FileSignature,
+  //   key: "abstract",
+  // },
   // {
   //   label: "Travel",
   //   href: "/travel/plan",
@@ -36,12 +36,12 @@ const sections = [
   //   icon: Home,
   //   key: "accomodation",
   // },
-  {
-    label: "Presentation",
-    href: "/presentation/my-presentations",
-    icon: MonitorPlay,
-    key: "presentation",
-  },
+  // {
+  //   label: "Presentation",
+  //   href: "/presentation/my-presentations",
+  //   icon: MonitorPlay,
+  //   key: "presentation",
+  // },
 ];
 
 export const MainSectionSidebar = ({

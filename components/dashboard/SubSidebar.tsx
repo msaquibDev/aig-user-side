@@ -33,17 +33,17 @@ const sidebarMap: Record<string, SidebarItem[]> = {
     // { label: 'Accompanying', path: '/registration/accompanying', icon: Users },
     // { label: 'Workshop', path: '/registration/workshop', icon: Hammer },
     // { label: 'Banquet', path: '/registration/banquet', icon: UtensilsCrossed },
-  ],
-  abstract: [
-    { label: "My Abstract", path: "/abstract/my-abstracts", icon: Notebook },
-    { label: "Authors", path: "/abstract/authors", icon: UserPen },
-  ],
-  presentation: [
-    {
-      label: "My Presentation",
-      path: "/presentation/my-presentations",
-      icon: Presentation,
-    },
+    // ],
+    // abstract: [
+    //   { label: "My Abstract", path: "/abstract/my-abstracts", icon: Notebook },
+    //   { label: "Authors", path: "/abstract/authors", icon: UserPen },
+    // ],
+    // presentation: [
+    //   {
+    //     label: "My Presentation",
+    //     path: "/presentation/my-presentations",
+    //     icon: Presentation,
+    //   },
   ],
 };
 

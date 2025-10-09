@@ -18,6 +18,7 @@ import { useUserStore } from "@/app/store/useUserStore";
 import { Loader2, Pencil } from "lucide-react";
 import { useForm, Controller } from "react-hook-form";
 import CountryStateCitySelect from "../common/CountryStateCitySelect";
+import { medicalCouncils } from "@/app/data/medicalCouncils";
 
 // Updated Profile type to match your data structure
 type Profile = {
@@ -349,13 +350,15 @@ export default function MyProfileForm({
           editing={isEditing}
           error={errors.affiliation}
         />
-        <InputField
+        <SelectField
           control={control}
           name="medicalCouncilState"
           label="Medical Council State"
+          options={medicalCouncils}
           editing={isEditing}
           error={errors.medicalCouncilState}
         />
+
         <InputField
           control={control}
           name="medicalCouncilRegistration"

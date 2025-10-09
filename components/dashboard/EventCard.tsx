@@ -2,7 +2,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CalendarDays, MapPin, Clock } from "lucide-react";
+import { CalendarDays, MapPin, Clock, CheckCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -36,10 +36,10 @@ export default function EventTabs() {
   useEffect(() => {
     async function fetchData() {
       await fetchEvents();
-      // You might want to fetch registrations here if needed
+      await fetchRegistrations(); // Fetch user registrations
     }
     fetchData();
-  }, [fetchEvents]);
+  }, [fetchEvents, fetchRegistrations]);
 
   const handleRegister = (eventId?: string) => {
     if (!eventId) return;
@@ -72,24 +72,32 @@ export default function EventTabs() {
     }
   };
 
-  // Helper function to check if user is registered
+  // Helper function to get user registration for an event
   const getUserRegistration = (
     eventId: string
   ): UserRegistration | undefined => {
     return registrations.find((r) => r.eventId === eventId && r.isPaid);
   };
 
-  // Registered events
+  // Helper function to check if user is registered for an event
+  const isUserRegistered = (eventId: string): boolean => {
+    return !!getUserRegistration(eventId);
+  };
+
+  // Registered events (both current and past)
   const registeredEvents = events.filter((event) =>
-    registrations.some((reg) => reg.eventId === event._id && reg.isPaid)
+    isUserRegistered(event._id)
   );
+
+  // Past events (all events that have ended)
+  const pastEvents = events.filter((event) => isEventPast(event));
 
   // Apply tab + search + filter
   const filteredEvents = (
     activeTab === "Registered"
       ? registeredEvents
       : activeTab === "Past"
-      ? events.filter((event) => isEventPast(event))
+      ? pastEvents
       : events
   )
     .filter((event) =>
@@ -98,6 +106,29 @@ export default function EventTabs() {
     .filter((event) =>
       filterType === "All" ? true : event?.eventCategory === filterType
     );
+
+  // Get button text and action based on event status and registration
+  const getEventButtonConfig = (event: any) => {
+    const userReg = getUserRegistration(event._id);
+    const isPast = isEventPast(event);
+    const isRegistered = !!userReg;
+
+    if (isRegistered) {
+      return {
+        text: isPast ? "View Badge" : "View Badge",
+        onClick: () => handleViewBadge(event._id, userReg._id),
+        variant: "success" as const,
+        disabled: false,
+      };
+    } else {
+      return {
+        text: isPast ? "Registration Closed" : "Register Now",
+        onClick: () => handleRegister(event._id),
+        variant: isPast ? "disabled" : ("primary" as const),
+        disabled: isPast,
+      };
+    }
+  };
 
   if (error) {
     return (
@@ -135,6 +166,7 @@ export default function EventTabs() {
             )}
           >
             {tab} {tab === "Registered" && `(${registeredEvents.length})`}
+            {tab === "Past" && `(${pastEvents.length})`}
           </button>
         ))}
       </div>
@@ -171,15 +203,26 @@ export default function EventTabs() {
           <p className="text-gray-400 text-sm">
             {searchQuery || filterType !== "All"
               ? "Try adjusting your search or filter"
+              : activeTab === "Registered"
+              ? "You haven't registered for any events yet"
               : "No events available at the moment"}
           </p>
+          {activeTab === "Registered" && (
+            <Button
+              onClick={() => setActiveTab("All")}
+              className="mt-4 bg-[#00509E] hover:bg-[#003B73]"
+            >
+              Browse All Events
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredEvents.map((event) => {
             const userReg = getUserRegistration(event._id);
-            const isPast = isEventPast(event);
             const isRegistered = !!userReg;
+            const isPast = isEventPast(event);
+            const buttonConfig = getEventButtonConfig(event);
 
             return (
               <Card
@@ -197,7 +240,6 @@ export default function EventTabs() {
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                     onError={(e) => {
-                      // Fallback image if event image fails to load
                       (e.target as HTMLImageElement).src =
                         "/authImg/event-placeholder.jpg";
                     }}
@@ -208,14 +250,23 @@ export default function EventTabs() {
                     <span
                       className={clsx(
                         "px-2 py-1 text-xs font-semibold rounded-full",
-                        event.dynamicStatus === "Live"
-                          ? "bg-green-100 text-green-800"
+                        isRegistered
+                          ? "bg-green-100 text-green-800 border border-green-200"
+                          : event.dynamicStatus === "Live"
+                          ? "bg-blue-100 text-blue-800"
                           : event.dynamicStatus === "Past"
                           ? "bg-gray-100 text-gray-800"
-                          : "bg-blue-100 text-blue-800"
+                          : "bg-orange-100 text-orange-800"
                       )}
                     >
-                      {event.dynamicStatus}
+                      {isRegistered ? (
+                        <span className="flex items-center gap-1">
+                          <CheckCircle className="w-3 h-3" />
+                          Registered
+                        </span>
+                      ) : (
+                        event.dynamicStatus
+                      )}
                     </span>
                   </div>
                 </div>
@@ -259,43 +310,31 @@ export default function EventTabs() {
                       <span className="inline-block px-2 py-1 text-xs bg-gray-50 text-gray-700 rounded-full">
                         {event.registrationType === "free" ? "Free" : "Paid"}
                       </span>
+                      {isRegistered && (
+                        <span className="inline-block px-2 py-1 text-xs bg-green-50 text-green-700 rounded-full">
+                          Registered
+                        </span>
+                      )}
                     </div>
                   </div>
 
                   {/* Action Button */}
                   <div className="mt-4 pt-4 border-t border-gray-100">
-                    {isRegistered ? (
-                      isPast ? (
-                        <Button
-                          disabled
-                          className="w-full bg-gray-100 text-gray-500 cursor-not-allowed"
-                        >
-                          Event Completed
-                        </Button>
-                      ) : (
-                        <Button
-                          onClick={() =>
-                            handleViewBadge(event._id, userReg._id)
-                          }
-                          className="w-full bg-green-600 hover:bg-green-700 text-white"
-                        >
-                          View Badge
-                        </Button>
-                      )
-                    ) : (
-                      <Button
-                        onClick={() => handleRegister(event._id)}
-                        disabled={isPast}
-                        className={clsx(
-                          "w-full transition-colors",
-                          isPast
-                            ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                            : "bg-[#00509E] hover:bg-[#003B73] text-white"
-                        )}
-                      >
-                        {isPast ? "Registration Closed" : "Register Now"}
-                      </Button>
-                    )}
+                    <Button
+                      onClick={buttonConfig.onClick}
+                      disabled={buttonConfig.disabled}
+                      className={clsx(
+                        "w-full transition-colors font-medium",
+                        buttonConfig.variant === "success" &&
+                          "bg-green-600 hover:bg-green-700 text-white",
+                        buttonConfig.variant === "primary" &&
+                          "bg-[#00509E] hover:bg-[#003B73] text-white",
+                        buttonConfig.variant === "disabled" &&
+                          "bg-gray-300 text-gray-500 cursor-not-allowed"
+                      )}
+                    >
+                      {buttonConfig.text}
+                    </Button>
                   </div>
                 </div>
               </Card>

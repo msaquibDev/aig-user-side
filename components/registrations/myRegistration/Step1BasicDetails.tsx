@@ -25,6 +25,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Textarea } from "@/components/ui/textarea";
 import CountryStateCitySelect from "@/components/common/CountryStateCitySelect";
 import { useEventStore } from "@/app/store/useEventStore";
+import { medicalCouncils } from "@/app/data/medicalCouncils";
 
 // ✅ Schema for validation
 const schema = z.object({
@@ -275,7 +276,36 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           <Label>
             Medical Council State <span className="text-red-600">*</span>
           </Label>
-          <Input {...register("medicalCouncilState")} />
+
+          {!basicDetails.medicalCouncilState ||
+          basicDetails.medicalCouncilState.trim() === "" ? (
+            // ✅ Show dropdown if no prefilled value
+            <Controller
+              name="medicalCouncilState"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value || ""}
+                >
+                  <SelectTrigger className="w-full cursor-pointer">
+                    <SelectValue placeholder="Select Medical Council" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {medicalCouncils.map((council) => (
+                      <SelectItem key={council} value={council}>
+                        {council}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          ) : (
+            // ✅ Show text input if profile already has a council value
+            <Input {...register("medicalCouncilState")} />
+          )}
+
           {errors.medicalCouncilState && (
             <p className="text-sm text-red-600">
               {errors.medicalCouncilState.message}

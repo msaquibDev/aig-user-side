@@ -6,23 +6,33 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import {
   X,
-  CalendarDays,
-  ScrollText,
   Megaphone,
-  Users,
-  History,
+  Calendar,
+  CreditCard,
+  User,
 } from "lucide-react";
 
 const navItems = [
-  { label: "Events", href: "/dashboard/events", icon: CalendarDays },
-  // {
-  //   label: "My Certificates",
-  //   href: "/dashboard/certificates",
-  //   icon: ScrollText,
-  // },
-  { label: "Announcements", href: "/dashboard/announcements", icon: Megaphone },
-  { label: "My Profile", href: "/dashboard/profile", icon: Users },
-  { label: "Payment History", href: "/dashboard/payments", icon: History },
+  {
+    name: "Events",
+    href: "/dashboard/events",
+    icon: Calendar,
+  },
+  {
+    name: "Payment History",
+    href: "/dashboard/payments",
+    icon: CreditCard, // You'll need to import this icon
+  },
+  {
+    name: "Announcements",
+    href: "/dashboard/announcements",
+    icon: Megaphone,
+  },
+  {
+    name: "My Profile",
+    href: "/dashboard/profile",
+    icon: User,
+  },
 ];
 
 export const Sidebar = ({
@@ -63,7 +73,7 @@ export const Sidebar = ({
           </button>
 
           <nav className="flex flex-col space-y-2">
-            {navItems.map(({ label, href, icon: Icon }) => (
+            {navItems.map(({ name, href, icon: Icon }) => (
               <Link
                 key={href}
                 href={href}
@@ -76,7 +86,7 @@ export const Sidebar = ({
                 )}
               >
                 <Icon size={18} />
-                {label}
+                {name}
               </Link>
             ))}
           </nav>
