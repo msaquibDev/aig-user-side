@@ -28,7 +28,7 @@ export default function PaymentFailedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br py-8 px-4">
       <div className="max-w-md mx-auto">
         {/* Failure Header */}
         <Card className="border-red-200 shadow-lg mb-6">

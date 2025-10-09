@@ -28,7 +28,7 @@ export default function PaymentErrorPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-50 to-yellow-50 py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br py-8 px-4">
       <div className="max-w-md mx-auto">
         {/* Error Header */}
         <Card className="border-orange-200 shadow-lg mb-6">
