@@ -248,10 +248,11 @@ export default function PaymentHistoryTable() {
           <table className="min-w-full text-sm">
             <thead className="bg-gray-50 text-left text-gray-600 uppercase text-xs">
               <tr>
+                <th className="px-4 py-3 font-medium">Event Name</th>
                 <th className="px-4 py-3 font-medium">Order ID</th>
-                <th className="px-4 py-3 font-medium">Event</th>
-                <th className="px-4 py-3 font-medium">Date</th>
+                <th className="px-4 py-3 font-medium">Payment Date</th>
                 <th className="px-4 py-3 font-medium">Payment ID</th>
+                <th className="px-4 py-3 font-medium">Payment Mode</th>
                 <th className="px-4 py-3 font-medium text-right">Amount</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium text-right">Actions</th>
@@ -282,17 +283,17 @@ export default function PaymentHistoryTable() {
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-4 py-3">
+                      <div className="font-medium">{getEventName(payment)}</div>
+                      {/* <div className="text-xs text-gray-500 mt-1">
+                        {getEventDate(payment)}
+                      </div> */}
+                    </td>
+                    <td className="px-4 py-3">
                       <div className="font-medium text-gray-900">
                         {payment.razorpayOrderId}
                       </div>
                       <div className="text-xs text-gray-500 mt-1">
                         {payment._id}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="font-medium">{getEventName(payment)}</div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {getEventDate(payment)}
                       </div>
                     </td>
                     <td className="px-4 py-3">
@@ -304,6 +305,11 @@ export default function PaymentHistoryTable() {
                     <td className="px-4 py-3">
                       <div className="font-mono text-sm">
                         {payment.razorpayPaymentId || "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="font-mono text-sm">
+                        {payment.paymentMode || "N/A"}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-right">

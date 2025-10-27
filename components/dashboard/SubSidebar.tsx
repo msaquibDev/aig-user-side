@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import {
   User,
   Users,
@@ -30,20 +30,7 @@ const sidebarMap: Record<string, SidebarItem[]> = {
       path: "/registration/my-registration",
       icon: User,
     },
-    // { label: 'Accompanying', path: '/registration/accompanying', icon: Users },
-    // { label: 'Workshop', path: '/registration/workshop', icon: Hammer },
-    // { label: 'Banquet', path: '/registration/banquet', icon: UtensilsCrossed },
-    // ],
-    // abstract: [
-    //   { label: "My Abstract", path: "/abstract/my-abstracts", icon: Notebook },
-    //   { label: "Authors", path: "/abstract/authors", icon: UserPen },
-    // ],
-    // presentation: [
-    //   {
-    //     label: "My Presentation",
-    //     path: "/presentation/my-presentations",
-    //     icon: Presentation,
-    //   },
+    { label: "Accompanying", path: "/registration/accompanying", icon: Users },
   ],
 };
 
@@ -57,11 +44,30 @@ export function SubSidebar({
   onToggle: () => void;
 }) {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const items = sidebarMap[section] || [];
 
   const isBadgePage = pathname.startsWith(
     "/registration/my-registration/badge"
   );
+
+  // Get parameters from current URL
+  const eventId = isBadgePage
+    ? pathname.split("/").pop()
+    : searchParams.get("eventId");
+  const registrationId = searchParams.get("registrationId");
+
+  // Function to build URLs with preserved parameters
+  const buildUrl = (basePath: string) => {
+    const params = new URLSearchParams();
+
+    if (eventId) params.set("eventId", eventId);
+    if (registrationId) params.set("registrationId", registrationId);
+    if (isBadgePage) params.set("fromBadge", "true");
+
+    const queryString = params.toString();
+    return queryString ? `${basePath}?${queryString}` : basePath;
+  };
 
   return (
     <Suspense fallback={<Loading />}>
@@ -71,9 +77,7 @@ export function SubSidebar({
         className={cn(
           "fixed top-[95px] z-[70] bg-white border border-blue-200 shadow rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-blue-50",
           "transition-all duration-300 cursor-pointer",
-          isOpen
-            ? "left-[calc(100px+256px-30px)]" // main sidebar (100px) + subsidebar (256px) + small gap
-            : "left-[calc(100px-16px)]" // only main sidebar width + gap
+          isOpen ? "left-[calc(100px+256px-30px)]" : "left-[calc(100px-16px)]"
         )}
         style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
         aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
@@ -94,16 +98,16 @@ export function SubSidebar({
       >
         <nav className="mt-6 flex flex-col space-y-2 relative">
           {items.map(({ label, path, icon: Icon }) => {
+            const url = buildUrl(path);
             const isActive =
-              pathname === path ||
-              (isBadgePage && path === "/registration/my-registration");
+              pathname === path || pathname.startsWith(path + "/");
 
             const content = (
               <div
                 className={cn(
                   "flex items-center gap-2 text-sm rounded-md px-3 py-2 font-medium w-full transition",
                   isActive
-                    ? "bg-white text-blue-600 shadow-sm cursor-not-allowed"
+                    ? "bg-white text-blue-600 shadow-sm"
                     : "text-gray-700 hover:bg-white hover:text-blue-600"
                 )}
               >
@@ -112,13 +116,8 @@ export function SubSidebar({
               </div>
             );
 
-            // Disable link when on badge page
-            if (isBadgePage && path === "/registration/my-registration") {
-              return <div key={path}>{content}</div>;
-            }
-
             return (
-              <Link key={path} href={path}>
+              <Link key={path} href={url}>
                 {content}
               </Link>
             );

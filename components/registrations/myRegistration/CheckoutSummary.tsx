@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Event } from "@/app/store/useEventStore";
+import { formatEventDate } from "@/app/utils/formatEventDate";
 
 interface CheckoutSummaryProps {
   order: any;
@@ -43,11 +44,7 @@ export default function CheckoutSummary({
                   {event?.eventName || "Event Name"}
                 </h3>
                 <p className="text-sm text-gray-600 mt-1">
-                  {event?.startDate &&
-                    new Date(event.startDate).toLocaleDateString()}
-                  {event?.endDate &&
-                    event.endDate !== event.startDate &&
-                    ` - ${new Date(event.endDate).toLocaleDateString()}`}
+                  {formatEventDate(event?.startDate, event?.endDate)}
                 </p>
                 {order?.registrationCategory && (
                   <p className="text-sm text-blue-600 font-medium mt-1">

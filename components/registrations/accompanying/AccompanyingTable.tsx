@@ -12,30 +12,41 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import {
-  Funnel,
+  Search,
   ChevronLeft,
   ChevronRight,
   PlusCircle,
-  ChevronsUp,
-  ChevronsDown,
+  ChevronUp,
+  ChevronDown,
+  Edit,
 } from "lucide-react";
 import { useAccompanyingStore } from "@/app/store/useAccompanyingStore";
 
 type Props = {
+  eventId?: string | null;
+  registrationId?: string | null;
   onAddClick: () => void;
   onEditClick: (personId: number) => void;
 };
 
-export default function AccompanyingTable({ onAddClick, onEditClick }: Props) {
+export default function AccompanyingTable({
+  eventId,
+  registrationId,
+  onAddClick,
+  onEditClick,
+}: Props) {
   const { people } = useAccompanyingStore();
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(false);
 
   // Sorting state
-  const [sortBy, setSortBy] = useState<"index" | "name" | null>(null);
+  const [sortBy, setSortBy] = useState<"name" | "relation" | "age" | null>(
+    null
+  );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  const toggleSort = (column: "index" | "name") => {
+  const toggleSort = (column: "name" | "relation" | "age") => {
     if (sortBy === column) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -57,11 +68,14 @@ export default function AccompanyingTable({ onAddClick, onEditClick }: Props) {
           return sortOrder === "asc"
             ? nameA.localeCompare(nameB)
             : nameB.localeCompare(nameA);
-        } else if (sortBy === "index") {
-          // Sort by original array position to match displayed row numbers
-          const indexA = people.findIndex((p) => p.id === a.id);
-          const indexB = people.findIndex((p) => p.id === b.id);
-          return sortOrder === "asc" ? indexA - indexB : indexB - indexA;
+        } else if (sortBy === "relation") {
+          const relationA = a.relation.toLowerCase();
+          const relationB = b.relation.toLowerCase();
+          return sortOrder === "asc"
+            ? relationA.localeCompare(relationB)
+            : relationB.localeCompare(relationA);
+        } else if (sortBy === "age") {
+          return sortOrder === "asc" ? a.age - b.age : b.age - a.age;
         }
         return 0;
       });
@@ -81,106 +95,155 @@ export default function AccompanyingTable({ onAddClick, onEditClick }: Props) {
   const handleNext = () => setCurrentPage((p) => Math.min(p + 1, totalPages));
 
   useEffect(() => {
-    setCurrentPage(1); // Reset on search or sort change
+    setCurrentPage(1);
   }, [search, sortBy, sortOrder]);
 
-  const getSortIcon = (column: "index" | "name") => {
-    if (sortBy !== column) return <ChevronsUp className="opacity-30" />;
-    return sortOrder === "asc" ? <ChevronsUp /> : <ChevronsDown />;
+  const getSortIcon = (column: "name" | "relation" | "age") => {
+    if (sortBy !== column) return null;
+    return sortOrder === "asc" ? (
+      <ChevronUp className="w-4 h-4" />
+    ) : (
+      <ChevronDown className="w-4 h-4" />
+    );
   };
 
+  // Fetch accompanying persons when eventId/registrationId changes
+  useEffect(() => {
+    const fetchAccompanyingPersons = async () => {
+      if (!eventId || !registrationId) return;
+
+      try {
+        setLoading(true);
+        // TODO: Add API call to fetch accompanying persons for this registration
+        // const response = await fetch(`/api/registrations/${registrationId}/accompanying`);
+        // const data = await response.json();
+        // Update store with fetched data
+      } catch (error) {
+        console.error("Error fetching accompanying persons:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAccompanyingPersons();
+  }, [eventId, registrationId]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-gray-600">Loading accompanying persons...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="p-6">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-[#00509E]">
-          Accompanying Persons
-        </h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-semibold text-[#00509E]">
+            Accompanying Persons
+          </h2>
+          {eventId && (
+            <p className="text-gray-600 text-sm mt-1">
+              Managing accompanying persons for your registration
+            </p>
+          )}
+        </div>
         <Button
           onClick={onAddClick}
-          className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer"
+          className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"
         >
           <PlusCircle className="w-4 h-4 mr-2" />
-          Add Accompanying
+          Add Accompanying Person
         </Button>
       </div>
 
-      {/* Table Box */}
-      <div className="rounded-lg border bg-white overflow-hidden">
-        {/* Filter/Search Row */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b bg-gray-50">
-          <Funnel className="w-4 h-4 text-gray-600" />
+      {/* Search */}
+      <div className="mb-6">
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             placeholder="Search by name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm bg-white"
+            className="pl-10 bg-white border-gray-300"
           />
         </div>
+      </div>
 
-        {/* Table */}
+      {/* Table */}
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
         <Table>
-          <TableHeader className="bg-gray-100">
+          <TableHeader className="bg-gray-50">
             <TableRow>
-              <TableHead className="px-6 py-3 text-left">
-                <span
-                  className="flex items-center cursor-pointer hover:text-gray-800"
-                  onClick={() => toggleSort("index")}
-                >
-                  #
-                  <span className="flex flex-col ml-1">
-                    {getSortIcon("index")}
-                  </span>
-                </span>
-              </TableHead>
-              <TableHead className="px-6 py-3 text-left">
-                <span
-                  className="flex items-center cursor-pointer hover:text-gray-800"
-                  onClick={() => toggleSort("name")}
-                >
+              <TableHead className="font-semibold text-gray-900">#</TableHead>
+              <TableHead
+                className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => toggleSort("name")}
+              >
+                <div className="flex items-center gap-1">
                   Name
-                  <span className="flex flex-col ml-1">
-                    {getSortIcon("name")}
-                  </span>
-                </span>
+                  {getSortIcon("name")}
+                </div>
               </TableHead>
-              <TableHead className="px-6 py-3 text-left">Relation</TableHead>
-              <TableHead className="px-6 py-3 text-left">Age</TableHead>
-              <TableHead className="px-6 py-3 text-left">Gender</TableHead>
-              <TableHead className="px-6 py-3 text-left">Meal</TableHead>
-              <TableHead className="px-6 py-3 text-right">Action</TableHead>
+              <TableHead
+                className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => toggleSort("relation")}
+              >
+                <div className="flex items-center gap-1">
+                  Relation
+                  {getSortIcon("relation")}
+                </div>
+              </TableHead>
+              <TableHead
+                className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
+                onClick={() => toggleSort("age")}
+              >
+                <div className="flex items-center gap-1">
+                  Age
+                  {getSortIcon("age")}
+                </div>
+              </TableHead>
+              <TableHead className="font-semibold text-gray-900">
+                Gender
+              </TableHead>
+              <TableHead className="font-semibold text-gray-900">
+                Meal Preference
+              </TableHead>
+              <TableHead className="font-semibold text-gray-900 text-right">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {currentItems.length > 0 ? (
               currentItems.map((person, index) => (
-                <TableRow key={person.id} className="hover:bg-gray-50">
-                  <TableCell className="px-6 py-3 align-middle">
+                <TableRow key={person.id} className="hover:bg-gray-50/50">
+                  <TableCell className="font-medium text-gray-900">
                     {startIndex + index + 1}
                   </TableCell>
-                  <TableCell className="px-6 py-3 align-middle">
-                    {person.name}
-                  </TableCell>
-                  <TableCell className="px-6 py-3 align-middle">
+                  <TableCell className="font-medium">{person.name}</TableCell>
+                  <TableCell className="capitalize">
                     {person.relation}
                   </TableCell>
-                  <TableCell className="px-6 py-3 align-middle">
-                    {person.age}
-                  </TableCell>
-                  <TableCell className="px-6 py-3 align-middle">
-                    {person.gender}
-                  </TableCell>
-                  <TableCell className="px-6 py-3 align-middle">
+                  <TableCell>{person.age} years</TableCell>
+                  <TableCell>{person.gender}</TableCell>
+                  <TableCell className="capitalize">
                     {person.mealPreference}
                   </TableCell>
-                  <TableCell className="px-6 py-3 text-right align-middle">
+                  <TableCell className="text-right">
                     <Button
-                      variant="link"
+                      variant="ghost"
                       size="sm"
-                      className="text-blue-600 cursor-pointer"
+                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer"
                       onClick={() => onEditClick(person.id)}
                     >
+                      <Edit className="w-4 h-4 mr-1" />
                       Edit
                     </Button>
                   </TableCell>
@@ -190,9 +253,17 @@ export default function AccompanyingTable({ onAddClick, onEditClick }: Props) {
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="text-center py-6 text-gray-500"
+                  className="text-center py-8 text-gray-500"
                 >
-                  No accompanying person found.
+                  <div className="flex flex-col items-center">
+                    <PlusCircle className="w-12 h-12 text-gray-300 mb-2" />
+                    <p className="text-gray-600">
+                      No accompanying persons added yet
+                    </p>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Click "Add Accompanying Person" to get started
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -200,33 +271,38 @@ export default function AccompanyingTable({ onAddClick, onEditClick }: Props) {
         </Table>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t text-sm text-gray-600">
-          <span>
-            Showing {startIndex + 1}-{Math.min(endIndex, sortedPeople.length)}{" "}
-            of {sortedPeople.length}
-          </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrev}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span>
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNext}
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+        {sortedPeople.length > 0 && (
+          <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-t">
+            <div className="text-sm text-gray-600">
+              Showing {startIndex + 1} to{" "}
+              {Math.min(endIndex, sortedPeople.length)} of {sortedPeople.length}{" "}
+              entries
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrev}
+                disabled={currentPage === 1}
+                className="border-gray-300 hover:bg-gray-50"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm text-gray-600 mx-2">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="border-gray-300 hover:bg-gray-50"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
