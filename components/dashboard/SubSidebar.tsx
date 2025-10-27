@@ -2,17 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import {
-  User,
-  Users,
-  Hammer,
-  UtensilsCrossed,
-  Notebook,
-  UserPen,
-  Presentation,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { User, Users,  PanelLeft, PanelRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import Loading from "../common/Loading";
@@ -71,58 +61,85 @@ export function SubSidebar({
 
   return (
     <Suspense fallback={<Loading />}>
-      {/* Chevron toggle button (always visible) */}
+      {/* Enhanced Chevron toggle button */}
       <button
         onClick={onToggle}
         className={cn(
-          "fixed top-[95px] z-[70] bg-white border border-blue-200 shadow rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-blue-50",
-          "transition-all duration-300 cursor-pointer",
-          isOpen ? "left-[calc(100px+256px-30px)]" : "left-[calc(100px-16px)]"
+          "hidden lg:flex fixed top-[93px] z-[70] bg-white border-2 border-blue-100 shadow-lg rounded-full w-10 h-10 items-center justify-center transition-all duration-300 cursor-pointer group hover:shadow-xl hover:scale-105 hover:border-blue-200",
+          isOpen
+            ? "left-[336px]" // 80px (main) + 256px (sub) - adjust as needed
+            : "left-[88px]" // 80px (main) + 8px margin
         )}
-        style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
         aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
       >
         {isOpen ? (
-          <ChevronLeft className="w-4 h-4 text-blue-600" />
+          <PanelLeft className="w-5 h-5 text-blue-600 transition-transform group-hover:scale-110" />
         ) : (
-          <ChevronRight className="w-5 h-5 text-blue-600" />
+          <PanelRight className="w-5 h-5 text-blue-600 transition-transform group-hover:scale-110" />
         )}
       </button>
 
-      {/* Sub Sidebar */}
+      {/* Enhanced Sub Sidebar */}
       <aside
         className={cn(
-          "fixed top-[74px] left-[100px] h-[calc(100vh-74px)] border-r bg-[#eaf3ff] transition-all duration-300 z-30",
-          isOpen ? "w-60 px-6" : "w-0 px-0 py-0 overflow-hidden"
+          "hidden lg:flex fixed top-[60px] left-[80px] h-[calc(100vh-60px)] border-r transition-all duration-300 z-30 bg-gradient-to-b from-blue-50/95 to-indigo-50/95 backdrop-blur-sm shadow-xl",
+          isOpen ? "w-64" : "w-0 overflow-hidden"
         )}
       >
-        <nav className="mt-6 flex flex-col space-y-2 relative">
-          {items.map(({ label, path, icon: Icon }) => {
-            const url = buildUrl(path);
-            const isActive =
-              pathname === path || pathname.startsWith(path + "/");
+        <div
+          className={cn(
+            "h-full w-64 transition-opacity duration-200 flex flex-col",
+            isOpen ? "opacity-100" : "opacity-0"
+          )}
+        >
+          {/* Header */}
+          <div className="p-6 border-b border-blue-100/50 bg-white/80">
+            <h3 className="font-semibold text-gray-800 text-lg">
+              {section.charAt(0).toUpperCase() + section.slice(1)}
+            </h3>
+            <p className="text-sm text-gray-600 mt-1">
+              Manage your registration
+            </p>
+          </div>
 
-            const content = (
-              <div
-                className={cn(
-                  "flex items-center gap-2 text-sm rounded-md px-3 py-2 font-medium w-full transition",
-                  isActive
-                    ? "bg-white text-blue-600 shadow-sm"
-                    : "text-gray-700 hover:bg-white hover:text-blue-600"
-                )}
-              >
-                <Icon size={16} />
-                <span>{label}</span>
-              </div>
-            );
+          {/* Navigation */}
+          <nav className="flex-1 p-4 space-y-2">
+            {items.map(({ label, path, icon: Icon }) => {
+              const url = buildUrl(path);
+              const isActive =
+                pathname === path || pathname.startsWith(path + "/");
 
-            return (
-              <Link key={path} href={url}>
-                {content}
-              </Link>
-            );
-          })}
-        </nav>
+              return (
+                <Link key={path} href={url}>
+                  <div
+                    className={cn(
+                      "flex items-center gap-3 text-sm rounded-xl px-4 py-3 font-medium w-full transition-all duration-200 group cursor-pointer border border-transparent",
+                      isActive
+                        ? "bg-white text-blue-700 shadow-md border-blue-200 shadow-blue-100"
+                        : "text-gray-700 hover:bg-white hover:text-blue-600 hover:shadow-md hover:border-blue-100"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "p-2 rounded-lg transition-colors",
+                        isActive
+                          ? "bg-blue-100 text-blue-600"
+                          : "bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
+                      )}
+                    >
+                      <Icon size={18} />
+                    </div>
+                    <span className="font-medium">{label}</span>
+
+                    {isActive && (
+                      <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
+          </nav>
+        </div>
       </aside>
     </Suspense>
   );

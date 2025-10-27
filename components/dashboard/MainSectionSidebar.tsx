@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  ArrowLeft,
-  FileText,
-  FileSignature,
-  MonitorPlay,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
+import { FileText, ChevronLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 
@@ -18,75 +11,38 @@ const sections = [
     icon: FileText,
     key: "registrations",
   },
-  // {
-  //   label: "Abstract",
-  //   href: "/abstract/my-abstracts",
-  //   icon: FileSignature,
-  //   key: "abstract",
-  // },
-  // {
-  //   label: "Travel",
-  //   href: "/travel/plan",
-  //   icon: Plane,
-  //   key: "travel",
-  // },
-  // {
-  //   label: "Accomodation",
-  //   href: "/accomodation",
-  //   icon: Home,
-  //   key: "accomodation",
-  // },
-  // {
-  //   label: "Presentation",
-  //   href: "/presentation/my-presentations",
-  //   icon: MonitorPlay,
-  //   key: "presentation",
-  // },
 ];
 
 export const MainSectionSidebar = ({
   activeSection,
   onBackToggle,
   onSectionClick,
-  onToggle,
   isOpen,
 }: {
   activeSection: string;
   onBackToggle: () => void;
-  onToggle?: () => void;
   onSectionClick: (key: string, href: string) => void;
   isOpen: boolean;
 }) => {
   const router = useRouter();
+
   return (
-    <aside className="fixed top-[60px] left-0 h-[calc(100vh-60px)] w-25 border-r bg-[#eaf3ff] pt-[36px] pb-4 px-2 flex flex-col items-center z-30">
-      {/* Back button - always visible */}
+    <aside className="hidden lg:flex fixed top-[60px] left-0 h-[calc(100vh-60px)] w-20 border-r bg-gradient-to-b from-blue-50 to-indigo-50 pt-8 pb-6 px-2 flex-col items-center z-40 shadow-lg">
+      {/* Enhanced Back button */}
       <button
         onClick={() => router.push("/dashboard/events")}
-        className="absolute top-10 left-2 text-sm text-gray-700 flex items-center gap-1 hover:text-blue-600 transition cursor-pointer z-40"
+        className="absolute top-8 left-1/2 transform -translate-x-1/2 text-gray-600 flex flex-col items-center gap-1 hover:text-blue-600 transition-all duration-200 cursor-pointer group"
       >
-        <ChevronLeft className="w-4 h-4 transition-transform duration-300" />
-        <span>Back</span>
+        <div className="p-2 rounded-lg bg-white shadow-sm group-hover:shadow-md group-hover:bg-blue-50 transition-all">
+          <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+        </div>
+        <span className="text-[10px] font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-nowrap">
+          Back to Events
+        </span>
       </button>
 
-      {/* Sidebar toggle button - always visible, same style */}
-      {/* <button
-        onClick={onBackToggle}
-        className={cn(
-          "absolute right-[-20px] top-[37px] z-40 bg-white border border-blue-200 shadow rounded-full w-8 h-8 flex items-center justify-center transition hover:bg-blue-50",
-          !isOpen && "border-gray-300"
-        )}
-        style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
-        aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-      >
-        {isOpen ? (
-          <ChevronLeft className="w-4 h-4 text-blue-600" />
-        ) : (
-          <ChevronRight className="w-5 h-5 text-blue-600" />
-        )}
-      </button> */}
-
-      <nav className="flex flex-col gap-6 mt-10">
+      {/* Navigation */}
+      <nav className="flex flex-col gap-4 mt-16 w-full">
         {sections.map(({ label, href, icon: Icon, key }) => {
           const isActive = key === activeSection;
           return (
@@ -94,14 +50,33 @@ export const MainSectionSidebar = ({
               key={label}
               onClick={() => onSectionClick(key, href)}
               className={cn(
-                "flex flex-col items-center text-xs font-semibold transition",
+                "flex flex-col items-center text-xs font-semibold transition-all duration-200 group relative cursor-pointer p-2 rounded-lg",
                 isActive
-                  ? "bg-white text-blue-600 shadow-sm border-l-4 border-blue-600 rounded-sm px-2 py-1"
-                  : "text-gray-700 hover:text-blue-600 hover:rounded-sm"
+                  ? "bg-white text-blue-700 shadow-lg border border-blue-200"
+                  : "text-gray-600 hover:text-blue-600 hover:bg-white/80 hover:shadow-md"
               )}
             >
-              <Icon className="w-5 h-5 mb-1" />
-              <span className="text-[11px]">{label}</span>
+              {/* Active indicator bar */}
+              {isActive && <div className=" bg-blue-600 rounded-r-full" />}
+
+              <div
+                className={cn(
+                  "p-2 rounded-lg transition-colors mb-1",
+                  isActive
+                    ? "bg-blue-100 text-blue-600"
+                    : "bg-gray-100 text-gray-500 group-hover:bg-blue-100 group-hover:text-blue-600"
+                )}
+              >
+                <Icon className="w-4 h-4" />
+              </div>
+              <span className="text-[10px] font-medium px-1 text-center leading-tight">
+                {label}
+              </span>
+
+              {/* Hover tooltip */}
+              <div className="absolute left-full ml-2 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-50">
+                {label}
+              </div>
             </button>
           );
         })}

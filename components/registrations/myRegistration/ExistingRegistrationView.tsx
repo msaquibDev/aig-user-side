@@ -59,7 +59,7 @@ export default function ExistingRegistrationView({
               <Link
                 href={`/registration/my-registration/badge/${actualEventId}?registrationId=${registrationId}`}
               >
-                <Button className="bg-blue-600 hover:bg-blue-700">
+                <Button className="bg-[#00509E] hover:bg-[#004080] text-white cursor-pointer">
                   <Badge className="w-4 h-4 mr-2" />
                   View Badge
                 </Button>
@@ -69,6 +69,15 @@ export default function ExistingRegistrationView({
               <Download className="w-4 h-4 mr-2" />
               Download Receipt
             </Button> */}
+            {actualEventId && registrationId && (
+              <Link
+                href={`/registration/accompanying?eventId=${actualEventId}&registrationId=${registrationId}`}
+              >
+                <Button className="bg-[#00509E] hover:bg-[#004080] text-white cursor-pointer">
+                  Manage Accompanying Persons
+                </Button>
+              </Link>
+            )}
           </div>
         </div>
 
@@ -221,7 +230,7 @@ export default function ExistingRegistrationView({
         </div>
 
         {/* Actions */}
-        <div className="border-t pt-6">
+        {/* <div className="border-t pt-6">
           <div className="flex gap-3 justify-end">
             <Button variant="outline">
               <FileText className="w-4 h-4 mr-2" />
@@ -231,11 +240,13 @@ export default function ExistingRegistrationView({
               <Link
                 href={`/registration/accompanying?eventId=${actualEventId}&registrationId=${registrationId}`}
               >
-                <Button>Manage Accompanying Persons</Button>
+                <Button className="bg-[#00509E] hover:bg-[#004080] text-white cursor-pointer">
+                  Manage Accompanying Persons
+                </Button>
               </Link>
             )}
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
