@@ -240,10 +240,19 @@ export default function EventTabs() {
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
                     onError={(e) => {
-                      (e.target as HTMLImageElement).src =
-                        "/authImg/event-placeholder.jpg";
+                      const target = e.target as HTMLImageElement;
+                      // ✅ Hide the broken image and show CSS fallback
+                      target.style.display = "none";
                     }}
                   />
+
+                  {/* <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center hidden group-has-[img:failed]:flex">
+                    <div className="text-center text-gray-500">
+                      <CalendarDays className="w-12 h-12 mx-auto mb-2 text-blue-300" />
+                      <p className="text-sm font-medium">Event Image</p>
+                      <p className="text-xs">Not Available</p>
+                    </div>
+                  </div> */}
 
                   {/* Event Status Badge */}
                   <div className="absolute top-3 left-3">

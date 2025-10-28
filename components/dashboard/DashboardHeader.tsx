@@ -150,11 +150,10 @@ export function DashboardHeader({
         <Button
           variant="ghost"
           onClick={onMenuToggle}
-          className="lg:hidden text-white hover:bg-white/10 focus:outline-none cursor-pointer p-2"
+          className="lg:hidden text-white hover:bg-white/20 focus:outline-none cursor-pointer p-2 rounded-lg transition-colors"
         >
           <Menu size={24} />
         </Button>
-
         <Link href="/dashboard" className="flex items-center">
           <Image
             src="/headerImg/logo.png"
@@ -165,7 +164,6 @@ export function DashboardHeader({
             priority
           />
         </Link>
-
         {/* Event Info */}
         {showEventInfo && (
           <div className="hidden md:flex flex-col justify-center text-white ml-6 border-l border-white/30 pl-6">

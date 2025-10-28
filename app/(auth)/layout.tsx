@@ -1,21 +1,16 @@
-// app/layout.tsx
+// app/(auth)/layout.tsx
 // import { SessionProvider } from "next-auth/react";
 import { Toaster } from "sonner";
 import "../globals.css";
 
-export default function RootLayout({
+export default function AuthLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="antialiased">
-        <div className="antialiased">
-          <Toaster richColors position="top-right" />
-          <main>{children}</main>
-        </div>
-      </body>
-    </html>
+    <div className="antialiased">
+      <main>{children}</main>
+    </div>
   );
 }
