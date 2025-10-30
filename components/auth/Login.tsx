@@ -87,14 +87,14 @@ export default function Login() {
         localStorage.setItem("user", JSON.stringify(result.user));
 
         setSubmitStatus("success");
-        toast.success(
-          result.message || "Login successful! Redirecting to dashboard..."
-        );
+        // toast.success(
+        //   result.message || "Login successful! Redirecting to dashboard..."
+        // );
 
         // Redirect after a short delay to show success state
-        setTimeout(() => {
-          router.push("/dashboard");
-        }, 1500);
+        // setTimeout(() => {
+        // }, 1500);
+        router.push("/dashboard");
       } else {
         setSubmitStatus("error");
         // ✅ Use backend error message instead of generic one

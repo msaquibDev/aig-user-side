@@ -129,7 +129,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
       const registrationId = registrationData.data?._id;
 
       if (registrationId) {
-        toast.success("Registration submitted successfully!");
+        // toast.success("Registration submitted successfully!");
 
         // ✅ Redirect to payment page with registration ID
         router.push(

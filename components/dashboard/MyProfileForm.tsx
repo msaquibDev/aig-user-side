@@ -73,13 +73,7 @@ const profileSchema = z.object({
     .optional()
     .or(z.literal("")),
   affiliation: z.string().min(1, "Affiliation is required").max(50),
-  medicalCouncilState: z
-    .string()
-    .regex(/^[A-Za-z\s]+$/, "Only alphabets allowed")
-    .min(2, "Minimum 2 characters")
-    .max(50, "Maximum 50 characters")
-    .optional()
-    .or(z.literal("")),
+  medicalCouncilState: z.string().optional().or(z.literal("")),
   medicalCouncilRegistration: z
     .string()
     .min(3, "Minimum 3 characters")
