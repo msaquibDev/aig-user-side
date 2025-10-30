@@ -1,5 +1,5 @@
-// /app/store/useAccompanyingStore.ts
 import { create } from "zustand";
+import { toast } from "sonner";
 
 export type AccompanyingPerson = {
   id: number;
@@ -7,7 +7,7 @@ export type AccompanyingPerson = {
   relation: string;
   age: number;
   gender: "Male" | "Female" | "Other";
-  mealPreference: "Veg" | "Non-Veg" | "Jain";
+  mealPreference: string; // ✅ Updated to string to match API
 };
 
 type AccompanyingStore = {
@@ -15,27 +15,11 @@ type AccompanyingStore = {
   addPerson: (person: AccompanyingPerson) => void;
   updatePerson: (id: number, updated: AccompanyingPerson) => void;
   removePerson: (id: number) => void;
+  clearPeople: () => void;
 };
 
 export const useAccompanyingStore = create<AccompanyingStore>((set) => ({
-  people: [
-    {
-      id: 1,
-      name: "Ayesha Khan",
-      relation: "Wife",
-      age: 30,
-      gender: "Female",
-      mealPreference: "Veg",
-    },
-    {
-      id: 2,
-      name: "Zaid Khan",
-      relation: "Child",
-      age: 5,
-      gender: "Male",
-      mealPreference: "Jain",
-    },
-  ],
+  people: [],
   addPerson: (person) =>
     set((state) => ({
       people: [...state.people, person],
@@ -48,4 +32,5 @@ export const useAccompanyingStore = create<AccompanyingStore>((set) => ({
     set((state) => ({
       people: state.people.filter((p) => p.id !== id),
     })),
+  clearPeople: () => set({ people: [] }),
 }));

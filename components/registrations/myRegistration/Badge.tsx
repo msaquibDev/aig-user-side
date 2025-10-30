@@ -87,17 +87,18 @@ export function Badge({ registration }: BadgeProps) {
   const prefix = registration.prefix || "";
   const regNum = registration.regNum || `REG-${registration._id?.slice(-6)}`;
   const registrationCategory =
-    registration.registrationSlabName ||
+    registration.registrationSlabId?.slabName ||
     registration.registrationCategory ||
     "Attendee";
 
   // QR Code value - include essential registration info
   const qrValue = JSON.stringify({
-    name: attendeeName,
     regNum: regNum,
-    eventName: eventName,
-    registrationId: registration._id,
-    category: registrationCategory,
+    // name: attendeeName,
+    // eventName: eventName,
+    // registrationId: registration._id,
+    // category: registrationCategory,
+    // eventId: registration.eventId?._id,
   });
 
   return (

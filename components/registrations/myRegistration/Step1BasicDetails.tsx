@@ -53,11 +53,23 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+type MealPreference = {
+  _id: string;
+  eventId: string;
+  mealName: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+};
+
 export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
   const { basicDetails, updateBasicDetails } = useRegistrationStore();
   const { currentEvent } = useEventStore(); // Get current event from store
   const [categories, setCategories] = useState([]);
+  const [mealPreferences, setMealPreferences] = useState<MealPreference[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingMeals, setLoadingMeals] = useState(false);
 
   const {
     register,
@@ -83,6 +95,67 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
     onNext();
   };
 
+  // Fetch meal preferences based on event ID
+  const fetchMealPreferences = async (eventId: string) => {
+    try {
+      setLoadingMeals(true);
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/meal-preferences/active`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await res.json();
+      console.log("Meal Preferences Response:", data);
+
+      if (data.success && Array.isArray(data.data)) {
+        setMealPreferences(data.data);
+      } else {
+        console.error("Failed to fetch meal preferences:", data);
+        toast.error("Failed to load meal preferences");
+        // Fallback to default options if API fails
+        setMealPreferences([
+          {
+            _id: "1",
+            mealName: "Vegetarian",
+            status: "Active",
+          } as MealPreference,
+          {
+            _id: "2",
+            mealName: "Non-Vegetarian",
+            status: "Active",
+          } as MealPreference,
+          { _id: "3", mealName: "Vegan", status: "Active" } as MealPreference,
+        ]);
+      }
+    } catch (err) {
+      console.error("GET meal preferences error:", err);
+      toast.error("Error loading meal preferences");
+      // Fallback to default options
+      setMealPreferences([
+        {
+          _id: "1",
+          mealName: "Vegetarian",
+          status: "Active",
+        } as MealPreference,
+        {
+          _id: "2",
+          mealName: "Non-Vegetarian",
+          status: "Active",
+        } as MealPreference,
+        { _id: "3", mealName: "Vegan", status: "Active" } as MealPreference,
+      ]);
+    } finally {
+      setLoadingMeals(false);
+    }
+  };
+
   // Fetch registration slabs based on event ID
   useEffect(() => {
     async function fetchRegistrationSlabs() {
@@ -93,6 +166,11 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
 
       try {
         setLoading(true);
+
+        // Fetch meal preferences first
+        await fetchMealPreferences(currentEvent._id);
+
+        // Then fetch registration slabs
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${currentEvent._id}/slabs`,
           {
@@ -243,6 +321,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           )}
         </div>
 
+        {/* ✅ Updated Meal Preference Section */}
         <div className="space-y-1.5">
           <Label>
             Meal Preference <span className="text-red-600">*</span>
@@ -251,16 +330,37 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             name="mealPreference"
             control={control}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value || ""}>
+              <Select
+                onValueChange={field.onChange}
+                value={field.value || ""}
+                disabled={loadingMeals}
+              >
                 <SelectTrigger className="w-full cursor-pointer">
-                  <SelectValue placeholder="Select Meal Preference" />
+                  <SelectValue
+                    placeholder={
+                      loadingMeals
+                        ? "Loading meal preferences..."
+                        : "Select Meal Preference"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Vegetarian">Vegetarian</SelectItem>
-                  <SelectItem value="Non-Vegetarian">Non-Vegetarian</SelectItem>
-                  <SelectItem value="Vegan">Vegan</SelectItem>
-                  <SelectItem value="Jain">Jain</SelectItem>
-                  <SelectItem value="No Preference">No Preference</SelectItem>
+                  {mealPreferences.length > 0 ? (
+                    mealPreferences.map((meal) => (
+                      <SelectItem key={meal._id} value={meal.mealName}>
+                        {meal.mealName}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    // Fallback options if no meal preferences are loaded
+                    <>
+                      <SelectItem value="Vegetarian">Vegetarian</SelectItem>
+                      <SelectItem value="Non-Vegetarian">
+                        Non-Vegetarian
+                      </SelectItem>
+                      <SelectItem value="Vegan">Vegan</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             )}
@@ -269,6 +369,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             <p className="text-sm text-red-600">
               {errors.mealPreference.message}
             </p>
+          )}
+          {loadingMeals && (
+            <p className="text-sm text-blue-600">Loading meal preferences...</p>
           )}
         </div>
 
@@ -412,9 +515,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         <Button
           type="submit"
           className="bg-[#00509E] hover:bg-[#003B73] px-8 cursor-pointer"
-          disabled={loading || categories.length === 0}
+          disabled={loading || categories.length === 0 || loadingMeals}
         >
-          {loading ? "Loading..." : "Save & Continue"}
+          {loading || loadingMeals ? "Loading..." : "Save & Continue"}
         </Button>
       </div>
     </form>

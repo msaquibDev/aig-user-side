@@ -4,7 +4,7 @@
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { X, User, Users } from "lucide-react";
+import { X, User, Users, MonitorPlay } from "lucide-react";
 
 type SidebarItem = {
   label: string;
@@ -20,6 +20,11 @@ const sidebarMap: Record<string, SidebarItem[]> = {
       icon: User,
     },
     { label: "Accompanying", path: "/registration/accompanying", icon: Users },
+    {
+      label: "Workshop",
+      path: "/registration/workshop",
+      icon: MonitorPlay,
+    },
   ],
   abstract: [],
   travel: [],

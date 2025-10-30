@@ -83,7 +83,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
 
       // ✅ Updated payload to match backend structure
       const payload = {
-        registrationSlabName: basicDetails.registrationCategory?.slabName, // ✅ Correct field name
+        registrationSlabId: basicDetails.registrationCategory?._id, // ✅ Correct field name
         prefix: basicDetails.prefix,
         name: basicDetails.fullName, // ✅ Changed from fullName to name
         gender: basicDetails.gender,

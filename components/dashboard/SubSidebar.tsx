@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { User, Users,  PanelLeft, PanelRight } from "lucide-react";
+import { User, Users, PanelLeft, PanelRight, MonitorPlay } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Suspense } from "react";
 import Loading from "../common/Loading";
@@ -21,6 +21,11 @@ const sidebarMap: Record<string, SidebarItem[]> = {
       icon: User,
     },
     { label: "Accompanying", path: "/registration/accompanying", icon: Users },
+    {
+      label: "Workshop",
+      path: "/registration/workshop",
+      icon: MonitorPlay,
+    },
   ],
 };
 

@@ -499,24 +499,26 @@ export default function MyProfileForm({
               </div>
               <div>
                 <CardTitle className="text-lg lg:text-xl text-gray-900">
-                  Location & Preferences
+                  Location
+                  {/* & Preferences */}
                 </CardTitle>
                 <CardDescription>
-                  Your location details and preferences
+                  Your location details
+                  {/* and preferences */}
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-              <SelectField
+              {/* <SelectField
                 control={control}
                 name="mealPreference"
                 label="Meal Preference"
                 options={["Veg", "Non-Veg", "Vegan"]}
                 editing={isEditing}
                 error={errors.mealPreference}
-              />
+              /> */}
               <div className="md:col-span-2">
                 <CountryStateCitySelect
                   control={control}
