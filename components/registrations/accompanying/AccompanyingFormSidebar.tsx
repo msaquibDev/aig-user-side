@@ -56,17 +56,15 @@ type MealPreference = {
   __v: number;
 };
 
-type RegistrationSlab = {
+type AccompanyPerson = {
   _id: string;
-  eventId: string;
-  slabName: string;
-  amount: number;
-  AccompanyAmount: number;
-  startDate: string;
-  endDate: string;
-  createdAt: string;
-  updatedAt: string;
-  __v: number;
+  fullName: string;
+  relation: string;
+  age: number;
+  gender: string;
+  mealPreference: string;
+  isPaid: boolean;
+  regNum?: string;
 };
 
 type Props = {
@@ -74,7 +72,30 @@ type Props = {
   registrationId?: string | null;
   open: boolean;
   onClose: () => void;
-  editId?: number | null;
+  editingPerson?: AccompanyPerson | null;
+};
+
+// Razorpay script loading function
+const loadRazorpayScript = () => {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => {
+      console.log("Razorpay SDK loaded successfully");
+      resolve(true);
+    };
+    script.onerror = () => {
+      console.error("Failed to load Razorpay SDK");
+      reject(new Error("Failed to load Razorpay SDK"));
+    };
+    document.body.appendChild(script);
+  });
 };
 
 export default function AccompanyingFormSidebar({
@@ -82,101 +103,60 @@ export default function AccompanyingFormSidebar({
   registrationId,
   open,
   onClose,
-  editId,
+  editingPerson,
 }: Props) {
   const { people, addPerson, updatePerson } = useAccompanyingStore();
   const { basicDetails } = useRegistrationStore();
   const [submitting, setSubmitting] = useState(false);
   const [mealPreferences, setMealPreferences] = useState<MealPreference[]>([]);
   const [loadingMeals, setLoadingMeals] = useState(false);
-  const [accompanyAmount, setAccompanyAmount] = useState(0);
+  const [accompanyAmount, setAccompanyAmount] = useState<number | null>(null);
+  const [amountError, setAmountError] = useState<string | null>(null);
   const [loadingSlabs, setLoadingSlabs] = useState(false);
 
-  // Fetch registration slabs to get AccompanyAmount
-  // Update the fetchRegistrationSlabs function with better debugging and matching logic
-  const fetchRegistrationSlabs = async (eventId: string) => {
+  // Fetch accompanying amount from the specific API
+  const fetchAccompanyAmount = async (
+    eventId: string,
+    registrationId: string
+  ) => {
     try {
       setLoadingSlabs(true);
+      setAmountError(null);
+      const token = localStorage.getItem("accessToken");
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/slabs`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/${eventId}/${registrationId}/amount`,
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
           },
         }
       );
 
       const data = await res.json();
-      console.log("Registration Slabs Response (Accompanying):", data);
+      console.log("Accompany Amount Response:", data);
 
-      if (data.success && Array.isArray(data.data)) {
-        // Get the selected registration category
-        const selectedCategory = basicDetails.registrationCategory as any;
-        console.log("Selected registration category:", selectedCategory);
-
-        // If we have a selected category, try to match by _id first
-        if (selectedCategory && selectedCategory._id) {
-          const selectedSlab = data.data.find(
-            (slab: RegistrationSlab) => slab._id === selectedCategory._id
-          );
-
-          if (selectedSlab) {
-            setAccompanyAmount(selectedSlab.AccompanyAmount || 0);
-            console.log(
-              "Found AccompanyAmount by _id:",
-              selectedSlab.AccompanyAmount
-            );
-            return;
-          }
-        }
-
-        // If no match by _id, try to match by slabName
-        if (selectedCategory && selectedCategory.slabName) {
-          const selectedSlab = data.data.find(
-            (slab: RegistrationSlab) =>
-              slab.slabName === selectedCategory.slabName
-          );
-
-          if (selectedSlab) {
-            setAccompanyAmount(selectedSlab.AccompanyAmount || 0);
-            console.log(
-              "Found AccompanyAmount by slabName:",
-              selectedSlab.AccompanyAmount
-            );
-            return;
-          }
-        }
-
-        // If still no match, use the first available slab
-        const firstSlab = data.data[0];
-        if (firstSlab) {
-          setAccompanyAmount(firstSlab.AccompanyAmount || 0);
-          console.log(
-            "Using first slab AccompanyAmount:",
-            firstSlab.AccompanyAmount
-          );
-        } else {
-          setAccompanyAmount(0);
-          console.log("No slabs available, setting amount to 0");
-        }
+      if (data.success && data.data) {
+        setAccompanyAmount(data.data.accompanyAmount || 0);
+        console.log("Accompany Amount:", data.data.accompanyAmount);
       } else {
-        console.error("Invalid response format for slabs:", data);
-        setAccompanyAmount(0);
+        console.error("Failed to fetch accompany amount:", data);
+        setAccompanyAmount(null);
+        setAmountError("Unable to fetch accompanying fee. Please try again.");
+        toast.error("Failed to load accompanying fee information");
       }
     } catch (err) {
-      console.error("GET registration slabs error:", err);
-      setAccompanyAmount(0);
+      console.error("GET accompany amount error:", err);
+      setAccompanyAmount(null);
+      setAmountError(
+        "Network error. Please check your connection and try again."
+      );
+      toast.error("Failed to load accompanying fee");
     } finally {
       setLoadingSlabs(false);
     }
   };
-
-  // Also add a useEffect to debug the basicDetails
-  useEffect(() => {
-    console.log("Current basicDetails:", basicDetails);
-    console.log("Registration Category:", basicDetails.registrationCategory);
-  }, [basicDetails]);
 
   // Fetch meal preferences
   const fetchMealPreferences = async (eventId: string) => {
@@ -251,16 +231,164 @@ export default function AccompanyingFormSidebar({
     }
   };
 
-  // Fetch both meal preferences and registration slabs when sidebar opens
+  // Payment initiation function
+  const initiateAccompanyPayment = async (
+    accompanyId: string,
+    accompanyItemIds: string, // Add this parameter
+    amount: number
+  ) => {
+    try {
+      // Load Razorpay script first
+      await loadRazorpayScript();
+
+      const token = localStorage.getItem("accessToken");
+
+      // Create payment order with accompanyItemIds
+      const paymentResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/accompany/create-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            eventRegistrationId: registrationId,
+            accompanyId: accompanyId,
+            accompanyItemIds: accompanyItemIds, // Add this field
+            amount: amount,
+          }),
+        }
+      );
+
+      const paymentData = await paymentResponse.json();
+
+      if (!paymentData.success) {
+        throw new Error(
+          paymentData.message || "Failed to create payment order"
+        );
+      }
+
+      console.log("Payment order response:", paymentData);
+
+      // Double check if Razorpay is available
+      if (!(window as any).Razorpay) {
+        throw new Error("Razorpay SDK still not loaded after waiting");
+      }
+
+      // Initialize Razorpay payment with the key from API response
+      const options = {
+        key: paymentData.data.razorpayKeyId,
+        amount: paymentData.data.amount * 100,
+        currency: paymentData.data.currency || "INR",
+        name: "Event Registration",
+        description: "Accompanying Persons Payment",
+        order_id: paymentData.data.orderId,
+        handler: async function (response: any) {
+          await verifyAccompanyPayment(
+            response,
+            paymentData.data.paymentId,
+            accompanyId
+          );
+        },
+        prefill: {
+          name: basicDetails.fullName || "",
+          email: basicDetails.email || "",
+          contact: basicDetails.phone || "",
+        },
+        theme: {
+          color: "#00509E",
+        },
+        modal: {
+          ondismiss: function () {
+            toast.info("Payment cancelled. You can complete payment later.");
+          },
+        },
+      };
+
+      console.log("Razorpay options:", options);
+
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error("Payment initiation error:", error);
+      toast.error("Failed to initiate payment: " + (error as Error).message);
+    }
+  };
+
+  // Payment verification function
+  const verifyAccompanyPayment = async (
+    razorpayResponse: any,
+    paymentId: string,
+    accompanyId: string
+  ) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const verifyResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/accompany/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            razorpayOrderId: razorpayResponse.razorpay_order_id,
+            razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+            razorpaySignature: razorpayResponse.razorpay_signature,
+            paymentId: paymentId,
+          }),
+        }
+      );
+
+      const verifyData = await verifyResponse.json();
+
+      if (verifyData.success) {
+        toast.success("Payment successful! Accompanying persons added.");
+        onClose();
+        window.location.reload();
+      } else {
+        throw new Error(verifyData.message || "Payment verification failed");
+      }
+    } catch (error) {
+      console.error("Payment verification error:", error);
+      toast.error("Payment verification failed. Please contact support.");
+    }
+  };
+
+  // Fetch both meal preferences and accompanying amount when sidebar opens
   useEffect(() => {
     if (open && eventId) {
       fetchMealPreferences(eventId);
-      fetchRegistrationSlabs(eventId);
-    }
-  }, [open, eventId]);
 
-  const defaultValues = editId
-    ? [people.find((p) => p.id === editId)]
+      // Only fetch accompany amount when NOT editing (i.e., adding new persons)
+      if (!editingPerson && registrationId) {
+        fetchAccompanyAmount(eventId, registrationId);
+      } else if (!editingPerson && eventId) {
+        // Fallback if no registrationId - set error state only for adding
+        setAccompanyAmount(null);
+        setAmountError(
+          "Registration ID is required to fetch accompanying fee."
+        );
+      } else {
+        // When editing, we don't need the amount, so clear it
+        setAccompanyAmount(null);
+        setAmountError(null);
+      }
+    }
+  }, [open, eventId, registrationId, editingPerson]);
+
+  const defaultValues = editingPerson
+    ? [
+        {
+          name: editingPerson.fullName,
+          relation: editingPerson.relation,
+          age: String(editingPerson.age),
+          gender: editingPerson.gender as "Male" | "Female" | "Other",
+          mealPreference: editingPerson.mealPreference,
+        },
+      ]
     : [
         {
           name: "",
@@ -292,22 +420,37 @@ export default function AccompanyingFormSidebar({
   });
 
   useEffect(() => {
-    if (editId && open) {
-      const existing = people.find((p) => p.id === editId);
-      if (existing) {
-        reset({
-          people: [
-            {
-              id: existing.id,
-              name: existing.name,
-              relation: existing.relation,
-              age: String(existing.age),
-              gender: existing.gender as "Male" | "Female" | "Other",
-              mealPreference: existing.mealPreference,
-            },
-          ],
-        });
-      }
+    if (editingPerson && open) {
+      console.log(
+        "Editing person meal preference:",
+        editingPerson.mealPreference
+      );
+      console.log("Available meal preferences:", mealPreferences);
+      console.log(
+        "Form meal preference value:",
+        watch("people.0.mealPreference")
+      );
+    }
+  }, [editingPerson, open, mealPreferences, watch]);
+
+  useEffect(() => {
+    if (editingPerson && open && mealPreferences.length > 0) {
+      reset({
+        people: [
+          {
+            name: editingPerson.fullName,
+            relation: editingPerson.relation,
+            age: String(editingPerson.age),
+            gender: editingPerson.gender as "Male" | "Female" | "Other",
+            mealPreference: editingPerson.mealPreference,
+          },
+        ],
+      });
+
+      // Force set the meal preference after reset to ensure it's properly set
+      setTimeout(() => {
+        setValue("people.0.mealPreference", editingPerson.mealPreference);
+      }, 100);
     } else if (open) {
       reset({
         people: [
@@ -321,63 +464,141 @@ export default function AccompanyingFormSidebar({
         ],
       });
     }
-  }, [editId, reset, people, open]);
+  }, [editingPerson, reset, open, setValue, mealPreferences]);
 
   const onSubmit = async (data: FormData) => {
+    // Only check accompanyAmount for adding new persons, not for editing
+    if (!editingPerson && accompanyAmount === null) {
+      toast.error(
+        "Cannot proceed. Accompanying fee information is not available."
+      );
+      return;
+    }
+
     try {
       setSubmitting(true);
 
-      // If we have eventId and registrationId, save to backend
+      // If we have eventId and registrationId, save to backend FIRST
       if (eventId && registrationId) {
-        // API call to save accompanying persons
         const token = localStorage.getItem("accessToken");
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/registrations/${registrationId}/accompanying-persons`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              accompanyingPersons: data.people.map((person) => ({
-                name: person.name,
-                relation: person.relation,
-                age: Number(person.age),
-                gender: person.gender,
-                mealPreference: person.mealPreference,
-              })),
-            }),
-          }
-        );
 
-        const result = await response.json();
-
-        if (!result.success) {
-          throw new Error(
-            result.message || "Failed to save accompanying persons"
+        if (editingPerson) {
+          // EDIT EXISTING PERSON - Use the correct update endpoint
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/${editingPerson._id}/edit`,
+            {
+              method: "PUT",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                accompanies: [
+                  {
+                    _id: editingPerson._id, // Use the accompany item _id
+                    fullName: data.people[0].name,
+                    relation: data.people[0].relation,
+                    age: Number(data.people[0].age),
+                    gender: data.people[0].gender,
+                    mealPreference: data.people[0].mealPreference,
+                  },
+                ],
+              }),
+            }
           );
+
+          const result = await response.json();
+
+          if (!result.success) {
+            throw new Error(
+              result.message || "Failed to update accompanying person"
+            );
+          }
+
+          console.log("Accompany update response:", result);
+          toast.success("Person updated successfully!");
+          onClose();
+          window.location.reload(); // Reload to reflect changes
+        } else {
+          // ADD NEW PERSON - Use the add endpoint
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/${eventId}/${registrationId}/add`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({
+                accompanies: data.people.map((person) => ({
+                  fullName: person.name,
+                  relation: person.relation,
+                  age: Number(person.age),
+                  gender: person.gender,
+                  mealPreference: person.mealPreference,
+                })),
+              }),
+            }
+          );
+
+          const result = await response.json();
+
+          if (!result.success) {
+            throw new Error(
+              result.message || "Failed to save accompanying persons"
+            );
+          }
+
+          console.log("Accompany save response:", result);
+
+          // Only initiate payment for NEW additions when amount > 0
+          if (
+            accompanyAmount &&
+            accompanyAmount > 0 &&
+            result.data &&
+            result.data._id
+          ) {
+            // Extract ONLY the newly added accompanyItemIds from the response
+            const allAccompanies = result.data.accompanies || [];
+            const newlyAddedAccompanies = allAccompanies.slice(-fields.length);
+            const accompanyItemIds = newlyAddedAccompanies.map(
+              (acc: any) => acc._id
+            );
+
+            console.log("Newly added accompanyItemIds:", accompanyItemIds);
+            await initiateAccompanyPayment(
+              result.data._id,
+              accompanyItemIds,
+              total
+            );
+          } else {
+            // If no payment required, show success and close
+            toast.success("Persons added successfully!");
+            onClose();
+          }
         }
+      } else {
+        // Update local store only (for demo/testing)
+        data.people.forEach((p) => {
+          const parsed = {
+            id: p.id ?? Date.now(),
+            name: p.name,
+            relation: p.relation,
+            age: Number(p.age),
+            gender: p.gender,
+            mealPreference: p.mealPreference,
+          };
+          if (editingPerson) updatePerson(parsed.id, parsed);
+          else addPerson(parsed);
+        });
+
+        toast.success(
+          editingPerson
+            ? "Person updated successfully!"
+            : "Persons added successfully!"
+        );
+        onClose();
       }
-
-      // Also update local store
-      data.people.forEach((p) => {
-        const parsed = {
-          id: p.id ?? Date.now(),
-          name: p.name,
-          relation: p.relation,
-          age: Number(p.age),
-          gender: p.gender,
-          mealPreference: p.mealPreference,
-        };
-        if (editId) updatePerson(parsed.id, parsed);
-        else addPerson(parsed);
-      });
-
-      toast.success(
-        editId ? "Person updated successfully!" : "Persons added successfully!"
-      );
-      onClose();
     } catch (error) {
       console.error("Error saving accompanying persons:", error);
       toast.error("Failed to save accompanying persons");
@@ -386,7 +607,10 @@ export default function AccompanyingFormSidebar({
     }
   };
 
-  const total = fields.length * accompanyAmount;
+  const total =
+    !editingPerson && accompanyAmount !== null
+      ? fields.length * accompanyAmount
+      : 0;
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
@@ -396,11 +620,10 @@ export default function AccompanyingFormSidebar({
       >
         <SheetHeader className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-white">
           <SheetTitle className="text-lg font-semibold text-gray-900">
-            {editId ? "Edit" : "Add"} Accompanying Person
+            {editingPerson ? "Edit" : "Add"} Accompanying Person
             {fields.length > 1 ? "s" : ""}
           </SheetTitle>
         </SheetHeader>
-
         {/* Scrollable form section */}
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -580,7 +803,18 @@ export default function AccompanyingFormSidebar({
             </div>
           ))}
 
-          {!editId && (
+          {!editingPerson && accompanyAmount === null && !loadingSlabs && (
+            <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm font-medium">
+                ⚠️ Unable to load accompanying fee information
+              </p>
+              <p className="text-red-600 text-xs mt-1">
+                Please refresh the page or contact support if the issue
+                persists.
+              </p>
+            </div>
+          )}
+          {!editingPerson && (
             <Button
               type="button"
               variant="outline"
@@ -600,26 +834,52 @@ export default function AccompanyingFormSidebar({
             </Button>
           )}
         </form>
-
         {/* Fixed footer */}
         <div className="border-t border-gray-200 bg-white p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="text-sm text-gray-600">
               {fields.length} person{fields.length !== 1 ? "s" : ""}
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-[#00509E]">
-                ₹ {total.toLocaleString("en-IN")}.00
+
+            {/* Only show amount section when NOT editing (i.e., adding new persons) */}
+            {!editingPerson && (
+              <div className="text-right">
+                <div className="text-2xl font-bold text-[#00509E]">
+                  {accompanyAmount !== null ? (
+                    `₹ ${total.toLocaleString("en-IN")}.00`
+                  ) : (
+                    <span className="text-red-500 text-lg">
+                      Fee not available
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-gray-500">
+                  {loadingSlabs ? (
+                    "Loading fee..."
+                  ) : accompanyAmount !== null ? (
+                    accompanyAmount > 0 ? (
+                      <>
+                        ₹ {accompanyAmount.toLocaleString("en-IN")}.00 per
+                        person
+                        <div className="text-xs text-blue-600 mt-1">
+                          Payment required after adding
+                        </div>
+                      </>
+                    ) : (
+                      "No accompanying fee"
+                    )
+                  ) : (
+                    <span className="text-red-500">Unable to load fee</span>
+                  )}
+                </div>
+                {amountError && (
+                  <div className="text-xs text-red-500 mt-1">{amountError}</div>
+                )}
               </div>
-              <div className="text-sm text-gray-500">
-                {loadingSlabs
-                  ? "Loading fee..."
-                  : accompanyAmount > 0
-                  ? `₹ ${accompanyAmount.toLocaleString("en-IN")}.00 per person`
-                  : "No accompanying fee"}
-              </div>
-            </div>
+            )}
           </div>
+
+          {/* Button section - show different text based on editing vs adding */}
           <div className="flex gap-3">
             <Button
               type="button"
@@ -633,9 +893,21 @@ export default function AccompanyingFormSidebar({
               type="submit"
               form="accompanying-form"
               className="flex-1 bg-[#00509E] hover:bg-[#003B73]"
-              disabled={submitting || loadingMeals || loadingSlabs}
+              disabled={
+                submitting ||
+                loadingMeals ||
+                (loadingSlabs && !editingPerson) || // Only disable for loading slabs when adding
+                (accompanyAmount === null && !editingPerson) || // Only require amount when adding
+                fields.length === 0
+              }
             >
-              {submitting ? "Saving..." : editId ? "Update" : "Add Persons"}
+              {submitting
+                ? "Processing..."
+                : editingPerson
+                ? "Update"
+                : accompanyAmount && accompanyAmount > 0
+                ? "Add & Pay"
+                : "Add Persons"}
             </Button>
           </div>
         </div>

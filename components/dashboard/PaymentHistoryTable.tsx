@@ -13,7 +13,7 @@ const itemsPerPage = 15;
 function SkeletonRow() {
   return (
     <tr className="border-t animate-pulse bg-gray-50">
-      {Array.from({ length: 8 }).map((_, idx) => (
+      {Array.from({ length: 9 }).map((_, idx) => (
         <td key={idx} className="px-4 py-3">
           <div className="h-4 bg-gray-200 rounded"></div>
         </td>
@@ -249,6 +249,7 @@ export default function PaymentHistoryTable() {
             <thead className="bg-gray-50 text-left text-gray-600 uppercase text-xs">
               <tr>
                 <th className="px-4 py-3 font-medium">Event Name</th>
+                <th className="px-4 py-3 font-medium">Payment Category</th>
                 <th className="px-4 py-3 font-medium">Order ID</th>
                 <th className="px-4 py-3 font-medium">Payment Date</th>
                 <th className="px-4 py-3 font-medium">Payment ID</th>
@@ -265,7 +266,7 @@ export default function PaymentHistoryTable() {
                 ))
               ) : currentPayments.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-8 text-gray-500">
+                  <td colSpan={9} className="text-center py-8 text-gray-500">
                     <div className="flex flex-col items-center">
                       <div className="text-lg mb-2">No payments found</div>
                       <div className="text-sm text-gray-400">
@@ -287,6 +288,22 @@ export default function PaymentHistoryTable() {
                       {/* <div className="text-xs text-gray-500 mt-1">
                         {getEventDate(payment)}
                       </div> */}
+                    </td>
+                    <td className="px-4 py-3">
+                      {" "}
+                      {/* Add this cell */}
+                      <Badge
+                        variant="outline"
+                        className={
+                          payment.paymentCategory === "eventRegistration"
+                            ? "bg-blue-100 text-blue-800 border border-blue-200"
+                            : "bg-purple-100 text-purple-800 border border-purple-200"
+                        }
+                      >
+                        {payment.paymentCategory === "eventRegistration"
+                          ? "Registration"
+                          : "Accompany"}
+                      </Badge>
                     </td>
                     <td className="px-4 py-3">
                       <div className="font-medium text-gray-900">

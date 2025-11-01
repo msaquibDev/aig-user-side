@@ -1,4 +1,3 @@
-// app/(section)/registration/accompanying/page.tsx
 "use client";
 
 import { useSearchParams } from "next/navigation";
@@ -7,13 +6,27 @@ import AccompanyingFormSidebar from "@/components/registrations/accompanying/Acc
 import AccompanyingTable from "@/components/registrations/accompanying/AccompanyingTable";
 import Loading from "@/components/common/Loading";
 
+// Add this type definition
+type AccompanyPerson = {
+  _id: string;
+  fullName: string;
+  relation: string;
+  age: number;
+  gender: string;
+  mealPreference: string;
+  isPaid: boolean;
+  regNum?: string;
+};
+
 function AccompanyingContent() {
   const searchParams = useSearchParams();
   const eventId = searchParams.get("eventId");
   const registrationId = searchParams.get("registrationId");
 
   const [open, setOpen] = useState(false);
-  const [editId, setEditId] = useState<number | null>(null);
+  const [editingPerson, setEditingPerson] = useState<AccompanyPerson | null>(
+    null
+  ); // Change from editId
   const [loading, setLoading] = useState(true);
   const [hasRegistration, setHasRegistration] = useState(false);
   const [eventName, setEventName] = useState("");
@@ -137,11 +150,12 @@ function AccompanyingContent() {
             alert("Please complete your main registration first.");
             return;
           }
-          setEditId(null);
+          setEditingPerson(null); // Clear editing person
           setOpen(true);
         }}
-        onEditClick={(id) => {
-          setEditId(id);
+        onEditClick={(person) => {
+          // Updated to accept person object
+          setEditingPerson(person);
           setOpen(true);
         }}
       />
@@ -152,9 +166,9 @@ function AccompanyingContent() {
         open={open}
         onClose={() => {
           setOpen(false);
-          setEditId(null);
+          setEditingPerson(null); // Clear editing person
         }}
-        editId={editId}
+        editingPerson={editingPerson} // Pass editingPerson instead of editId
       />
     </div>
   );

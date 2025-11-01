@@ -20,13 +20,41 @@ import {
   ChevronDown,
   Edit,
 } from "lucide-react";
-import { useAccompanyingStore } from "@/app/store/useAccompanyingStore";
+
+type AccompanyPerson = {
+  _id: string;
+  fullName: string;
+  relation: string;
+  age: number;
+  gender: string;
+  mealPreference: string;
+  isPaid: boolean;
+  regNum?: string;
+};
+
+type PaidAccompany = {
+  _id: string;
+  event: {
+    _id: string;
+    eventName: string;
+    eventCode: string;
+    startDate: string;
+    endDate: string;
+  };
+  registration: {
+    _id: string;
+    regNum: string;
+    registrationSlabName: string;
+    isPaid: boolean;
+  };
+  paidAccompanies: AccompanyPerson[];
+};
 
 type Props = {
   eventId?: string | null;
   registrationId?: string | null;
   onAddClick: () => void;
-  onEditClick: (personId: number) => void;
+  onEditClick: (person: AccompanyPerson) => void; // Updated to accept person object
 };
 
 export default function AccompanyingTable({
@@ -35,16 +63,57 @@ export default function AccompanyingTable({
   onAddClick,
   onEditClick,
 }: Props) {
-  const { people } = useAccompanyingStore();
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [paidAccompanies, setPaidAccompanies] = useState<PaidAccompany[]>([]);
 
   // Sorting state
   const [sortBy, setSortBy] = useState<"name" | "relation" | "age" | null>(
     null
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  // Fetch paid accompanies from API
+  const fetchPaidAccompanies = async () => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/paid`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success && Array.isArray(data.data)) {
+        setPaidAccompanies(data.data);
+      } else {
+        console.error("Failed to fetch paid accompanies:", data);
+        setPaidAccompanies([]);
+      }
+    } catch (error) {
+      console.error("Error fetching paid accompanies:", error);
+      setPaidAccompanies([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPaidAccompanies();
+  }, []);
+
+  // Flatten all paid accompany persons
+  const allPaidPersons: AccompanyPerson[] = paidAccompanies.flatMap(
+    (accompany) => accompany.paidAccompanies
+  );
 
   const toggleSort = (column: "name" | "relation" | "age") => {
     if (sortBy === column) {
@@ -56,15 +125,15 @@ export default function AccompanyingTable({
   };
 
   const getSortedPeople = () => {
-    let filtered = people.filter((p) =>
-      p.name.toLowerCase().includes(search.toLowerCase())
+    let filtered = allPaidPersons.filter((p) =>
+      p.fullName.toLowerCase().includes(search.toLowerCase())
     );
 
     if (sortBy) {
       filtered = [...filtered].sort((a, b) => {
         if (sortBy === "name") {
-          const nameA = a.name.toLowerCase();
-          const nameB = b.name.toLowerCase();
+          const nameA = a.fullName.toLowerCase();
+          const nameB = b.fullName.toLowerCase();
           return sortOrder === "asc"
             ? nameA.localeCompare(nameB)
             : nameB.localeCompare(nameA);
@@ -106,27 +175,6 @@ export default function AccompanyingTable({
       <ChevronDown className="w-4 h-4" />
     );
   };
-
-  // Fetch accompanying persons when eventId/registrationId changes
-  useEffect(() => {
-    const fetchAccompanyingPersons = async () => {
-      if (!eventId || !registrationId) return;
-
-      try {
-        setLoading(true);
-        // TODO: Add API call to fetch accompanying persons for this registration
-        // const response = await fetch(`/api/registrations/${registrationId}/accompanying`);
-        // const data = await response.json();
-        // Update store with fetched data
-      } catch (error) {
-        console.error("Error fetching accompanying persons:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAccompanyingPersons();
-  }, [eventId, registrationId]);
 
   if (loading) {
     return (
@@ -214,6 +262,12 @@ export default function AccompanyingTable({
               <TableHead className="font-semibold text-gray-900">
                 Meal Preference
               </TableHead>
+              <TableHead className="font-semibold text-gray-900">
+                Registration No.
+              </TableHead>
+              <TableHead className="font-semibold text-gray-900 text-right">
+                Status
+              </TableHead>
               <TableHead className="font-semibold text-gray-900 text-right">
                 Actions
               </TableHead>
@@ -223,11 +277,13 @@ export default function AccompanyingTable({
           <TableBody>
             {currentItems.length > 0 ? (
               currentItems.map((person, index) => (
-                <TableRow key={person.id} className="hover:bg-gray-50/50">
+                <TableRow key={person._id} className="hover:bg-gray-50/50">
                   <TableCell className="font-medium text-gray-900">
                     {startIndex + index + 1}
                   </TableCell>
-                  <TableCell className="font-medium">{person.name}</TableCell>
+                  <TableCell className="font-medium">
+                    {person.fullName}
+                  </TableCell>
                   <TableCell className="capitalize">
                     {person.relation}
                   </TableCell>
@@ -236,12 +292,26 @@ export default function AccompanyingTable({
                   <TableCell className="capitalize">
                     {person.mealPreference}
                   </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {person.regNum || "Pending"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        person.isPaid
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {person.isPaid ? "Paid" : "Pending"}
+                    </span>
+                  </TableCell>
                   <TableCell className="text-right">
                     <Button
                       variant="ghost"
                       size="sm"
                       className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer"
-                      onClick={() => onEditClick(person.id)}
+                      onClick={() => onEditClick(person)}
                     >
                       <Edit className="w-4 h-4 mr-1" />
                       Edit
@@ -252,7 +322,7 @@ export default function AccompanyingTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={9}
                   className="text-center py-8 text-gray-500"
                 >
                   <div className="flex flex-col items-center">
