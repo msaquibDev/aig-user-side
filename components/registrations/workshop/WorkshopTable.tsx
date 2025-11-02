@@ -1,4 +1,3 @@
-// components/registrations/workshop/WorkshopTable.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -24,9 +23,26 @@ import {
   MapPin,
   Clock,
   CheckCircle,
-  XCircle,
 } from "lucide-react";
-import { useWorkshopStore, Workshop } from "@/app/store/useWorkshopStore";
+import { useWorkshopStore } from "@/app/store/useWorkshopStore";
+
+type Workshop = {
+  _id: string;
+  eventId: string;
+  workshopName: string;
+  workshopType: string;
+  hallName: string;
+  amount: number;
+  maxRegAllowed: number;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  isEventRegistrationRequired: boolean;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+};
 
 type Props = {
   eventId?: string | null;
@@ -45,12 +61,47 @@ export default function WorkshopTable({
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [apiWorkshops, setApiWorkshops] = useState<Workshop[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
   // Sorting state
   const [sortBy, setSortBy] = useState<"name" | "date" | "price" | "type">(
     "name"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+
+  // Fetch workshops from API when eventId changes
+  useEffect(() => {
+    const fetchWorkshops = async () => {
+      if (!eventId) return;
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/workshops`
+        );
+
+        const data = await response.json();
+
+        if (data.success && Array.isArray(data.data)) {
+          setApiWorkshops(data.data);
+        } else {
+          setError("No workshops found for this event");
+          setApiWorkshops([]);
+        }
+      } catch (error) {
+        console.error("Error fetching workshops:", error);
+        setError("Failed to load workshops");
+        setApiWorkshops([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchWorkshops();
+  }, [eventId]);
 
   const toggleSort = (column: "name" | "date" | "price" | "type") => {
     if (sortBy === column) {
@@ -61,41 +112,43 @@ export default function WorkshopTable({
     }
   };
 
-  // Check if a workshop is selected
-  const isWorkshopSelected = (workshopId: number): boolean => {
-    return Object.values(selectedWorkshops).includes(workshopId);
+  // Check if a workshop is selected (you might want to implement this based on your registration data)
+  const isWorkshopSelected = (workshopId: string): boolean => {
+    // TODO: Implement based on your registration data
+    // For now, return false as we don't have registration data
+    return false;
   };
 
   // Get workshop status
-  const getWorkshopStatus = (workshopId: number): string => {
+  const getWorkshopStatus = (workshopId: string): string => {
     return isWorkshopSelected(workshopId) ? "Registered" : "Available";
   };
 
   const getSortedWorkshops = () => {
-    let filtered = workshops.filter(
-      (w) =>
-        w.name.toLowerCase().includes(search.toLowerCase()) &&
-        w.name !== "Workshop Not Required"
+    let filtered = apiWorkshops.filter((w) =>
+      w.workshopName.toLowerCase().includes(search.toLowerCase())
     );
 
     if (sortBy) {
       filtered = [...filtered].sort((a, b) => {
         if (sortBy === "name") {
-          const nameA = a.name.toLowerCase();
-          const nameB = b.name.toLowerCase();
+          const nameA = a.workshopName.toLowerCase();
+          const nameB = b.workshopName.toLowerCase();
           return sortOrder === "asc"
             ? nameA.localeCompare(nameB)
             : nameB.localeCompare(nameA);
         } else if (sortBy === "date") {
-          const dateA = new Date(a.date).getTime();
-          const dateB = new Date(b.date).getTime();
+          const dateA = new Date(a.startDate).getTime();
+          const dateB = new Date(b.startDate).getTime();
           return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
         } else if (sortBy === "price") {
-          return sortOrder === "asc" ? a.price - b.price : b.price - a.price;
+          return sortOrder === "asc"
+            ? a.amount - b.amount
+            : b.amount - a.amount;
         } else if (sortBy === "type") {
           return sortOrder === "asc"
-            ? a.type.localeCompare(b.type)
-            : b.type.localeCompare(a.type);
+            ? a.workshopType.localeCompare(b.workshopType)
+            : b.workshopType.localeCompare(a.workshopType);
         }
         return 0;
       });
@@ -127,27 +180,6 @@ export default function WorkshopTable({
     );
   };
 
-  // Fetch workshops when eventId changes
-  useEffect(() => {
-    const fetchWorkshops = async () => {
-      if (!eventId) return;
-
-      try {
-        setLoading(true);
-        // TODO: Add API call to fetch available workshops for this event
-        // const response = await fetch(`/api/events/${eventId}/workshops`);
-        // const data = await response.json();
-        // Update store with fetched data
-      } catch (error) {
-        console.error("Error fetching workshops:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchWorkshops();
-  }, [eventId]);
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -176,7 +208,7 @@ export default function WorkshopTable({
         <Button
           onClick={onAddClick}
           className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"
-          disabled={!eventId}
+          disabled={!eventId || apiWorkshops.length === 0}
         >
           <PlusCircle className="w-4 h-4 mr-2" />
           Register for Workshop
@@ -195,6 +227,13 @@ export default function WorkshopTable({
           />
         </div>
       </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+          <p className="text-red-700">{error}</p>
+        </div>
+      )}
 
       {/* Table */}
       <div className="border border-gray-200 rounded-lg overflow-hidden">
@@ -244,69 +283,61 @@ export default function WorkshopTable({
               <TableHead className="font-semibold text-gray-900">
                 Status
               </TableHead>
-              <TableHead className="font-semibold text-gray-900 text-right">
-                Actions
-              </TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
             {currentItems.length > 0 ? (
               currentItems.map((workshop, index) => {
-                const isSelected = isWorkshopSelected(workshop.id);
-                const status = getWorkshopStatus(workshop.id);
+                const isSelected = isWorkshopSelected(workshop._id);
+                const status = getWorkshopStatus(workshop._id);
 
                 return (
-                  <TableRow key={workshop.id} className="hover:bg-gray-50/50">
+                  <TableRow key={workshop._id} className="hover:bg-gray-50/50">
                     <TableCell className="font-medium text-gray-900">
                       {startIndex + index + 1}
                     </TableCell>
                     <TableCell className="font-medium">
                       <div>
-                        <div className="font-semibold">{workshop.name}</div>
-                        {workshop.group && (
-                          <div className="text-xs text-gray-500 mt-1">
-                            {workshop.group}
-                          </div>
-                        )}
+                        <div className="font-semibold">
+                          {workshop.workshopName}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          Max Participants: {workshop.maxRegAllowed}
+                        </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          workshop.type === "Pre Conference"
+                          workshop.workshopType === "Pre Conference"
                             ? "bg-purple-100 text-purple-800"
                             : "bg-orange-100 text-orange-800"
                         }`}
                       >
-                        {workshop.type}
+                        {workshop.workshopType}
                       </span>
                     </TableCell>
                     <TableCell>
-                      {workshop.date ? (
+                      <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-gray-400" />
-                          <span>
-                            {new Date(workshop.date).toLocaleDateString()}
-                          </span>
+                          <span className="text-sm">{workshop.startDate}</span>
                         </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
+                        <div className="text-xs text-gray-500">
+                          {workshop.startTime} - {workshop.endTime}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {workshop.venue ? (
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-gray-400" />
-                          <span>{workshop.venue}</span>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4 text-gray-400" />
+                        <span>{workshop.hallName}</span>
+                      </div>
                     </TableCell>
                     <TableCell className="font-semibold text-[#00509E]">
-                      {workshop.price > 0
-                        ? `₹${workshop.price.toLocaleString("en-IN")}`
+                      {workshop.amount > 0
+                        ? `₹${workshop.amount.toLocaleString("en-IN")}`
                         : "Free"}
                     </TableCell>
                     <TableCell>
@@ -325,28 +356,13 @@ export default function WorkshopTable({
                         {status}
                       </span>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className={`hover:bg-blue-50 cursor-pointer ${
-                          isSelected
-                            ? "text-green-600 hover:text-green-800"
-                            : "text-blue-600 hover:text-blue-800"
-                        }`}
-                        onClick={() => onEditClick(workshop.id)}
-                      >
-                        <Edit className="w-4 h-4 mr-1" />
-                        {isSelected ? "View" : "Register"}
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 );
               })
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={7}
                   className="text-center py-8 text-gray-500"
                 >
                   <div className="flex flex-col items-center">
