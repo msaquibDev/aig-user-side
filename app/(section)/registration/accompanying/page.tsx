@@ -26,7 +26,8 @@ function AccompanyingContent() {
   const [open, setOpen] = useState(false);
   const [editingPerson, setEditingPerson] = useState<AccompanyPerson | null>(
     null
-  ); // Change from editId
+  );
+  const [mainAccompanyId, setMainAccompanyId] = useState<string | null>(null); // Add this state
   const [loading, setLoading] = useState(true);
   const [hasRegistration, setHasRegistration] = useState(false);
   const [eventName, setEventName] = useState("");
@@ -94,6 +95,14 @@ function AccompanyingContent() {
     checkRegistration();
   }, [eventId, registrationId]);
 
+  // Add debug effect to check state
+  useEffect(() => {
+    console.log("=== PARENT COMPONENT DEBUG ===");
+    console.log("editingPerson:", editingPerson);
+    console.log("mainAccompanyId:", mainAccompanyId);
+    console.log("=== END PARENT DEBUG ===");
+  }, [editingPerson, mainAccompanyId]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -151,11 +160,19 @@ function AccompanyingContent() {
             return;
           }
           setEditingPerson(null); // Clear editing person
+          setMainAccompanyId(null); // Clear main accompany ID
           setOpen(true);
         }}
-        onEditClick={(person) => {
-          // Updated to accept person object
+        onEditClick={(person, mainId) => {
+          // Updated to accept mainAccompanyId
+          console.log(
+            "Received from table - Person:",
+            person?._id,
+            "Main ID:",
+            mainId
+          );
           setEditingPerson(person);
+          setMainAccompanyId(mainId);
           setOpen(true);
         }}
       />
@@ -163,12 +180,14 @@ function AccompanyingContent() {
       <AccompanyingFormSidebar
         eventId={eventId}
         registrationId={registrationId}
+        mainAccompanyId={mainAccompanyId} // Pass mainAccompanyId
         open={open}
         onClose={() => {
           setOpen(false);
           setEditingPerson(null); // Clear editing person
+          setMainAccompanyId(null); // Clear main accompany ID
         }}
-        editingPerson={editingPerson} // Pass editingPerson instead of editId
+        editingPerson={editingPerson}
       />
     </div>
   );

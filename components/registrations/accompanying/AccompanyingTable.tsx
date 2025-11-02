@@ -54,7 +54,10 @@ type Props = {
   eventId?: string | null;
   registrationId?: string | null;
   onAddClick: () => void;
-  onEditClick: (person: AccompanyPerson) => void; // Updated to accept person object
+  onEditClick: (
+    person: AccompanyPerson,
+    mainAccompanyId: string | null
+  ) => void; // Updated to accept mainAccompanyId
 };
 
 export default function AccompanyingTable({
@@ -114,6 +117,29 @@ export default function AccompanyingTable({
   const allPaidPersons: AccompanyPerson[] = paidAccompanies.flatMap(
     (accompany) => accompany.paidAccompanies
   );
+
+  // Update the onEditClick in AccompanyingTable to find the main accompany ID
+  const handleEditClick = (person: AccompanyPerson) => {
+    console.log("=== TABLE DEBUG ===");
+    console.log("Clicked person:", person);
+    console.log("All paid accompanies:", paidAccompanies);
+
+    // Find which main accompany document contains this person
+    const mainAccompany = paidAccompanies.find((accompany) =>
+      accompany.paidAccompanies.some((p) => p._id === person._id)
+    );
+
+    console.log("Found main accompany:", mainAccompany);
+
+    if (mainAccompany) {
+      console.log("Main accompany ID to use:", mainAccompany._id);
+      onEditClick(person, mainAccompany._id);
+    } else {
+      console.error("Could not find main accompany document");
+      onEditClick(person, null);
+    }
+    console.log("=== END TABLE DEBUG ===");
+  };
 
   const toggleSort = (column: "name" | "relation" | "age") => {
     if (sortBy === column) {
@@ -311,7 +337,7 @@ export default function AccompanyingTable({
                       variant="ghost"
                       size="sm"
                       className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer"
-                      onClick={() => onEditClick(person)}
+                      onClick={() => handleEditClick(person)}
                     >
                       <Edit className="w-4 h-4 mr-1" />
                       Edit

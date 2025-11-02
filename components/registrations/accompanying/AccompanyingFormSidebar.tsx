@@ -70,6 +70,7 @@ type AccompanyPerson = {
 type Props = {
   eventId?: string | null;
   registrationId?: string | null;
+  mainAccompanyId?: string | null;
   open: boolean;
   onClose: () => void;
   editingPerson?: AccompanyPerson | null;
@@ -87,7 +88,6 @@ const loadRazorpayScript = () => {
     script.src = "https://checkout.razorpay.com/v1/checkout.js";
     script.async = true;
     script.onload = () => {
-      console.log("Razorpay SDK loaded successfully");
       resolve(true);
     };
     script.onerror = () => {
@@ -101,6 +101,7 @@ const loadRazorpayScript = () => {
 export default function AccompanyingFormSidebar({
   eventId,
   registrationId,
+  mainAccompanyId,
   open,
   onClose,
   editingPerson,
@@ -135,11 +136,9 @@ export default function AccompanyingFormSidebar({
       );
 
       const data = await res.json();
-      console.log("Accompany Amount Response:", data);
 
       if (data.success && data.data) {
         setAccompanyAmount(data.data.accompanyAmount || 0);
-        console.log("Accompany Amount:", data.data.accompanyAmount);
       } else {
         console.error("Failed to fetch accompany amount:", data);
         setAccompanyAmount(null);
@@ -175,7 +174,6 @@ export default function AccompanyingFormSidebar({
       );
 
       const data = await res.json();
-      console.log("Meal Preferences Response (Accompanying):", data);
 
       if (data.success && Array.isArray(data.data)) {
         setMealPreferences(data.data);
@@ -269,8 +267,6 @@ export default function AccompanyingFormSidebar({
         );
       }
 
-      console.log("Payment order response:", paymentData);
-
       // Double check if Razorpay is available
       if (!(window as any).Razorpay) {
         throw new Error("Razorpay SDK still not loaded after waiting");
@@ -305,8 +301,6 @@ export default function AccompanyingFormSidebar({
           },
         },
       };
-
-      console.log("Razorpay options:", options);
 
       const razorpay = new (window as any).Razorpay(options);
       razorpay.open();
@@ -483,9 +477,18 @@ export default function AccompanyingFormSidebar({
         const token = localStorage.getItem("accessToken");
 
         if (editingPerson) {
-          // EDIT EXISTING PERSON - Use the correct update endpoint
+          // Only validate mainAccompanyId for editing, not for adding
+          if (
+            !mainAccompanyId ||
+            (editingPerson && mainAccompanyId === editingPerson._id)
+          ) {
+            console.error("Invalid mainAccompanyId:", mainAccompanyId);
+            toast.error("Invalid accompany record ID");
+            return;
+          }
+
           const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/${editingPerson._id}/edit`,
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/${mainAccompanyId}/edit`,
             {
               method: "PUT",
               headers: {
@@ -520,7 +523,7 @@ export default function AccompanyingFormSidebar({
           onClose();
           window.location.reload(); // Reload to reflect changes
         } else {
-          // ADD NEW PERSON - Use the add endpoint
+          // ADD NEW PERSON - Use the add endpoint (no mainAccompanyId validation needed)
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/${eventId}/${registrationId}/add`,
             {
