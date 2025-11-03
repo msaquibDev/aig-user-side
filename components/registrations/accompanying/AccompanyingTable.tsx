@@ -120,9 +120,6 @@ export default function AccompanyingTable({
 
   // Update the onEditClick in AccompanyingTable to find the main accompany ID
   const handleEditClick = (person: AccompanyPerson) => {
-    console.log("=== TABLE DEBUG ===");
-    console.log("Clicked person:", person);
-    console.log("All paid accompanies:", paidAccompanies);
 
     // Find which main accompany document contains this person
     const mainAccompany = paidAccompanies.find((accompany) =>

@@ -23,6 +23,7 @@ import {
   MapPin,
   Clock,
   CheckCircle,
+  AlertCircle,
 } from "lucide-react";
 import { useWorkshopStore } from "@/app/store/useWorkshopStore";
 
@@ -84,6 +85,7 @@ export default function WorkshopTable({
         );
 
         const data = await response.json();
+        console.log("Fetched workshops:", data);
 
         if (data.success && Array.isArray(data.data)) {
           setApiWorkshops(data.data);
@@ -112,16 +114,41 @@ export default function WorkshopTable({
     }
   };
 
-  // Check if a workshop is selected (you might want to implement this based on your registration data)
+  // Check if a workshop is selected
   const isWorkshopSelected = (workshopId: string): boolean => {
     // TODO: Implement based on your registration data
     // For now, return false as we don't have registration data
     return false;
   };
 
+  // Check if user can register for workshop
+  const canRegisterForWorkshop = (workshop: Workshop): boolean => {
+    // If workshop doesn't require event registration, anyone can register
+    if (!workshop.isEventRegistrationRequired) {
+      return true;
+    }
+
+    // If workshop requires event registration, check if user has event registration
+    return registrationId !== null;
+  };
+
   // Get workshop status
   const getWorkshopStatus = (workshopId: string): string => {
-    return isWorkshopSelected(workshopId) ? "Registered" : "Available";
+    const workshop = apiWorkshops.find((w) => w._id === workshopId);
+    if (!workshop) return "Unavailable";
+
+    const isSelected = isWorkshopSelected(workshopId);
+    const canRegister = canRegisterForWorkshop(workshop);
+
+    if (isSelected) {
+      return "Registered";
+    }
+
+    if (!canRegister) {
+      return "Event Registration Required";
+    }
+
+    return "Available";
   };
 
   const getSortedWorkshops = () => {
@@ -180,6 +207,11 @@ export default function WorkshopTable({
     );
   };
 
+  // Check if there are workshops that require event registration but user is not registered
+  const hasRestrictedWorkshops = apiWorkshops.some(
+    (w) => w.isEventRegistrationRequired && !registrationId
+  );
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -227,6 +259,24 @@ export default function WorkshopTable({
           />
         </div>
       </div>
+
+      {/* Info Message for Restricted Workshops */}
+      {hasRestrictedWorkshops && (
+        <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
+            <div>
+              <p className="text-orange-700 text-sm font-medium">
+                Event Registration Required
+              </p>
+              <p className="text-orange-600 text-sm mt-1">
+                Some workshops require event registration. Please register for
+                the event first to access these workshops.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Error Message */}
       {error && (
@@ -290,6 +340,7 @@ export default function WorkshopTable({
             {currentItems.length > 0 ? (
               currentItems.map((workshop, index) => {
                 const isSelected = isWorkshopSelected(workshop._id);
+                const canRegister = canRegisterForWorkshop(workshop);
                 const status = getWorkshopStatus(workshop._id);
 
                 return (
@@ -345,11 +396,15 @@ export default function WorkshopTable({
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                           isSelected
                             ? "bg-green-100 text-green-800"
+                            : !canRegister
+                            ? "bg-orange-100 text-orange-800"
                             : "bg-blue-100 text-blue-800"
                         }`}
                       >
                         {isSelected ? (
                           <CheckCircle className="w-3 h-3 mr-1" />
+                        ) : !canRegister ? (
+                          <AlertCircle className="w-3 h-3 mr-1" />
                         ) : (
                           <Clock className="w-3 h-3 mr-1" />
                         )}

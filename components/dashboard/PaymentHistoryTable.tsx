@@ -295,14 +295,12 @@ export default function PaymentHistoryTable() {
                       <Badge
                         variant="outline"
                         className={
-                          payment.paymentCategory === "eventRegistration"
+                          payment.paymentCategory === "Event Registration"
                             ? "bg-blue-100 text-blue-800 border border-blue-200"
                             : "bg-purple-100 text-purple-800 border border-purple-200"
                         }
                       >
-                        {payment.paymentCategory === "eventRegistration"
-                          ? "Registration"
-                          : "Accompany"}
+                        {payment.paymentCategory}
                       </Badge>
                     </td>
                     <td className="px-4 py-3">
