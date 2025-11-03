@@ -154,7 +154,7 @@ export function DashboardHeader({
         >
           <Menu size={24} />
         </Button>
-        <Link href="/dashboard" className="flex items-center">
+        <Link href="/" className="flex items-center">
           <Image
             src="/headerImg/logo.png"
             alt="AIG Hospitals Logo"

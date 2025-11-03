@@ -19,39 +19,59 @@ import { formatEventDate } from "@/app/utils/formatEventDate";
 import { useUserRegistrationsStore } from "@/app/store/useRegistrationStore";
 import { Badge } from "@/components/ui/badge";
 import SkeletonCard from "../common/SkeletonCard";
+import { useUserStore } from "@/app/store/useUserStore";
 
 export default function BrowseByDepartment() {
   const { events, fetchEvents } = useEventStore();
   const { registrations, fetchRegistrations } = useUserRegistrationsStore();
   const router = useRouter();
+  const { isAuthenticated } = useUserStore();
 
   const [selectedDept, setSelectedDept] = useState<string>("");
   const [sortOrder, setSortOrder] = useState<"latest" | "oldest" | "">("");
   // const { data: session } = useSession();
   const [loading, setLoading] = useState(true);
 
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     setLoading(true);
-  //     await fetchEvents();
-  //     if (session) await fetchRegistrations();
-  //     setLoading(false);
-  //   }
-  //   fetchData();
-  // }, [fetchEvents, fetchRegistrations, session]);
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      await fetchEvents();
+      if (isAuthenticated) {
+        await fetchRegistrations();
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, [fetchEvents, fetchRegistrations, isAuthenticated]);
 
-  // const handleRegister = (eventId: string) => {
-  //   if (!session) {
-  //     router.push("/login");
-  //   } else {
-  //     router.push(`/registration/my-registration?eventId=${eventId}`);
-  //   }
-  // };
+  const handleRegister = (eventId: string) => {
+    if (!isAuthenticated) {
+      router.push("/login");
+    } else {
+      router.push(`/registration/my-registration?eventId=${eventId}`);
+    }
+  };
 
   const handleViewBadge = (eventId: string, registrationId: string) => {
     router.push(
       `/registration/my-registration/badge/${eventId}?registrationId=${registrationId}`
     );
+  };
+
+  const isEventPast = (event: any): boolean => {
+    if (!event.endDate) return false;
+    try {
+      const [day, month, year] = event.endDate.split("/");
+      const eventEndDate = new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day)
+      );
+      return eventEndDate < new Date();
+    } catch (error) {
+      console.error("Error parsing event date:", error);
+      return false;
+    }
   };
 
   const filteredEvents = selectedDept
@@ -61,8 +81,13 @@ export default function BrowseByDepartment() {
     : events;
 
   const sortedEvents = [...filteredEvents].sort((a, b) => {
-    const dateA = new Date(a.startDate).getTime();
-    const dateB = new Date(b.startDate).getTime();
+    const parseDate = (dateStr: string) => {
+      const [day, month, year] = dateStr.split("/").map(Number);
+      return new Date(year, month - 1, day).getTime();
+    };
+
+    const dateA = parseDate(a.startDate);
+    const dateB = parseDate(b.startDate);
     if (sortOrder === "latest") return dateB - dateA;
     if (sortOrder === "oldest") return dateA - dateB;
     return 0;
@@ -148,6 +173,10 @@ export default function BrowseByDepartment() {
                     alt={event.eventName}
                     className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
                     loading="lazy"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.style.display = "none";
+                    }}
                   />
                 </div>
 
@@ -169,16 +198,33 @@ export default function BrowseByDepartment() {
                     </div>
                   </div>
 
+                  {/* Event Type & Category */}
+                  <div className="flex items-center gap-2 pt-2">
+                    <span className="inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full">
+                      {event.eventCategory}
+                    </span>
+                    <span className="inline-block px-2 py-1 text-xs bg-gray-50 text-gray-700 rounded-full">
+                      {event.registrationType === "free" ? "Free" : "Paid"}
+                    </span>
+                    {userReg && (
+                      <span className="inline-block px-2 py-1 text-xs bg-green-50 text-green-700 rounded-full">
+                        Registered
+                      </span>
+                    )}
+                  </div>
+
                   {/* Register / View Badge Button */}
                   <Button
                     onClick={() => {
                       if (userReg) {
                         handleViewBadge(event._id, userReg._id);
                       } else if (!isPast) {
-                        // handleRegister(event._id);
+                        handleRegister(event._id);
+                      } else {
+                        return;
                       }
                     }}
-                    disabled={!userReg && isPast} // ✅ disable if event ended and not registered
+                    disabled={!userReg && isPast}
                     className={`mt-4 w-full text-sm py-2 transition-colors cursor-pointer ${
                       userReg
                         ? "bg-green-600 hover:bg-green-700"

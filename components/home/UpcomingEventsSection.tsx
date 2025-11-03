@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { formatEventDate } from "@/app/utils/formatEventDate";
 // import { useSession } from "next-auth/react";
 import SkeletonCard from "../common/SkeletonCard";
+import { useUserStore } from "@/app/store/useUserStore";
 
 interface UpcomingEventsSectionProps {
   title: string;
@@ -26,16 +27,28 @@ export default function UpcomingEventsSection({
   const router = useRouter();
   const { events, fetchEvents } = useEventStore();
   const { registrations, fetchRegistrations } = useUserRegistrationsStore();
-  // const { data: session } = useSession();
+  const { isAuthenticated } = useUserStore();
   const [loading, setLoading] = useState(true);
 
-  // const handleRegister = (eventId: string) => {
-  //   if (!session) {
-  //     router.push("/login");
-  //   } else {
-  //     router.push(`/registration/my-registration?eventId=${eventId}`);
-  //   }
-  // };
+  useEffect(() => {
+    async function fetchData() {
+      setLoading(true);
+      await fetchEvents();
+      if (isAuthenticated) {
+        await fetchRegistrations();
+      }
+      setLoading(false);
+    }
+    fetchData();
+  }, [fetchEvents, fetchRegistrations, isAuthenticated]);
+
+  const handleRegister = (eventId: string) => {
+    if (!isAuthenticated) {
+      router.push("/login");
+    } else {
+      router.push(`/registration/my-registration?eventId=${eventId}`);
+    }
+  };
 
   const handleViewBadge = (eventId: string, registrationId: string) => {
     router.push(
@@ -43,30 +56,35 @@ export default function UpcomingEventsSection({
     );
   };
 
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     setLoading(true);
-  //     await fetchEvents();
-  //     if (session) await fetchRegistrations();
-  //     setLoading(false);
-  //   }
-  //   fetchData();
-  // }, [fetchEvents, fetchRegistrations, session]);
+  const isEventPast = (event: any): boolean => {
+    if (!event.endDate) return false;
+    try {
+      const [day, month, year] = event.endDate.split("/");
+      const eventEndDate = new Date(
+        parseInt(year),
+        parseInt(month) - 1,
+        parseInt(day)
+      );
+      return eventEndDate < new Date();
+    } catch (error) {
+      console.error("Error parsing event date:", error);
+      return false;
+    }
+  };
 
-  // ✅ Filter by category
-  const filteredEvents = events.filter(
-    (event) => event.eventCategory === eventCategory
-  );
+  const filteredEvents = events
+    .filter((event) => event.eventCategory === eventCategory)
+    .filter((event) => !isEventPast(event));
 
-  // ✅ If none → don't render section
+  // If none → don't render section
   if (filteredEvents.length === 0) return null;
 
-  // ✅ Apply limit if provided
+  // Apply limit if provided
   const displayedEvents = limit
     ? filteredEvents.slice(0, limit)
     : filteredEvents;
 
-  // ✅ Auto-generate "View All" link
+  // Auto-generate "View All" link
   const categoryToPath: Record<string, string> = {
     Conference: "/conferences",
     Workshop: "/workshops",
@@ -83,7 +101,7 @@ export default function UpcomingEventsSection({
           {title}
         </h2>
 
-        {limit && filteredEvents.length > limit && viewAllLink && (
+        {/* {limit && filteredEvents.length > limit && viewAllLink && (
           <Button
             variant="outline"
             className="text-sm border-gray-300 cursor-pointer"
@@ -91,7 +109,7 @@ export default function UpcomingEventsSection({
           >
             View All
           </Button>
-        )}
+        )} */}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 md:gap-5">
@@ -127,6 +145,10 @@ export default function UpcomingEventsSection({
                   alt={event.eventName}
                   className="w-full h-full object-cover p-0 m-0 block transition-transform duration-500 group-hover:scale-105"
                   loading="lazy"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.style.display = "none";
+                  }}
                 />
               </div>
 
@@ -150,13 +172,32 @@ export default function UpcomingEventsSection({
                   </div>
                 </div>
 
+                {/* Event Type & Category */}
+                <div className="flex items-center gap-2 pt-2">
+                  <span className="inline-block px-2 py-1 text-xs bg-blue-50 text-blue-700 rounded-full">
+                    {event.eventCategory}
+                  </span>
+                  <span className="inline-block px-2 py-1 text-xs bg-gray-50 text-gray-700 rounded-full">
+                    {event.registrationType === "free" ? "Free" : "Paid"}
+                  </span>
+                  {userReg && (
+                    <span className="inline-block px-2 py-1 text-xs bg-green-50 text-green-700 rounded-full">
+                      Registered
+                    </span>
+                  )}
+                </div>
+
                 {/* Register / View Badge Button */}
                 <Button
-                  onClick={() =>
-                    userReg
-                      // ? handleViewBadge(event._id!, userReg._id)
-                      // : handleRegister(event._id!)
-                  }
+                  onClick={() => {
+                    if (userReg) {
+                      handleViewBadge(event._id, userReg._id);
+                    } else if (!isPast) {
+                      handleRegister(event._id);
+                    } else {
+                      return;
+                    }
+                  }}
                   disabled={!userReg && isPast}
                   className={`mt-4 w-full text-sm py-2 transition-colors cursor-pointer ${
                     userReg

@@ -80,7 +80,7 @@ export default function WorkshopTable({
         setError(null);
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/workshops`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/active-workshops`
         );
 
         const data = await response.json();

@@ -6,13 +6,12 @@ import { useRouter } from "next/navigation";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-// import { signOut, useSession } from "next-auth/react";
 import { useUserStore } from "@/app/store/useUserStore";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 const navItems = [
-  { label: "Home", href: "#home" },
+  { label: "Home", href: "/" },
   { label: "Department", href: "#department" },
   { label: "Conferences", href: "#conferences" },
   { label: "Workshops", href: "#workshops" },
@@ -24,44 +23,69 @@ export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const router = useRouter();
+  const { photo, fullName, email, clearUser, isAuthenticated } = useUserStore();
 
-  // const { data: session } = useSession();
-  const { photo, fullName, setUser } = useUserStore();
+  const handleLogout = async () => {
+    setLoggingOut(true);
+    try {
+      const token = localStorage.getItem("accessToken");
 
-  // const isLoggedIn = !!session?.user;
+      // Call backend logout endpoint
+      if (token) {
+        try {
+          await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/users/logout`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+              credentials: "include",
+            }
+          );
+        } catch (error) {
+          console.log("Backend logout optional - frontend cleared");
+        }
+      }
 
-  // ✅ Fetch latest profile on mount
-  // useEffect(() => {
-  //   async function fetchProfile() {
-  //     if (!isLoggedIn) return;
+      // Clear client-side storage
+      localStorage.removeItem("accessToken");
+      localStorage.removeItem("user");
 
-  //     try {
-  //       const res = await fetch("/api/user/profile");
-  //       if (!res.ok) throw new Error("Failed to fetch profile");
-  //       const data = await res.json();
+      // Clear user store
+      clearUser();
 
-  //       setUser({
-  //         photo: data.profilePicture || "/authImg/user.png",
-  //         fullName: data.fullName || session.user?.name || "",
-  //       });
-  //     } catch (err) {
-  //       console.error("Error fetching profile:", err);
-  //     }
-  //   }
+      // Redirect to home page
+      router.push("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      setLoggingOut(false);
+      setMenuOpen(false);
+    }
+  };
 
-  //   fetchProfile();
-  // }, [isLoggedIn, session?.user?.email, setUser]);
+  // Get user initials for avatar fallback
+  const getUserInitials = () => {
+    if (!fullName) return "U";
+    return fullName
+      .split(" ")
+      .map((name) => name[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
 
-  // const handleLogout = async () => {
-  //   setLoggingOut(true);
-  //   try {
-  //     await signOut({ redirect: false });
-  //     setUser({ photo: "/authImg/user.png", fullName: "" });
-  //     router.push("/");
-  //   } finally {
-  //     setLoggingOut(false);
-  //   }
-  // };
+  const handleNavClick = (href: string) => {
+    if (href.startsWith("#")) {
+      // For anchor links, just close the menu
+      setMenuOpen(false);
+    } else {
+      // For page navigation, close menu and navigate
+      setMenuOpen(false);
+      router.push(href);
+    }
+  };
 
   return (
     <header className="w-full bg-gradient-to-r from-[#02075d] to-[#1e3a8a] text-white sticky top-0 z-50">
@@ -73,7 +97,8 @@ export default function Header() {
             alt="AIG Logo"
             width={120}
             height={40}
-            className="cursor-pointer w-auto" // 👈 keeps aspect ratio intact
+            className="cursor-pointer w-auto"
+            priority
           />
         </Link>
 
@@ -92,21 +117,25 @@ export default function Header() {
 
         {/* Right Side */}
         <div className="hidden md:flex items-center gap-4">
-          {/* {isLoggedIn ? (
+          {isAuthenticated ? (
             <>
               <Link href="/dashboard/profile">
-                <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
-                  <AvatarImage src={photo || "/authImg/user.png"} />
-                  <AvatarFallback>
-                    {fullName?.[0] ?? session.user?.name?.[0] ?? "U"}
+                <Avatar className="border-2 border-white/80 w-10 h-10 cursor-pointer hover:border-white transition-colors">
+                  <AvatarImage
+                    src={photo || "/authImg/user.png"}
+                    alt={fullName || "User"}
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="bg-blue-600 text-white font-semibold">
+                    {getUserInitials()}
                   </AvatarFallback>
                 </Avatar>
               </Link>
               <Button
-                // onClick={handleLogout}
+                onClick={handleLogout}
                 variant="outline"
                 disabled={loggingOut}
-                className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
+                className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer transition-all duration-200"
               >
                 {loggingOut ? (
                   <div className="flex items-center gap-2">
@@ -122,18 +151,18 @@ export default function Header() {
             <Link href="/login">
               <Button
                 variant="outline"
-                className="mt-2 w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] cursor-pointer"
+                className="border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer transition-all duration-200"
               >
                 Login / Sign Up
               </Button>
             </Link>
-          )} */}
+          )}
         </div>
 
         {/* Mobile Hamburger */}
         <button
           onClick={() => setMenuOpen(!menuOpen)}
-          className="md:hidden focus:outline-none cursor-pointer"
+          className="md:hidden focus:outline-none cursor-pointer p-2 rounded-lg hover:bg-white/20 transition-colors"
         >
           {menuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
@@ -141,38 +170,46 @@ export default function Header() {
 
       {/* Mobile Menu Dropdown */}
       {menuOpen && (
-        <div className="md:hidden px-6 pb-4 space-y-2">
+        <div className="md:hidden px-6 pb-4 space-y-2 bg-gradient-to-r from-[#02075d] to-[#1e3a8a]">
           {navItems.map((item) => (
-            <Link
+            <button
               key={item.href}
-              href={item.href}
-              onClick={() => setMenuOpen(false)}
-              className="block text-white py-2 border-b border-white/20"
+              onClick={() => handleNavClick(item.href)}
+              className="block text-white py-2 border-b border-white/20 w-full text-left hover:bg-white/10 transition-colors rounded px-2"
             >
               {item.label}
-            </Link>
+            </button>
           ))}
-          {/* {isLoggedIn ? (
+          {isAuthenticated ? (
             <>
               <Link
                 href="/dashboard/profile"
                 onClick={() => setMenuOpen(false)}
+                className="block"
               >
-                <div className="flex items-center gap-3 py-2 border-b border-white/20">
-                  <Avatar className="border-2 border-purple-600 w-10 h-10 cursor-pointer">
-                    <AvatarImage src={photo || "/authImg/user.png"} />
-                    <AvatarFallback>
-                      {fullName?.[0] ?? session?.user?.name?.[0] ?? "U"}
+                <div className="flex items-center gap-3 py-2 border-b border-white/20 hover:bg-white/10 transition-colors rounded px-2">
+                  <Avatar className="border-2 border-white/80 w-10 h-10">
+                    <AvatarImage
+                      src={photo || "/authImg/user.png"}
+                      alt={fullName || "User"}
+                    />
+                    <AvatarFallback className="bg-blue-600 text-white font-semibold">
+                      {getUserInitials()}
                     </AvatarFallback>
                   </Avatar>
-                  <span>{fullName || session?.user?.name}</span>
+                  <div className="flex flex-col">
+                    <span className="text-white font-medium">
+                      {fullName || "User"}
+                    </span>
+                    <span className="text-white/70 text-sm">{email || ""}</span>
+                  </div>
                 </div>
               </Link>
               <Button
-                // onClick={handleLogout}
+                onClick={handleLogout}
                 variant="outline"
                 disabled={loggingOut}
-                className="w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer"
+                className="w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer transition-all duration-200 mt-2"
               >
                 {loggingOut ? (
                   <div className="flex items-center gap-2">
@@ -188,12 +225,12 @@ export default function Header() {
             <Link href="/login" onClick={() => setMenuOpen(false)}>
               <Button
                 variant="outline"
-                className="mt-2 w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] cursor-pointer"
+                className="w-full border border-white text-white bg-transparent hover:bg-white hover:text-[#0a1f68] px-4 py-2 cursor-pointer transition-all duration-200 mt-2"
               >
                 Login / Sign Up
               </Button>
             </Link>
-          )} */}
+          )}
         </div>
       )}
 

@@ -4,7 +4,6 @@ import "../globals.css";
 import { Toaster } from "sonner";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
-// import SessionProviderWrapper from "@/components/providers/SessionProviderWrapper"; // ✅ new
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -31,12 +30,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* <SessionProviderWrapper> */}
           <Header />
           <Toaster richColors position="top-right" />
           <main>{children}</main>
           <Footer />
-        {/* </SessionProviderWrapper> */}
       </body>
     </html>
   );
