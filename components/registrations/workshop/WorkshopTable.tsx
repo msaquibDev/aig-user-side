@@ -45,6 +45,13 @@ type Workshop = {
   __v: number;
 };
 
+type RegisteredWorkshop = {
+  _id: string;
+  workshopId: Workshop;
+  status: string;
+  createdAt: string;
+};
+
 type Props = {
   eventId?: string | null;
   registrationId?: string | null;
@@ -63,6 +70,9 @@ export default function WorkshopTable({
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
   const [apiWorkshops, setApiWorkshops] = useState<Workshop[]>([]);
+  const [registeredWorkshops, setRegisteredWorkshops] = useState<
+    RegisteredWorkshop[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
 
   // Sorting state
@@ -71,38 +81,52 @@ export default function WorkshopTable({
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  // Fetch workshops from API when eventId changes
+  // Fetch registered workshops from API when eventId changes
   useEffect(() => {
-    const fetchWorkshops = async () => {
+    const fetchRegisteredWorkshops = async () => {
       if (!eventId) return;
 
       try {
         setLoading(true);
         setError(null);
 
+        const token = localStorage.getItem("accessToken");
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/active-workshops`
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/workshop-registrations/my-workshops?eventId=${eventId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
 
         const data = await response.json();
-        console.log("Fetched workshops:", data);
+        console.log("Fetched registered workshops:", data);
 
         if (data.success && Array.isArray(data.data)) {
-          setApiWorkshops(data.data);
+          setRegisteredWorkshops(data.data);
+
+          // Extract workshop details from registered workshops
+          const workshopsData = data.data.map(
+            (reg: RegisteredWorkshop) => reg.workshopId
+          );
+          setApiWorkshops(workshopsData);
         } else {
-          setError("No workshops found for this event");
+          setError("No registered workshops found for this event");
+          setRegisteredWorkshops([]);
           setApiWorkshops([]);
         }
       } catch (error) {
-        console.error("Error fetching workshops:", error);
-        setError("Failed to load workshops");
+        console.error("Error fetching registered workshops:", error);
+        setError("Failed to load registered workshops");
+        setRegisteredWorkshops([]);
         setApiWorkshops([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWorkshops();
+    fetchRegisteredWorkshops();
   }, [eventId]);
 
   const toggleSort = (column: "name" | "date" | "price" | "type") => {
@@ -114,41 +138,17 @@ export default function WorkshopTable({
     }
   };
 
-  // Check if a workshop is selected
-  const isWorkshopSelected = (workshopId: string): boolean => {
-    // TODO: Implement based on your registration data
-    // For now, return false as we don't have registration data
-    return false;
+  // Check if a workshop is registered
+  const isWorkshopRegistered = (workshopId: string): boolean => {
+    return registeredWorkshops.some((reg) => reg.workshopId._id === workshopId);
   };
 
-  // Check if user can register for workshop
-  const canRegisterForWorkshop = (workshop: Workshop): boolean => {
-    // If workshop doesn't require event registration, anyone can register
-    if (!workshop.isEventRegistrationRequired) {
-      return true;
-    }
-
-    // If workshop requires event registration, check if user has event registration
-    return registrationId !== null;
-  };
-
-  // Get workshop status
-  const getWorkshopStatus = (workshopId: string): string => {
-    const workshop = apiWorkshops.find((w) => w._id === workshopId);
-    if (!workshop) return "Unavailable";
-
-    const isSelected = isWorkshopSelected(workshopId);
-    const canRegister = canRegisterForWorkshop(workshop);
-
-    if (isSelected) {
-      return "Registered";
-    }
-
-    if (!canRegister) {
-      return "Event Registration Required";
-    }
-
-    return "Available";
+  // Get workshop registration status
+  const getWorkshopRegistrationStatus = (workshopId: string): string => {
+    const registration = registeredWorkshops.find(
+      (reg) => reg.workshopId._id === workshopId
+    );
+    return registration?.status || "Not Registered";
   };
 
   const getSortedWorkshops = () => {
@@ -207,17 +207,12 @@ export default function WorkshopTable({
     );
   };
 
-  // Check if there are workshops that require event registration but user is not registered
-  const hasRestrictedWorkshops = apiWorkshops.some(
-    (w) => w.isEventRegistrationRequired && !registrationId
-  );
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading workshops...</p>
+          <p className="text-gray-600">Loading registered workshops...</p>
         </div>
       </div>
     );
@@ -229,21 +224,21 @@ export default function WorkshopTable({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div>
           <h2 className="text-xl font-semibold text-[#00509E]">
-            Available Workshops
+            My Registered Workshops
           </h2>
           {eventId && (
             <p className="text-gray-600 text-sm mt-1">
-              Browse and register for workshops
+              View your registered workshops for this event
             </p>
           )}
         </div>
         <Button
           onClick={onAddClick}
           className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"
-          disabled={!eventId || apiWorkshops.length === 0}
+          disabled={!eventId}
         >
           <PlusCircle className="w-4 h-4 mr-2" />
-          Register for Workshop
+          Register for More Workshops
         </Button>
       </div>
 
@@ -252,31 +247,13 @@ export default function WorkshopTable({
         <div className="relative max-w-sm">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
-            placeholder="Search workshops..."
+            placeholder="Search registered workshops..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-10 bg-white border-gray-300"
           />
         </div>
       </div>
-
-      {/* Info Message for Restricted Workshops */}
-      {hasRestrictedWorkshops && (
-        <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-          <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-orange-700 text-sm font-medium">
-                Event Registration Required
-              </p>
-              <p className="text-orange-600 text-sm mt-1">
-                Some workshops require event registration. Please register for
-                the event first to access these workshops.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Error Message */}
       {error && (
@@ -331,7 +308,7 @@ export default function WorkshopTable({
                 </div>
               </TableHead>
               <TableHead className="font-semibold text-gray-900">
-                Status
+                Registration Status
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -339,9 +316,10 @@ export default function WorkshopTable({
           <TableBody>
             {currentItems.length > 0 ? (
               currentItems.map((workshop, index) => {
-                const isSelected = isWorkshopSelected(workshop._id);
-                const canRegister = canRegisterForWorkshop(workshop);
-                const status = getWorkshopStatus(workshop._id);
+                const isRegistered = isWorkshopRegistered(workshop._id);
+                const registrationStatus = getWorkshopRegistrationStatus(
+                  workshop._id
+                );
 
                 return (
                   <TableRow key={workshop._id} className="hover:bg-gray-50/50">
@@ -394,21 +372,23 @@ export default function WorkshopTable({
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          isSelected
+                          registrationStatus === "confirmed" ||
+                          registrationStatus === "registered"
                             ? "bg-green-100 text-green-800"
-                            : !canRegister
-                            ? "bg-orange-100 text-orange-800"
-                            : "bg-blue-100 text-blue-800"
+                            : registrationStatus === "pending"
+                            ? "bg-yellow-100 text-yellow-800"
+                            : registrationStatus === "cancelled"
+                            ? "bg-red-100 text-red-800"
+                            : "bg-gray-100 text-gray-800"
                         }`}
                       >
-                        {isSelected ? (
+                        {isRegistered ? (
                           <CheckCircle className="w-3 h-3 mr-1" />
-                        ) : !canRegister ? (
-                          <AlertCircle className="w-3 h-3 mr-1" />
                         ) : (
-                          <Clock className="w-3 h-3 mr-1" />
+                          <AlertCircle className="w-3 h-3 mr-1" />
                         )}
-                        {status}
+                        {registrationStatus.charAt(0).toUpperCase() +
+                          registrationStatus.slice(1)}
                       </span>
                     </TableCell>
                   </TableRow>
@@ -422,11 +402,11 @@ export default function WorkshopTable({
                 >
                   <div className="flex flex-col items-center">
                     <PlusCircle className="w-12 h-12 text-gray-300 mb-2" />
-                    <p className="text-gray-600">No workshops available</p>
+                    <p className="text-gray-600">No registered workshops</p>
                     <p className="text-sm text-gray-500 mt-1">
                       {eventId
-                        ? "No workshops found for this event"
-                        : "Please select an event to view workshops"}
+                        ? "You haven't registered for any workshops yet"
+                        : "Please select an event to view registered workshops"}
                     </p>
                   </div>
                 </TableCell>

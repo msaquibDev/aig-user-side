@@ -52,6 +52,9 @@ export default function WorkshopFormSidebar({
   const [error, setError] = useState<string | null>(null);
   const [apiWorkshops, setApiWorkshops] = useState<Workshop[]>([]);
   const [selectedWorkshopIds, setSelectedWorkshopIds] = useState<string[]>([]);
+  const [selectedWorkshopType, setSelectedWorkshopType] = useState<
+    "paid" | "free" | null
+  >(null);
 
   // Fetch workshops from API when sidebar opens
   useEffect(() => {
@@ -67,6 +70,7 @@ export default function WorkshopFormSidebar({
         );
 
         const data = await response.json();
+        console.log("Fetched workshops:", data);
 
         if (data.success && Array.isArray(data.data)) {
           setApiWorkshops(data.data);
@@ -93,11 +97,41 @@ export default function WorkshopFormSidebar({
   };
 
   // Handle workshop selection
-  const handleWorkshopSelect = (workshopId: string, isSelected: boolean) => {
+  const handleWorkshopSelect = (
+    workshopId: string,
+    isSelected: boolean,
+    workshopAmount: number
+  ) => {
+    const workshop = apiWorkshops.find((w) => w._id === workshopId);
+    if (!workshop) return;
+
+    const workshopType = workshop.amount > 0 ? "paid" : "free";
+
+    // Check if user is trying to mix paid and free workshops
+    if (
+      selectedWorkshopType &&
+      selectedWorkshopType !== workshopType &&
+      isSelected
+    ) {
+      alert(
+        `You cannot select both paid and free workshops at the same time. Please deselect ${selectedWorkshopType} workshops first.`
+      );
+      return;
+    }
+
     if (isSelected) {
       setSelectedWorkshopIds((prev) => [...prev, workshopId]);
+      setSelectedWorkshopType(workshopType);
     } else {
-      setSelectedWorkshopIds((prev) => prev.filter((id) => id !== workshopId));
+      const newSelectedIds = selectedWorkshopIds.filter(
+        (id) => id !== workshopId
+      );
+      setSelectedWorkshopIds(newSelectedIds);
+
+      // Reset workshop type if no workshops selected
+      if (newSelectedIds.length === 0) {
+        setSelectedWorkshopType(null);
+      }
     }
   };
 
@@ -124,6 +158,9 @@ export default function WorkshopFormSidebar({
 
   const totalCount = selectedWorkshopIds.length;
 
+  const isFreeWorkshopSelected = selectedWorkshopType === "free";
+  const isPaidWorkshopSelected = selectedWorkshopType === "paid";
+
   const onSubmit = async () => {
     try {
       setSubmitting(true);
@@ -135,26 +172,47 @@ export default function WorkshopFormSidebar({
         registrationId,
         selectedWorkshops: selectedWorkshopData,
         totalPrice,
+        workshopType: selectedWorkshopType,
       });
 
-      // TODO: Add API call to register for workshops
-      // await fetch(`/api/workshops/register`, {
-      //   method: 'POST',
-      //   body: JSON.stringify({
-      //     eventId,
-      //     registrationId,
-      //     workshops: selectedWorkshopData
-      //   }),
-      //   headers: { 'Content-Type': 'application/json' }
-      // });
+      // Different API calls based on workshop type
+      if (isFreeWorkshopSelected) {
+        // Free workshop registration API
+        // await fetch(`/api/workshops/register-free`, {
+        //   method: 'POST',
+        //   body: JSON.stringify({
+        //     eventId,
+        //     registrationId,
+        //     workshops: selectedWorkshopData
+        //   }),
+        //   headers: { 'Content-Type': 'application/json' }
+        // });
+        console.log("Calling FREE workshop registration API");
+      } else if (isPaidWorkshopSelected) {
+        // Paid workshop registration API
+        // await fetch(`/api/workshops/register-paid`, {
+        //   method: 'POST',
+        //   body: JSON.stringify({
+        //     eventId,
+        //     registrationId,
+        //     workshops: selectedWorkshopData,
+        //     totalAmount: totalPrice
+        //   }),
+        //   headers: { 'Content-Type': 'application/json' }
+        // });
+        console.log("Calling PAID workshop registration API");
+      }
 
       // Show success message
       alert(
-        `Successfully registered for ${totalCount} workshop(s)! Total: ₹${totalPrice}`
+        `Successfully registered for ${totalCount} ${
+          isFreeWorkshopSelected ? "free" : "paid"
+        } workshop(s)!${isPaidWorkshopSelected ? ` Total: ₹${totalPrice}` : ""}`
       );
 
       // Reset selections and close
       setSelectedWorkshopIds([]);
+      setSelectedWorkshopType(null);
       onClose();
     } catch (error) {
       console.error("Error registering for workshops:", error);
@@ -168,18 +226,26 @@ export default function WorkshopFormSidebar({
   useEffect(() => {
     if (open) {
       setSelectedWorkshopIds([]);
+      setSelectedWorkshopType(null);
     }
   }, [open]);
 
-  // Group workshops by type
+  // Group workshops by amount (paid/free) instead of workshopType
   const groupedWorkshops = apiWorkshops.reduce((groups, workshop) => {
-    const group = workshop.workshopType;
+    const group = workshop.amount > 0 ? "Paid Workshops" : "Free Workshops";
     if (!groups[group]) {
       groups[group] = [];
     }
     groups[group].push(workshop);
     return groups;
   }, {} as Record<string, Workshop[]>);
+
+  // Sort workshops within each group by amount (highest first for paid, any order for free)
+  Object.keys(groupedWorkshops).forEach((group) => {
+    if (group === "Paid Workshops") {
+      groupedWorkshops[group].sort((a, b) => b.amount - a.amount);
+    }
+  });
 
   // Get selected workshop names for display
   const getSelectedWorkshopNames = (): string[] => {
@@ -235,6 +301,12 @@ export default function WorkshopFormSidebar({
                     const isSelected = selectedWorkshopIds.includes(
                       workshop._id
                     );
+                    const isDisabled =
+                      !canRegister ||
+                      (selectedWorkshopType &&
+                        selectedWorkshopType !==
+                          (workshop.amount > 0 ? "paid" : "free") &&
+                        !isSelected);
 
                     return (
                       <div
@@ -244,13 +316,17 @@ export default function WorkshopFormSidebar({
                             ? "border-blue-300 bg-blue-50"
                             : "border-gray-200 hover:border-blue-200"
                         } ${
-                          !canRegister
+                          isDisabled
                             ? "opacity-60 cursor-not-allowed"
                             : "cursor-pointer"
                         }`}
                         onClick={() => {
-                          if (canRegister) {
-                            handleWorkshopSelect(workshop._id, !isSelected);
+                          if (!isDisabled) {
+                            handleWorkshopSelect(
+                              workshop._id,
+                              !isSelected,
+                              workshop.amount
+                            );
                           }
                         }}
                       >
@@ -258,25 +334,30 @@ export default function WorkshopFormSidebar({
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={(checked) => {
-                              if (canRegister) {
+                              if (!isDisabled) {
                                 handleWorkshopSelect(
                                   workshop._id,
-                                  checked as boolean
+                                  checked as boolean,
+                                  workshop.amount
                                 );
                               }
                             }}
-                            disabled={!canRegister}
+                            disabled={!!isDisabled} // Convert to boolean
                             id={`workshop-${workshop._id}`}
                           />
                           <div className="flex-1">
                             <Label
                               htmlFor={`workshop-${workshop._id}`}
-                              className={`text-sm font-medium cursor-pointer ${
-                                !canRegister ? "cursor-not-allowed" : ""
+                              className={`text-sm font-medium ${
+                                isDisabled
+                                  ? "cursor-not-allowed"
+                                  : "cursor-pointer"
                               }`}
                             >
                               <div>{workshop.workshopName}</div>
                               <div className="text-xs text-gray-500 mt-1">
+                                Type: {workshop.workshopType}
+                                <br />
                                 {workshop.startDate} • {workshop.startTime} -{" "}
                                 {workshop.endTime}
                                 <br />
@@ -290,6 +371,14 @@ export default function WorkshopFormSidebar({
                                   Event registration required
                                 </div>
                               )}
+                              {isDisabled &&
+                                !isSelected &&
+                                selectedWorkshopType && (
+                                  <div className="flex items-center gap-1 mt-1 text-gray-600 text-xs">
+                                    <AlertCircle className="w-3 h-3" />
+                                    Cannot mix paid and free workshops
+                                  </div>
+                                )}
                             </Label>
                           </div>
                         </div>
@@ -311,7 +400,8 @@ export default function WorkshopFormSidebar({
             <div className="bg-green-50 border border-green-200 rounded-lg p-4">
               <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center gap-2">
                 <CheckCircle className="w-4 h-4" />
-                Selected Workshops ({totalCount})
+                Selected {isFreeWorkshopSelected ? "Free" : "Paid"} Workshops (
+                {totalCount})
               </h4>
               <ul className="text-sm text-green-700 space-y-1">
                 {selectedWorkshopNames.map((name, index) => (
@@ -326,14 +416,22 @@ export default function WorkshopFormSidebar({
         <div className="border-t border-gray-200 bg-white p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="text-sm text-gray-600">
-              {totalCount} workshop{totalCount !== 1 ? "s" : ""} selected
+              {totalCount}{" "}
+              {isFreeWorkshopSelected
+                ? "free"
+                : isPaidWorkshopSelected
+                ? "paid"
+                : ""}{" "}
+              workshop{totalCount !== 1 ? "s" : ""} selected
             </div>
-            <div className="text-right">
-              <div className="text-2xl font-bold text-[#00509E]">
-                ₹ {totalPrice.toLocaleString("en-IN")}
+            {isPaidWorkshopSelected && (
+              <div className="text-right">
+                <div className="text-2xl font-bold text-[#00509E]">
+                  ₹ {totalPrice.toLocaleString("en-IN")}
+                </div>
+                <div className="text-sm text-gray-500">Total Amount</div>
               </div>
-              <div className="text-sm text-gray-500">Total Amount</div>
-            </div>
+            )}
           </div>
           <div className="flex gap-3">
             <Button
@@ -351,6 +449,8 @@ export default function WorkshopFormSidebar({
             >
               {submitting
                 ? "Processing..."
+                : isFreeWorkshopSelected
+                ? "Register for Free"
                 : `Pay ₹${totalPrice.toLocaleString("en-IN")}`}
             </Button>
           </div>
