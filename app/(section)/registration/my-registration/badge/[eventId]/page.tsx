@@ -5,12 +5,44 @@ import { Badge } from "@/components/registrations/myRegistration/Badge";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useEventStore } from "@/app/store/useEventStore";
 
 export default function BadgePage({ params }: { params: { eventId: string } }) {
   const searchParams = useSearchParams();
   const registrationId = searchParams.get("registrationId");
   const [registration, setRegistration] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { setCurrentEvent } = useEventStore();
+
+  // Fetch event data when component mounts
+  useEffect(() => {
+    const fetchEventData = async () => {
+      try {
+        const token = localStorage.getItem("accessToken");
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${params.eventId}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success) {
+            setCurrentEvent(data.data);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching event data:", error);
+      }
+    };
+
+    fetchEventData();
+  }, [params.eventId, setCurrentEvent]);
 
   useEffect(() => {
     const fetchRegistrationDetails = async () => {

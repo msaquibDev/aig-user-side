@@ -18,16 +18,53 @@ export function DashboardHeader({
 }) {
   const router = useRouter();
   const { photo, fullName, email, setUser, clearUser } = useUserStore();
-  const { currentEvent } = useEventStore();
+  const { currentEvent, setCurrentEvent } = useEventStore();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const eventIdFromUrl = searchParams.get("eventId");
 
   const [loggingOut, setLoggingOut] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [loadingEvent, setLoadingEvent] = useState(false);
 
   // Only show event info on registration routes when eventId is present
   const showEventInfo = pathname?.startsWith("/registration") && currentEvent;
+
+  // ✅ Fetch event data when on registration page and eventId is in URL
+  useEffect(() => {
+    async function fetchEventData() {
+      if (pathname?.startsWith("/registration") && eventIdFromUrl) {
+        try {
+          setLoadingEvent(true);
+          const token = localStorage.getItem("accessToken");
+          
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventIdFromUrl}`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            if (data.success) {
+              setCurrentEvent(data.data);
+            }
+          }
+        } catch (error) {
+          console.error("Error fetching event data:", error);
+        } finally {
+          setLoadingEvent(false);
+        }
+      }
+    }
+
+    fetchEventData();
+  }, [pathname, eventIdFromUrl, setCurrentEvent]);
 
   // ✅ Fetch latest user profile on mount
   useEffect(() => {
@@ -167,15 +204,24 @@ export function DashboardHeader({
         {/* Event Info */}
         {showEventInfo && (
           <div className="hidden md:flex flex-col justify-center text-white ml-6 border-l border-white/30 pl-6">
-            <h1 className="text-lg font-semibold leading-tight line-clamp-1">
-              {currentEvent?.eventName}
-            </h1>
-            <p className="text-sm text-gray-200">
-              {currentEvent &&
-                formatEventDate(currentEvent.startDate, currentEvent.endDate)}
-              {currentEvent?.startTime && ` | ${currentEvent.startTime}`}
-              {currentEvent?.timeZone && ` ${currentEvent.timeZone}`}
-            </p>
+            {loadingEvent ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span className="text-sm">Loading event...</span>
+              </div>
+            ) : (
+              <>
+                <h1 className="text-lg font-semibold leading-tight line-clamp-1">
+                  {currentEvent?.eventName}
+                </h1>
+                <p className="text-sm text-gray-200">
+                  {currentEvent &&
+                    formatEventDate(currentEvent.startDate, currentEvent.endDate)}
+                  {currentEvent?.startTime && ` | ${currentEvent.startTime}`}
+                  {currentEvent?.timeZone && ` ${currentEvent.timeZone}`}
+                </p>
+              </>
+            )}
           </div>
         )}
       </div>
