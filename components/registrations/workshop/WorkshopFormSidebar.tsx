@@ -10,13 +10,26 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
-import { CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import {
+  CheckCircle,
+  Loader2,
+  AlertCircle,
+  IndianRupee,
+  Calendar,
+  MapPin,
+  Users,
+  FolderOpen,
+  CreditCard,
+  Tag,
+} from "lucide-react";
 
 type Workshop = {
   _id: string;
   eventId: string;
   workshopName: string;
   workshopType: string;
+  workshopCategory: string;
+  workshopRegistrationType: "Paid" | "Free";
   hallName: string;
   amount: number;
   maxRegAllowed: number;
@@ -143,6 +156,7 @@ export default function WorkshopFormSidebar({
         workshopId: workshop?._id,
         workshopName: workshop?.workshopName,
         workshopType: workshop?.workshopType,
+        workshopCategory: workshop?.workshopCategory,
         amount: workshop?.amount || 0,
         isEventRegistrationRequired:
           workshop?.isEventRegistrationRequired || false,
@@ -230,21 +244,51 @@ export default function WorkshopFormSidebar({
     }
   }, [open]);
 
-  // Group workshops by amount (paid/free) instead of workshopType
+  // Group workshops by registration type first, then by category
   const groupedWorkshops = apiWorkshops.reduce((groups, workshop) => {
-    const group = workshop.amount > 0 ? "Paid Workshops" : "Free Workshops";
-    if (!groups[group]) {
-      groups[group] = [];
-    }
-    groups[group].push(workshop);
-    return groups;
-  }, {} as Record<string, Workshop[]>);
+    const registrationType =
+      workshop.workshopRegistrationType === "Paid" ? "Paid" : "Free";
+    const category =
+      workshop.workshopCategory || workshop.workshopType || "Other";
 
-  // Sort workshops within each group by amount (highest first for paid, any order for free)
-  Object.keys(groupedWorkshops).forEach((group) => {
-    if (group === "Paid Workshops") {
-      groupedWorkshops[group].sort((a, b) => b.amount - a.amount);
+    // Create main registration type group if it doesn't exist
+    if (!groups[registrationType]) {
+      groups[registrationType] = {};
     }
+
+    // Create category subgroup if it doesn't exist
+    if (!groups[registrationType][category]) {
+      groups[registrationType][category] = [];
+    }
+
+    groups[registrationType][category].push(workshop);
+    return groups;
+  }, {} as Record<string, Record<string, Workshop[]>>);
+
+  // Sort registration types (Paid first, then Free)
+  const sortedRegistrationTypes = Object.keys(groupedWorkshops).sort((a, b) => {
+    if (a === "Paid") return -1;
+    if (b === "Paid") return 1;
+    return 0;
+  });
+
+  // Sort categories alphabetically within each registration type
+  sortedRegistrationTypes.forEach((registrationType) => {
+    const categories = Object.keys(groupedWorkshops[registrationType]);
+    categories.sort((a, b) => a.localeCompare(b));
+
+    // Sort workshops within each category
+    categories.forEach((category) => {
+      if (registrationType === "Paid") {
+        groupedWorkshops[registrationType][category].sort(
+          (a, b) => b.amount - a.amount
+        );
+      } else {
+        groupedWorkshops[registrationType][category].sort((a, b) =>
+          a.workshopName.localeCompare(b.workshopName)
+        );
+      }
+    });
   });
 
   // Get selected workshop names for display
@@ -287,113 +331,230 @@ export default function WorkshopFormSidebar({
               <p>No workshops available for this event.</p>
             </div>
           ) : (
-            Object.entries(groupedWorkshops).map(([group, workshops]) => (
-              <div
-                key={group}
-                className="bg-white rounded-lg p-4 border border-gray-200"
-              >
-                <h3 className="text-sm font-semibold text-[#00509E] mb-3">
-                  {group}
-                </h3>
-                <div className="space-y-3">
-                  {workshops.map((workshop) => {
-                    const canRegister = canRegisterForWorkshop(workshop);
-                    const isSelected = selectedWorkshopIds.includes(
-                      workshop._id
-                    );
-                    const isDisabled =
-                      !canRegister ||
-                      (selectedWorkshopType != null &&
-                        selectedWorkshopType !==
-                          (workshop.amount > 0 ? "paid" : "free") &&
-                        !isSelected);
+            sortedRegistrationTypes.map((registrationType) => (
+              <div key={registrationType} className="space-y-4">
+                {/* Registration Type Header */}
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {registrationType} Workshops
+                  </h3>
+                  <span
+                    className={`px-2 py-1 text-xs font-medium rounded-full flex items-center gap-1 ${
+                      registrationType === "Paid"
+                        ? "bg-blue-100 text-blue-800 border border-blue-200"
+                        : "bg-green-100 text-green-800 border border-green-200"
+                    }`}
+                  >
+                    {registrationType === "Paid" ? (
+                      <>
+                        <CreditCard className="w-3 h-3" />
+                        Paid
+                      </>
+                    ) : (
+                      <>
+                        <Tag className="w-3 h-3" />
+                        Free
+                      </>
+                    )}
+                  </span>
+                </div>
 
-                    return (
-                      <div
-                        key={workshop._id}
-                        className={`flex justify-between items-start p-3 border rounded-lg transition-colors ${
-                          isSelected
-                            ? "border-blue-300 bg-blue-50"
-                            : "border-gray-200 hover:border-gray-300"
-                        } ${
-                          isDisabled
-                            ? "opacity-60 cursor-not-allowed"
-                            : "cursor-pointer"
-                        }`}
-                      >
-                        <div className="flex items-start space-x-4 flex-1">
-                          <Checkbox
-                            checked={isSelected}
-                            onCheckedChange={(checked) => {
-                              if (!isDisabled) {
-                                handleWorkshopSelect(
-                                  workshop._id,
-                                  checked as boolean,
-                                  workshop.amount
-                                );
+                {/* Categories within this registration type */}
+                <div className="grid gap-4">
+                  {Object.keys(groupedWorkshops[registrationType])
+                    .sort((a, b) => a.localeCompare(b))
+                    .map((category) => {
+                      const workshops =
+                        groupedWorkshops[registrationType][category];
+
+                      return (
+                        <div
+                          key={category}
+                          className={`
+                            bg-white rounded-lg border-2 p-4 transition-all
+                            ${
+                              registrationType === "Paid"
+                                ? "border-blue-200 hover:border-blue-300"
+                                : "border-green-200 hover:border-green-300"
+                            }
+                            shadow-sm hover:shadow-md
+                          `}
+                        >
+                          {/* Category Header */}
+                          <div className="flex items-center gap-2 mb-3 pb-2 border-b">
+                            <FolderOpen
+                              className={`
+                              w-4 h-4
+                              ${
+                                registrationType === "Paid"
+                                  ? "text-blue-600"
+                                  : "text-green-600"
                               }
-                            }}
-                            disabled={isDisabled}
-                            id={`workshop-${workshop._id}`}
-                          />
-                          <div className="flex-1">
-                            <Label
-                              htmlFor={`workshop-${workshop._id}`}
-                              className={`text-sm font-medium ${
-                                isDisabled
-                                  ? "cursor-not-allowed"
-                                  : "cursor-pointer"
-                              }`}
-                              onClick={(e) => {
-                                e.preventDefault();
-                                if (!isDisabled) {
-                                  handleWorkshopSelect(
-                                    workshop._id,
-                                    !isSelected,
-                                    workshop.amount
-                                  );
-                                }
-                              }}
-                            >
-                              <div className="text-xs text-gray-500 mt-1">
-                                <div className="font-bold">
-                                  {workshop.workshopName.toLocaleUpperCase()}
-                                </div>
-                                {workshop.workshopType}
-                                <br />
-                                {workshop.startDate}
-                                <br />
-                                {workshop.startTime} - {workshop.endTime}
-                                <br />
-                                Venue: {workshop.hallName}
-                                <br />
-                                {/* Max Participants: {workshop.maxRegAllowed} */}
-                              </div>
-                              {!canRegister && (
-                                <div className="flex items-center gap-1 mt-1 text-orange-600 text-xs">
-                                  <AlertCircle className="w-3 h-3" />
-                                  Event registration required
-                                </div>
-                              )}
-                              {isDisabled &&
-                                !isSelected &&
-                                selectedWorkshopType && (
-                                  <div className="flex items-center gap-1 mt-1 text-gray-600 text-xs">
-                                    <AlertCircle className="w-3 h-3" />
-                                    Cannot mix paid and free workshops
+                            `}
+                            />
+                            <h4 className="text-sm font-semibold text-gray-800">
+                              {category}
+                            </h4>
+                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                              {workshops.length} workshop
+                              {workshops.length !== 1 ? "s" : ""}
+                            </span>
+                          </div>
+
+                          {/* Workshops in this category */}
+                          <div className="space-y-3">
+                            {workshops.map((workshop) => {
+                              const canRegister =
+                                canRegisterForWorkshop(workshop);
+                              const isSelected = selectedWorkshopIds.includes(
+                                workshop._id
+                              );
+                              const isDisabled =
+                                !canRegister ||
+                                (selectedWorkshopType != null &&
+                                  selectedWorkshopType !==
+                                    (workshop.amount > 0 ? "paid" : "free") &&
+                                  !isSelected);
+
+                              return (
+                                <div
+                                  key={workshop._id}
+                                  className={`
+                                    flex justify-between items-start p-3 border rounded-lg transition-all
+                                    ${
+                                      isSelected
+                                        ? registrationType === "Paid"
+                                          ? "border-blue-300 bg-blue-50"
+                                          : "border-green-300 bg-green-50"
+                                        : "border-gray-200 hover:border-gray-300"
+                                    }
+                                    ${
+                                      isDisabled
+                                        ? "opacity-60 cursor-not-allowed"
+                                        : "cursor-pointer hover:shadow-sm"
+                                    }
+                                  `}
+                                >
+                                  <div className="flex items-start space-x-3 flex-1">
+                                    <Checkbox
+                                      checked={isSelected}
+                                      onCheckedChange={(checked) => {
+                                        if (!isDisabled) {
+                                          handleWorkshopSelect(
+                                            workshop._id,
+                                            checked as boolean,
+                                            workshop.amount
+                                          );
+                                        }
+                                      }}
+                                      disabled={isDisabled}
+                                      id={`workshop-${workshop._id}`}
+                                      className={`
+                                        mt-1
+                                        ${
+                                          isSelected
+                                            ? registrationType === "Paid"
+                                              ? "text-blue-600 border-blue-600"
+                                              : "text-green-600 border-green-600"
+                                            : ""
+                                        }
+                                      `}
+                                    />
+                                    <div className="flex-1">
+                                      <Label
+                                        htmlFor={`workshop-${workshop._id}`}
+                                        className={`text-sm font-medium ${
+                                          isDisabled
+                                            ? "cursor-not-allowed"
+                                            : "cursor-pointer"
+                                        }`}
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          if (!isDisabled) {
+                                            handleWorkshopSelect(
+                                              workshop._id,
+                                              !isSelected,
+                                              workshop.amount
+                                            );
+                                          }
+                                        }}
+                                      >
+                                        <div className="text-xs text-gray-600">
+                                          <div className="font-semibold text-gray-800 text-sm mb-1">
+                                            {workshop.workshopName}
+                                          </div>
+                                          <div className="space-y-1">
+                                            <div className="flex items-center gap-2">
+                                              <Calendar className="w-3 h-3 text-gray-500" />
+                                              <span>
+                                                {workshop.startDate} |{" "}
+                                                {workshop.startTime} -{" "}
+                                                {workshop.endTime}
+                                              </span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <MapPin className="w-3 h-3 text-gray-500" />
+                                              <span>{workshop.hallName}</span>
+                                            </div>
+                                            {workshop.maxRegAllowed > 0 && (
+                                              <div className="flex items-center gap-2">
+                                                <Users className="w-3 h-3 text-gray-500" />
+                                                <span>
+                                                  Max: {workshop.maxRegAllowed}{" "}
+                                                  participants
+                                                </span>
+                                              </div>
+                                            )}
+                                          </div>
+                                        </div>
+                                        {!canRegister && (
+                                          <div className="flex items-center gap-1 mt-1 text-orange-600 text-xs">
+                                            <AlertCircle className="w-3 h-3" />
+                                            Event registration required
+                                          </div>
+                                        )}
+                                        {isDisabled &&
+                                          !isSelected &&
+                                          selectedWorkshopType && (
+                                            <div className="flex items-center gap-1 mt-1 text-gray-600 text-xs">
+                                              <AlertCircle className="w-3 h-3" />
+                                              Cannot mix paid and free workshops
+                                            </div>
+                                          )}
+                                      </Label>
+                                    </div>
                                   </div>
-                                )}
-                            </Label>
+                                  <div className="text-sm font-semibold whitespace-nowrap ml-2">
+                                    {workshop.amount > 0 ? (
+                                      <div
+                                        className={`
+                                        flex items-center px-2 py-1 rounded-full
+                                        ${
+                                          registrationType === "Paid"
+                                            ? "bg-blue-100 text-blue-700"
+                                            : "bg-green-100 text-green-700"
+                                        }
+                                      `}
+                                      >
+                                        <IndianRupee className="w-3 h-3 mr-1" />
+                                        {workshop.amount.toLocaleString(
+                                          "en-IN"
+                                        )}
+                                      </div>
+                                    ) : (
+                                      <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full flex items-center gap-1">
+                                        <Tag className="w-3 h-3" />
+                                        Free
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
-                        <div className="text-sm font-semibold text-[#00509E] whitespace-nowrap ml-2">
-                          {workshop.amount > 0
-                            ? `₹${workshop.amount.toLocaleString("en-IN")}`
-                            : "Free"}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
                 </div>
               </div>
             ))
@@ -401,13 +562,32 @@ export default function WorkshopFormSidebar({
 
           {/* Selected workshops summary */}
           {selectedWorkshopNames.length > 0 && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="text-sm font-semibold text-green-800 mb-2 flex items-center gap-2">
+            <div
+              className={`
+              border-2 rounded-lg p-4
+              ${
+                isPaidWorkshopSelected
+                  ? "bg-blue-50 border-blue-200"
+                  : "bg-green-50 border-green-200"
+              }
+            `}
+            >
+              <h4
+                className={`
+                text-sm font-semibold mb-2 flex items-center gap-2
+                ${isPaidWorkshopSelected ? "text-blue-800" : "text-green-800"}
+              `}
+              >
                 <CheckCircle className="w-4 h-4" />
                 Selected {isFreeWorkshopSelected ? "Free" : "Paid"} Workshops (
                 {totalCount})
               </h4>
-              <ul className="text-sm text-green-700 space-y-1">
+              <ul
+                className={`
+                text-sm space-y-1
+                ${isPaidWorkshopSelected ? "text-blue-700" : "text-green-700"}
+              `}
+              >
                 {selectedWorkshopNames.map((name, index) => (
                   <li key={index}>• {name}</li>
                 ))}
@@ -430,8 +610,9 @@ export default function WorkshopFormSidebar({
             </div>
             {isPaidWorkshopSelected && (
               <div className="text-right">
-                <div className="text-2xl font-bold text-[#00509E]">
-                  ₹ {totalPrice.toLocaleString("en-IN")}
+                <div className="text-2xl font-bold text-blue-600 flex items-center">
+                  <IndianRupee className="w-5 h-5 mr-1" />
+                  {totalPrice.toLocaleString("en-IN")}
                 </div>
                 <div className="text-sm text-gray-500">Total Amount</div>
               </div>
@@ -448,7 +629,14 @@ export default function WorkshopFormSidebar({
             </Button>
             <Button
               onClick={onSubmit}
-              className="flex-1 bg-[#00509E] hover:bg-[#003B73]"
+              className={`
+                flex-1 
+                ${
+                  isPaidWorkshopSelected
+                    ? "bg-[#00509E] hover:bg-[#003B73]"
+                    : "bg-green-600 hover:bg-green-700"
+                }
+              `}
               disabled={submitting || totalCount === 0 || loading}
             >
               {submitting
