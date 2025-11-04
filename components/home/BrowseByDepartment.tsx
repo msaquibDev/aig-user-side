@@ -48,11 +48,23 @@ export default function BrowseByDepartment() {
     if (!isAuthenticated) {
       router.push("/login");
     } else {
+      // Find the event and set it as current before navigation
+      const event = events.find((e) => e._id === eventId);
+      if (event) {
+        useEventStore.getState().setCurrentEvent(event);
+      }
+
       router.push(`/registration/my-registration?eventId=${eventId}`);
     }
   };
 
   const handleViewBadge = (eventId: string, registrationId: string) => {
+    // Find the event and set it as current before navigation
+    const event = events.find((e) => e._id === eventId);
+    if (event) {
+      useEventStore.getState().setCurrentEvent(event);
+    }
+
     router.push(
       `/registration/my-registration/badge/${eventId}?registrationId=${registrationId}`
     );

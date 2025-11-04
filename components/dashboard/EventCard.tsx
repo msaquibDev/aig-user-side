@@ -43,11 +43,25 @@ export default function EventTabs() {
 
   const handleRegister = (eventId?: string) => {
     if (!eventId) return;
+
+    // Find the event and set it as current before navigation
+    const event = events.find((e) => e._id === eventId);
+    if (event) {
+      useEventStore.getState().setCurrentEvent(event);
+    }
+
     router.push(`/registration/my-registration?eventId=${eventId}`);
   };
 
   const handleViewBadge = (eventId?: string, registrationId?: string) => {
     if (!eventId || !registrationId) return;
+
+    // Find the event and set it as current before navigation
+    const event = events.find((e) => e._id === eventId);
+    if (event) {
+      useEventStore.getState().setCurrentEvent(event);
+    }
+
     router.push(
       `/registration/my-registration/badge/${eventId}?registrationId=${registrationId}`
     );

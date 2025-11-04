@@ -69,7 +69,7 @@ interface EventState {
   error: string | null;
   fetchEvents: () => Promise<void>;
   setCurrentEvent: (event: Event | null) => void;
-  getEventById: (id: string) => Event | undefined;
+  clearCurrentEvent: () => void;
 }
 
 export const useEventStore = create<EventState>((set, get) => ({
@@ -110,6 +110,7 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
 
   setCurrentEvent: (event) => set({ currentEvent: event }),
+  clearCurrentEvent: () => set({ currentEvent: null }),
 
   getEventById: (id: string) => {
     const { events } = get();
