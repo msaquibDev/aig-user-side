@@ -9,7 +9,6 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useWorkshopStore } from "@/app/store/useWorkshopStore";
 import { useEffect, useState } from "react";
 import { CheckCircle, Loader2, AlertCircle } from "lucide-react";
 
@@ -46,7 +45,6 @@ export default function WorkshopFormSidebar({
   onClose,
   editId,
 }: Props) {
-  const { selectedWorkshops, selectWorkshop } = useWorkshopStore();
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -323,7 +321,7 @@ export default function WorkshopFormSidebar({
                             : "cursor-pointer"
                         }`}
                       >
-                        <div className="flex items-start space-x-3 flex-1">
+                        <div className="flex items-start space-x-4 flex-1">
                           <Checkbox
                             checked={isSelected}
                             onCheckedChange={(checked) => {
@@ -357,16 +355,19 @@ export default function WorkshopFormSidebar({
                                 }
                               }}
                             >
-                              <div>{workshop.workshopName}</div>
                               <div className="text-xs text-gray-500 mt-1">
-                                Type: {workshop.workshopType}
+                                <div className="font-bold">
+                                  {workshop.workshopName.toLocaleUpperCase()}
+                                </div>
+                                {workshop.workshopType}
                                 <br />
-                                {workshop.startDate} • {workshop.startTime} -{" "}
-                                {workshop.endTime}
+                                {workshop.startDate}
+                                <br />
+                                {workshop.startTime} - {workshop.endTime}
                                 <br />
                                 Venue: {workshop.hallName}
                                 <br />
-                                Max Participants: {workshop.maxRegAllowed}
+                                {/* Max Participants: {workshop.maxRegAllowed} */}
                               </div>
                               {!canRegister && (
                                 <div className="flex items-center gap-1 mt-1 text-orange-600 text-xs">

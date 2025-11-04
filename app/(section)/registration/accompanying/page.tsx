@@ -31,6 +31,7 @@ function AccompanyingContent() {
   const [loading, setLoading] = useState(true);
   const [hasRegistration, setHasRegistration] = useState(false);
   const [eventName, setEventName] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState<string>("");
 
   // Check if user has registration and get event details
   useEffect(() => {
@@ -61,6 +62,9 @@ function AccompanyingContent() {
             setEventName(
               registrationData.data.eventId?.eventName || "this event"
             );
+            setRegistrationNumber(
+              registrationData.data.regNum || registrationId || ""
+            ); // Add this line
           }
         }
 
@@ -82,6 +86,9 @@ function AccompanyingContent() {
             const regData = await registrationRes.json();
             if (regData.success && regData.data) {
               setEventName(regData.data.eventId?.eventName || "this event");
+              setRegistrationNumber(
+                regData.data.regNum || registrationId || ""
+              );
             }
           }
         }
@@ -94,14 +101,6 @@ function AccompanyingContent() {
 
     checkRegistration();
   }, [eventId, registrationId]);
-
-  // Add debug effect to check state
-  useEffect(() => {
-    console.log("=== PARENT COMPONENT DEBUG ===");
-    console.log("editingPerson:", editingPerson);
-    console.log("mainAccompanyId:", mainAccompanyId);
-    console.log("=== END PARENT DEBUG ===");
-  }, [editingPerson, mainAccompanyId]);
 
   if (loading) {
     return (
@@ -127,7 +126,12 @@ function AccompanyingContent() {
             </p>
             {registrationId && (
               <p className="text-blue-600 text-sm mt-1">
-                Registration ID: {registrationId}
+                {registrationNumber && (
+                  <p className="text-blue-600 text-sm mt-1">
+                    Registration Number{" "}
+                    <strong>{registrationNumber}</strong>
+                  </p>
+                )}
               </p>
             )}
           </div>

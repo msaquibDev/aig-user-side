@@ -82,16 +82,19 @@ export default function AccompanyingTable({
     try {
       setLoading(true);
       const token = localStorage.getItem("accessToken");
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/paid`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+
+      // Add eventId to the API URL if provided
+      const url = eventId
+        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/paid?eventId=${eventId}`
+        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/paid`;
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       const data = await response.json();
 
@@ -109,20 +112,24 @@ export default function AccompanyingTable({
     }
   };
 
+  // Update the useEffect to include eventId as dependency
   useEffect(() => {
     fetchPaidAccompanies();
-  }, []);
+  }, [eventId]); // Add eventId as dependency
 
-  // Flatten all paid accompany persons
-  const allPaidPersons: AccompanyPerson[] = paidAccompanies.flatMap(
+  // Also filter the paidAccompanies by eventId on the client side as additional safety
+  const filteredPaidAccompanies = eventId
+    ? paidAccompanies.filter((accompany) => accompany.event._id === eventId)
+    : paidAccompanies;
+
+  // Update allPaidPersons to use filtered data
+  const allPaidPersons: AccompanyPerson[] = filteredPaidAccompanies.flatMap(
     (accompany) => accompany.paidAccompanies
   );
 
-  // Update the onEditClick in AccompanyingTable to find the main accompany ID
+  // Update handleEditClick to use filtered data
   const handleEditClick = (person: AccompanyPerson) => {
-
-    // Find which main accompany document contains this person
-    const mainAccompany = paidAccompanies.find((accompany) =>
+    const mainAccompany = filteredPaidAccompanies.find((accompany) =>
       accompany.paidAccompanies.some((p) => p._id === person._id)
     );
 
@@ -135,7 +142,6 @@ export default function AccompanyingTable({
       console.error("Could not find main accompany document");
       onEditClick(person, null);
     }
-    console.log("=== END TABLE DEBUG ===");
   };
 
   const toggleSort = (column: "name" | "relation" | "age") => {
