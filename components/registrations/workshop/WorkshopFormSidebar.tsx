@@ -120,9 +120,11 @@ export default function WorkshopFormSidebar({
     }
 
     if (isSelected) {
+      // Add to existing selection (allow multiple of same type)
       setSelectedWorkshopIds((prev) => [...prev, workshopId]);
       setSelectedWorkshopType(workshopType);
     } else {
+      // Remove from selection
       const newSelectedIds = selectedWorkshopIds.filter(
         (id) => id !== workshopId
       );
@@ -303,7 +305,7 @@ export default function WorkshopFormSidebar({
                     );
                     const isDisabled =
                       !canRegister ||
-                      (selectedWorkshopType &&
+                      (selectedWorkshopType != null &&
                         selectedWorkshopType !==
                           (workshop.amount > 0 ? "paid" : "free") &&
                         !isSelected);
@@ -314,21 +316,12 @@ export default function WorkshopFormSidebar({
                         className={`flex justify-between items-start p-3 border rounded-lg transition-colors ${
                           isSelected
                             ? "border-blue-300 bg-blue-50"
-                            : "border-gray-200 hover:border-blue-200"
+                            : "border-gray-200 hover:border-gray-300"
                         } ${
                           isDisabled
                             ? "opacity-60 cursor-not-allowed"
                             : "cursor-pointer"
                         }`}
-                        onClick={() => {
-                          if (!isDisabled) {
-                            handleWorkshopSelect(
-                              workshop._id,
-                              !isSelected,
-                              workshop.amount
-                            );
-                          }
-                        }}
                       >
                         <div className="flex items-start space-x-3 flex-1">
                           <Checkbox
@@ -342,7 +335,7 @@ export default function WorkshopFormSidebar({
                                 );
                               }
                             }}
-                            disabled={!!isDisabled} // Convert to boolean
+                            disabled={isDisabled}
                             id={`workshop-${workshop._id}`}
                           />
                           <div className="flex-1">
@@ -353,6 +346,16 @@ export default function WorkshopFormSidebar({
                                   ? "cursor-not-allowed"
                                   : "cursor-pointer"
                               }`}
+                              onClick={(e) => {
+                                e.preventDefault();
+                                if (!isDisabled) {
+                                  handleWorkshopSelect(
+                                    workshop._id,
+                                    !isSelected,
+                                    workshop.amount
+                                  );
+                                }
+                              }}
                             >
                               <div>{workshop.workshopName}</div>
                               <div className="text-xs text-gray-500 mt-1">
