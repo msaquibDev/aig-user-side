@@ -17,6 +17,8 @@ function WorkshopContent() {
   const [loading, setLoading] = useState(true);
   const [hasRegistration, setHasRegistration] = useState(false);
   const [eventName, setEventName] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState<string>("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Add this state
 
   // Check if user has registration and get event details
   useEffect(() => {
@@ -47,6 +49,9 @@ function WorkshopContent() {
             setEventName(
               registrationData.data.eventId?.eventName || "this event"
             );
+            setRegistrationNumber(
+              registrationData.data.regNum || registrationId || ""
+            );
           }
         }
 
@@ -68,6 +73,9 @@ function WorkshopContent() {
             const regData = await registrationRes.json();
             if (regData.success && regData.data) {
               setEventName(regData.data.eventId?.eventName || "this event");
+              setRegistrationNumber(
+                regData.data.regNum || registrationId || ""
+              );
             }
           }
         }
@@ -80,6 +88,19 @@ function WorkshopContent() {
 
     checkRegistration();
   }, [eventId, registrationId]);
+
+  // Function to trigger table refresh
+  const handleRefreshTable = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
+  // Handle sidebar close with refresh
+  const handleSidebarClose = () => {
+    setOpen(false);
+    setEditId(null);
+    // Refresh table when sidebar closes (after registration)
+    handleRefreshTable();
+  };
 
   if (loading) {
     return (
@@ -105,7 +126,11 @@ function WorkshopContent() {
             </p>
             {registrationId && (
               <p className="text-blue-600 text-sm mt-1">
-                Registration ID: {registrationId}
+                {registrationNumber && (
+                  <p className="text-blue-600 text-sm mt-1">
+                    Registration Number <strong>{registrationNumber}</strong>
+                  </p>
+                )}
               </p>
             )}
           </div>
@@ -141,16 +166,14 @@ function WorkshopContent() {
           setEditId(id);
           setOpen(true);
         }}
+        refreshTrigger={refreshTrigger} // Pass refresh trigger
       />
 
       <WorkshopFormSidebar
         eventId={eventId}
         registrationId={registrationId}
         open={open}
-        onClose={() => {
-          setOpen(false);
-          setEditId(null);
-        }}
+        onClose={handleSidebarClose} // Use the new close handler
         editId={editId}
       />
     </div>

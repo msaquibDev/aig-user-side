@@ -243,7 +243,7 @@ export default function AccompanyingFormSidebar({
 
       // Create payment order with accompanyItemIds
       const paymentResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/accompany/create-order`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/accompany/create-order/${eventId}`,
         {
           method: "POST",
           headers: {

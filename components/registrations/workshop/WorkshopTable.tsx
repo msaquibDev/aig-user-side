@@ -24,14 +24,14 @@ import {
   Clock,
   CheckCircle,
   AlertCircle,
+  RefreshCw,
 } from "lucide-react";
-import { useWorkshopStore } from "@/app/store/useWorkshopStore";
 
 type Workshop = {
   _id: string;
   eventId: string;
   workshopName: string;
-  workshopType: string;
+  workshopCategory: string;
   hallName: string;
   amount: number;
   maxRegAllowed: number;
@@ -47,9 +47,17 @@ type Workshop = {
 
 type RegisteredWorkshop = {
   _id: string;
-  workshopId: Workshop;
-  status: string;
+  eventId: {
+    _id: string;
+    eventName: string;
+    // other event fields
+  };
+  workshopIds: Workshop[]; // Array of workshops
+  registrationType: "Paid" | "Free";
+  totalAmount: number;
+  paymentStatus: "Pending" | "Completed";
   createdAt: string;
+  updatedAt: string;
 };
 
 type Props = {
@@ -57,6 +65,7 @@ type Props = {
   registrationId?: string | null;
   onAddClick: () => void;
   onEditClick: (workshopId: number) => void;
+  refreshTrigger?: number; // Add this prop to trigger refresh
 };
 
 export default function WorkshopTable({
@@ -64,8 +73,8 @@ export default function WorkshopTable({
   registrationId,
   onAddClick,
   onEditClick,
+  refreshTrigger = 0, // Default value
 }: Props) {
-  const { workshops, selectedWorkshops } = useWorkshopStore();
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -74,62 +83,72 @@ export default function WorkshopTable({
     RegisteredWorkshop[]
   >([]);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Sorting state
-  const [sortBy, setSortBy] = useState<"name" | "date" | "price" | "type">(
+  const [sortBy, setSortBy] = useState<"name" | "date" | "price" | "category">(
     "name"
   );
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
 
-  // Fetch registered workshops from API when eventId changes
-  useEffect(() => {
-    const fetchRegisteredWorkshops = async () => {
-      if (!eventId) return;
+  // Fetch registered workshops from API
+  const fetchRegisteredWorkshops = async () => {
+    if (!eventId) return;
 
-      try {
-        setLoading(true);
-        setError(null);
+    try {
+      setLoading(true);
+      setError(null);
 
-        const token = localStorage.getItem("accessToken");
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/workshop-registrations/my-workshops?eventId=${eventId}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        const data = await response.json();
-        console.log("Fetched registered workshops:", data);
-
-        if (data.success && Array.isArray(data.data)) {
-          setRegisteredWorkshops(data.data);
-
-          // Extract workshop details from registered workshops
-          const workshopsData = data.data.map(
-            (reg: RegisteredWorkshop) => reg.workshopId
-          );
-          setApiWorkshops(workshopsData);
-        } else {
-          setError("No registered workshops found for this event");
-          setRegisteredWorkshops([]);
-          setApiWorkshops([]);
+      const token = localStorage.getItem("accessToken");
+      // In WorkshopTable component, use the new endpoint:
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/my-registrations/event/${eventId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      } catch (error) {
-        console.error("Error fetching registered workshops:", error);
-        setError("Failed to load registered workshops");
+      );
+
+      const data = await response.json();
+      console.log("Fetched registered workshops:", data);
+
+      if (data.success && Array.isArray(data.data)) {
+        setRegisteredWorkshops(data.data);
+
+        // Extract workshop details from registered workshops
+        const workshopsData = data.data.flatMap(
+          (reg: RegisteredWorkshop) => reg.workshopIds || []
+        );
+        setApiWorkshops(workshopsData);
+      } else {
+        setError("No registered workshops found for this event");
         setRegisteredWorkshops([]);
         setApiWorkshops([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching registered workshops:", error);
+      setError("Failed to load registered workshops");
+      setRegisteredWorkshops([]);
+      setApiWorkshops([]);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
 
+  // Manual refresh function
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchRegisteredWorkshops();
+  };
+
+  // Fetch data when eventId changes or refreshTrigger updates
+  useEffect(() => {
     fetchRegisteredWorkshops();
-  }, [eventId]);
+  }, [eventId, refreshTrigger]); // Add refreshTrigger to dependencies
 
-  const toggleSort = (column: "name" | "date" | "price" | "type") => {
+  const toggleSort = (column: "name" | "date" | "price" | "category") => {
     if (sortBy === column) {
       setSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
     } else {
@@ -140,15 +159,24 @@ export default function WorkshopTable({
 
   // Check if a workshop is registered
   const isWorkshopRegistered = (workshopId: string): boolean => {
-    return registeredWorkshops.some((reg) => reg.workshopId._id === workshopId);
+    return registeredWorkshops.some(
+      (reg) =>
+        Array.isArray(reg.workshopIds) &&
+        reg.workshopIds.some((w) => w._id === workshopId)
+    );
   };
 
   // Get workshop registration status
   const getWorkshopRegistrationStatus = (workshopId: string): string => {
     const registration = registeredWorkshops.find(
-      (reg) => reg.workshopId._id === workshopId
+      (reg) =>
+        Array.isArray(reg.workshopIds) &&
+        reg.workshopIds.some((w) => w._id === workshopId)
     );
-    return registration?.status || "Not Registered";
+    if (!registration) return "Not Registered";
+    // Prefer explicit paymentStatus when available, otherwise infer from registrationType
+    if (registration.paymentStatus) return registration.paymentStatus;
+    return registration.registrationType === "Paid" ? "Pending" : "Completed";
   };
 
   const getSortedWorkshops = () => {
@@ -172,10 +200,11 @@ export default function WorkshopTable({
           return sortOrder === "asc"
             ? a.amount - b.amount
             : b.amount - a.amount;
-        } else if (sortBy === "type") {
+        } else if (sortBy === "category") {
+          // Change from "type" to "category"
           return sortOrder === "asc"
-            ? a.workshopType.localeCompare(b.workshopType)
-            : b.workshopType.localeCompare(a.workshopType);
+            ? a.workshopCategory.localeCompare(b.workshopCategory) // Use workshopCategory
+            : b.workshopCategory.localeCompare(a.workshopCategory); // Use workshopCategory
         }
         return 0;
       });
@@ -198,7 +227,8 @@ export default function WorkshopTable({
     setCurrentPage(1);
   }, [search, sortBy, sortOrder]);
 
-  const getSortIcon = (column: "name" | "date" | "price" | "type") => {
+  const getSortIcon = (column: "name" | "date" | "price" | "category") => {
+    // Change from "type" to "category"
     if (sortBy !== column) return null;
     return sortOrder === "asc" ? (
       <ChevronUp className="w-4 h-4" />
@@ -207,7 +237,7 @@ export default function WorkshopTable({
     );
   };
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <div className="flex items-center justify-center min-h-64">
         <div className="text-center">
@@ -232,14 +262,27 @@ export default function WorkshopTable({
             </p>
           )}
         </div>
-        <Button
-          onClick={onAddClick}
-          className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"
-          disabled={!eventId}
-        >
-          <PlusCircle className="w-4 h-4 mr-2" />
-          Register for More Workshops
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={refreshing || !eventId}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </Button>
+          <Button
+            onClick={onAddClick}
+            className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"
+            disabled={!eventId}
+          >
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Register for More Workshops
+          </Button>
+        </div>
       </div>
 
       {/* Search */}
@@ -279,11 +322,11 @@ export default function WorkshopTable({
               </TableHead>
               <TableHead
                 className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                onClick={() => toggleSort("type")}
+                onClick={() => toggleSort("category")} // Change from "type" to "category"
               >
                 <div className="flex items-center gap-1">
-                  Type
-                  {getSortIcon("type")}
+                  Category
+                  {getSortIcon("category")}
                 </div>
               </TableHead>
               <TableHead
@@ -331,20 +374,15 @@ export default function WorkshopTable({
                         <div className="font-semibold">
                           {workshop.workshopName}
                         </div>
-                        <div className="text-xs text-gray-500 mt-1">
+                        {/* <div className="text-xs text-gray-500 mt-1">
                           Max Participants: {workshop.maxRegAllowed}
-                        </div>
+                        </div> */}
                       </div>
                     </TableCell>
                     <TableCell>
-                      <span
-                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          workshop.workshopType === "Pre Conference"
-                            ? "bg-purple-100 text-purple-800"
-                            : "bg-orange-100 text-orange-800"
-                        }`}
-                      >
-                        {workshop.workshopType}
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {workshop.workshopCategory || "General"}{" "}
+                        {/* Show workshopCategory with fallback */}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -372,10 +410,12 @@ export default function WorkshopTable({
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          registrationStatus === "Completed" ||
                           registrationStatus === "confirmed" ||
                           registrationStatus === "registered"
                             ? "bg-green-100 text-green-800"
-                            : registrationStatus === "pending"
+                            : registrationStatus === "Pending" ||
+                              registrationStatus === "pending"
                             ? "bg-yellow-100 text-yellow-800"
                             : registrationStatus === "cancelled"
                             ? "bg-red-100 text-red-800"

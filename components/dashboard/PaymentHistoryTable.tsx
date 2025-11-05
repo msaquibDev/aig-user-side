@@ -89,22 +89,51 @@ export default function PaymentHistoryTable() {
 
   // Safe data access function
   const getEventName = (payment: any) => {
-    if (!payment.eventRegistrationId) {
-      console.log("No eventRegistrationId for payment:", payment._id);
+    // Check if event data is directly available in eventId
+    if (payment.eventId && payment.eventId.eventName) {
+      return payment.eventId.eventName;
+    }
+    // Check if it's a workshop payment with workshopRegistrationId
+    if (
+      payment.workshopRegistrationId &&
+      payment.workshopRegistrationId.eventId
+    ) {
+      return (
+        payment.workshopRegistrationId.eventId.eventName || "Workshop Event"
+      );
+    }
+    // Check if it's a regular event registration
+    if (payment.eventRegistrationId?.eventId) {
+      return payment.eventRegistrationId.eventId.eventName || "Event";
+    }
+    // Check if eventRegistrationId is a string (reference ID)
+    if (typeof payment.eventRegistrationId === "string") {
       return "Event";
     }
-    if (!payment.eventRegistrationId.eventId) {
-      console.log("No eventId for payment:", payment._id);
-      return "Event";
-    }
-    return payment.eventRegistrationId.eventId.eventName || "Event";
+    console.log("No event data found for payment:", payment._id);
+    return "Event";
   };
 
   const getEventDate = (payment: any) => {
-    if (!payment.eventRegistrationId?.eventId?.startDate) {
-      return "Date not available";
+    // Check direct eventId first
+    if (payment.eventId?.startDate && payment.eventId?.endDate) {
+      return `${payment.eventId.startDate} - ${payment.eventId.endDate}`;
     }
-    return payment.eventRegistrationId.eventId.startDate;
+    // Check workshop registration
+    if (
+      payment.workshopRegistrationId?.eventId?.startDate &&
+      payment.workshopRegistrationId?.eventId?.endDate
+    ) {
+      return `${payment.workshopRegistrationId.eventId.startDate} - ${payment.workshopRegistrationId.eventId.endDate}`;
+    }
+    // Check event registration
+    if (
+      payment.eventRegistrationId?.eventId?.startDate &&
+      payment.eventRegistrationId?.eventId?.endDate
+    ) {
+      return `${payment.eventRegistrationId.eventId.startDate} - ${payment.eventRegistrationId.eventId.endDate}`;
+    }
+    return "Date not available";
   };
 
   const filteredPayments = allPayments.filter(
@@ -149,6 +178,19 @@ export default function PaymentHistoryTable() {
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const getPaymentCategoryColor = (category: string) => {
+    switch (category) {
+      case "Event Registration":
+        return "bg-blue-100 text-blue-800 border border-blue-200";
+      case "Workshop":
+        return "bg-purple-100 text-purple-800 border border-purple-200";
+      case "Accompany":
+        return "bg-orange-100 text-orange-800 border border-orange-200";
+      default:
+        return "bg-gray-100 text-gray-800 border border-gray-200";
+    }
   };
 
   const handleDownloadReceipt = (payment: any) => {
@@ -285,20 +327,16 @@ export default function PaymentHistoryTable() {
                   >
                     <td className="px-4 py-3">
                       <div className="font-medium">{getEventName(payment)}</div>
-                      {/* <div className="text-xs text-gray-500 mt-1">
+                      <div className="text-xs text-gray-500 mt-1">
                         {getEventDate(payment)}
-                      </div> */}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
-                      {" "}
-                      {/* Add this cell */}
                       <Badge
                         variant="outline"
-                        className={
-                          payment.paymentCategory === "Event Registration"
-                            ? "bg-blue-100 text-blue-800 border border-blue-200"
-                            : "bg-purple-100 text-purple-800 border border-purple-200"
-                        }
+                        className={getPaymentCategoryColor(
+                          payment.paymentCategory
+                        )}
                       >
                         {payment.paymentCategory}
                       </Badge>

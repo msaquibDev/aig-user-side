@@ -59,7 +59,7 @@ export default function PaymentPage() {
 
         // Create Razorpay order using new backend endpoint
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/create-order`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/create-order/${eventId}`,
           {
             method: "POST",
             headers: {

@@ -22,6 +22,7 @@ import {
   CreditCard,
   Tag,
 } from "lucide-react";
+import { toast } from "sonner";
 
 type Workshop = {
   _id: string;
@@ -49,6 +50,28 @@ type Props = {
   open: boolean;
   onClose: () => void;
   editId?: number | null;
+};
+
+// Razorpay script loading function
+const loadRazorpayScript = () => {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => {
+      resolve(true);
+    };
+    script.onerror = () => {
+      console.error("Failed to load Razorpay SDK");
+      reject(new Error("Failed to load Razorpay SDK"));
+    };
+    document.body.appendChild(script);
+  });
 };
 
 export default function WorkshopFormSidebar({
@@ -124,7 +147,7 @@ export default function WorkshopFormSidebar({
       selectedWorkshopType !== workshopType &&
       isSelected
     ) {
-      alert(
+      toast.error(
         `You cannot select both paid and free workshops at the same time. Please deselect ${selectedWorkshopType} workshops first.`
       );
       return;
@@ -148,22 +171,6 @@ export default function WorkshopFormSidebar({
     }
   };
 
-  // Get selected workshops data
-  const getSelectedWorkshopsData = () => {
-    return selectedWorkshopIds.map((id) => {
-      const workshop = apiWorkshops.find((w) => w._id === id);
-      return {
-        workshopId: workshop?._id,
-        workshopName: workshop?.workshopName,
-        workshopType: workshop?.workshopType,
-        workshopCategory: workshop?.workshopCategory,
-        amount: workshop?.amount || 0,
-        isEventRegistrationRequired:
-          workshop?.isEventRegistrationRequired || false,
-      };
-    });
-  };
-
   // Calculate total price
   const totalPrice = selectedWorkshopIds.reduce((sum, id) => {
     const workshop = apiWorkshops.find((w) => w._id === id);
@@ -175,62 +182,198 @@ export default function WorkshopFormSidebar({
   const isFreeWorkshopSelected = selectedWorkshopType === "free";
   const isPaidWorkshopSelected = selectedWorkshopType === "paid";
 
+  // Register for free workshops
+  const registerFreeWorkshops = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        throw new Error("Please login to register for workshops");
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/workshop-register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            workshopIds: selectedWorkshopIds,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!data.success) {
+        throw new Error(data.message || "Failed to register for workshops");
+      }
+
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Initiate payment for paid workshops
+  const initiateWorkshopPayment = async () => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
+        throw new Error("Please login to register for workshops");
+      }
+
+      // First register the workshops
+      const registerResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/workshop-register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            workshopIds: selectedWorkshopIds,
+          }),
+        }
+      );
+
+      const registerData = await registerResponse.json();
+
+      if (!registerData.success) {
+        throw new Error(registerData.message || "Failed to register workshops");
+      }
+
+      // Then create payment order
+      const paymentResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/workshop/create-order/${eventId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            workshopRegistrationId: registerData.data._id, // This should be workshopRegistrationId
+            workshopIds: selectedWorkshopIds, // Add workshopIds array
+            amount: totalPrice,
+          }),
+        }
+      );
+
+      const paymentData = await paymentResponse.json();
+
+      if (!paymentData.success) {
+        throw new Error(
+          paymentData.message || "Failed to create payment order"
+        );
+      }
+
+      // Load Razorpay and initiate payment
+      await loadRazorpayScript();
+
+      const options = {
+        key: paymentData.data.razorpayKeyId,
+        amount: paymentData.data.amount * 100,
+        currency: "INR",
+        name: "Workshop Registration",
+        description: "Workshop Fees",
+        order_id: paymentData.data.orderId,
+        handler: async function (response: any) {
+          await verifyWorkshopPayment(response, paymentData.data.paymentId);
+        },
+        prefill: {
+          name: "Workshop Participant",
+          email: "participant@example.com",
+        },
+        theme: {
+          color: "#00509E",
+        },
+        modal: {
+          ondismiss: function () {
+            toast.info("Payment cancelled. You can complete payment later.");
+          },
+        },
+      };
+
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const verifyWorkshopPayment = async (
+    razorpayResponse: any,
+    paymentId: string
+  ) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const verifyResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/workshop/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            razorpayOrderId: razorpayResponse.razorpay_order_id,
+            razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+            razorpaySignature: razorpayResponse.razorpay_signature,
+            paymentId: paymentId,
+          }),
+        }
+      );
+
+      const verifyData = await verifyResponse.json();
+
+      if (verifyData.success) {
+        toast.success("Payment successful! Workshop registration completed.");
+        // Reset and close the sidebar
+        setSelectedWorkshopIds([]);
+        setSelectedWorkshopType(null);
+        onClose();
+        // Refresh the page to show updated registrations
+        window.location.reload();
+      } else {
+        throw new Error(verifyData.message || "Payment verification failed");
+      }
+    } catch (error) {
+      console.error("Payment verification error:", error);
+      toast.error("Payment verification failed. Please contact support.");
+    }
+  };
+
   const onSubmit = async () => {
+    if (selectedWorkshopIds.length === 0) {
+      toast.error("Please select at least one workshop");
+      return;
+    }
+
     try {
       setSubmitting(true);
 
-      const selectedWorkshopData = getSelectedWorkshopsData();
-
-      console.log("Workshop registration data:", {
-        eventId,
-        registrationId,
-        selectedWorkshops: selectedWorkshopData,
-        totalPrice,
-        workshopType: selectedWorkshopType,
-      });
-
-      // Different API calls based on workshop type
       if (isFreeWorkshopSelected) {
-        // Free workshop registration API
-        // await fetch(`/api/workshops/register-free`, {
-        //   method: 'POST',
-        //   body: JSON.stringify({
-        //     eventId,
-        //     registrationId,
-        //     workshops: selectedWorkshopData
-        //   }),
-        //   headers: { 'Content-Type': 'application/json' }
-        // });
-        console.log("Calling FREE workshop registration API");
+        // Register for free workshops
+        const result = await registerFreeWorkshops();
+        toast.success("Successfully registered for free workshops!");
+        // Reset and close the sidebar
+        setSelectedWorkshopIds([]);
+        setSelectedWorkshopType(null);
+        onClose();
+        // Refresh the page to show updated registrations
+        window.location.reload();
       } else if (isPaidWorkshopSelected) {
-        // Paid workshop registration API
-        // await fetch(`/api/workshops/register-paid`, {
-        //   method: 'POST',
-        //   body: JSON.stringify({
-        //     eventId,
-        //     registrationId,
-        //     workshops: selectedWorkshopData,
-        //     totalAmount: totalPrice
-        //   }),
-        //   headers: { 'Content-Type': 'application/json' }
-        // });
-        console.log("Calling PAID workshop registration API");
+        // Initiate payment for paid workshops
+        await initiateWorkshopPayment();
+        // Note: For paid workshops, the sidebar will close after payment verification
       }
-
-      // Show success message
-      alert(
-        `Successfully registered for ${totalCount} ${
-          isFreeWorkshopSelected ? "free" : "paid"
-        } workshop(s)!${isPaidWorkshopSelected ? ` Total: ₹${totalPrice}` : ""}`
-      );
-
-      // Reset selections and close
-      setSelectedWorkshopIds([]);
-      setSelectedWorkshopType(null);
-      onClose();
-    } catch (error) {
-      console.error("Error registering for workshops:", error);
-      alert("Error registering for workshops. Please try again.");
+    } catch (error: any) {
+      console.error("Registration error:", error);
+      toast.error(error.message || "Failed to register for workshops");
     } finally {
       setSubmitting(false);
     }
