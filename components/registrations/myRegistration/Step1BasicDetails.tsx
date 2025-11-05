@@ -26,6 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import CountryStateCitySelect from "@/components/common/CountryStateCitySelect";
 import { useEventStore } from "@/app/store/useEventStore";
 import { medicalCouncils } from "@/app/data/medicalCouncils";
+import { formatSlabValidity } from "@/app/utils/formatEventDate";
 
 // ✅ Schema for validation
 const schema = z.object({
@@ -487,8 +488,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
                     <span className="font-medium">{cat.slabName}</span>
                     {cat.startDate && cat.endDate && (
                       <p className="text-xs text-gray-500 mt-1">
-                        Valid: {new Date(cat.startDate).toLocaleDateString()} -{" "}
-                        {new Date(cat.endDate).toLocaleDateString()}
+                        {formatSlabValidity(cat.startDate, cat.endDate)}
                       </p>
                     )}
                   </div>

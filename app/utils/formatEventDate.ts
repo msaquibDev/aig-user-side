@@ -26,3 +26,28 @@ export function formatEventDate(startDate?: string, endDate?: string) {
   // If different → show range
   return `${formatter.format(start)} – ${formatter.format(end)}`;
 }
+
+
+export function formatSlabValidity(startISO?: string, endISO?: string) {
+  if (!startISO || !endISO) return "";
+
+  const fmt = new Intl.DateTimeFormat("en-IN", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
+  const start = new Date(startISO);
+  const end = new Date(endISO);
+  const today = new Date();
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "";
+
+  if (today < start) {
+    return `Valid from ${fmt.format(start)} to ${fmt.format(end)}`;
+  }
+  if (today >= start && today <= end) {
+    return `Valid till ${fmt.format(end)}`;
+  }
+  return `Validity expired on ${fmt.format(end)}`;
+}

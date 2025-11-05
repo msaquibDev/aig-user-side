@@ -347,7 +347,7 @@ export default function EventTabs() {
                       onClick={buttonConfig.onClick}
                       disabled={buttonConfig.disabled}
                       className={clsx(
-                        "w-full transition-colors font-medium",
+                        "w-full transition-colors font-medium cursor-pointer",
                         buttonConfig.variant === "success" &&
                           "bg-green-600 hover:bg-green-700 text-white",
                         buttonConfig.variant === "primary" &&
