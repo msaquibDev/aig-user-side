@@ -9,6 +9,7 @@ import {
   ChevronRight,
   ArrowUp,
   ArrowDown,
+  AlertCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -25,9 +26,16 @@ import { useBanquetStore } from "@/app/store/useBanquetStore";
 type Props = {
   onAddClick: () => void;
   onEditClick: (id: number) => void;
+  hasRegistration?: boolean;
+  eventId?: string | null;
 };
 
-export default function BanquetTable({ onAddClick, onEditClick }: Props) {
+export default function BanquetTable({
+  onAddClick,
+  onEditClick,
+  hasRegistration = false,
+  eventId,
+}: Props) {
   const { persons } = useBanquetStore();
 
   const [search, setSearch] = useState("");
@@ -65,35 +73,55 @@ export default function BanquetTable({ onAddClick, onEditClick }: Props) {
   }, [search]);
 
   return (
-    <div className="p-6">
+    <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
       {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-[#00509E]">Banquet</h2>
-        <Button
-          onClick={onAddClick}
-          className="bg-[#00509E] hover:bg-[#003B73] cursor-pointer"
-        >
-          <PlusCircle className="w-4 h-4 mr-2" />
-          Book Banquet
-        </Button>
-      </div>
-
-      {/* Table Box */}
-      <div className="rounded-lg border bg-white overflow-hidden">
-        {/* Filter/Search Row */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b bg-gray-50">
-          <Funnel className="w-4 h-4 text-gray-600" />
-          <Input
-            placeholder="Search..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="max-w-sm bg-white"
-          />
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div>
+          <h2 className="text-xl font-semibold text-[#00509E]">
+            Banquet Registrations
+          </h2>
+          {eventId && hasRegistration && (
+            <p className="text-gray-600 text-sm mt-1">
+              Managing banquet registrations for your event
+            </p>
+          )}
         </div>
 
-        {/* Table */}
+        {hasRegistration ? (
+          <Button
+            onClick={onAddClick}
+            className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"
+          >
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Book Banquet
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2 text-yellow-600 text-sm">
+            <AlertCircle className="w-4 h-4" />
+            Complete registration to book banquet
+          </div>
+        )}
+      </div>
+
+      {/* Search */}
+      {hasRegistration && (
+        <div className="mb-6">
+          <div className="relative max-w-sm">
+            <Funnel className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search banquet entries..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 bg-white border-gray-300"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Table */}
+      <div className="border border-gray-200 rounded-lg overflow-hidden">
         <Table>
-          <TableHeader className="bg-gray-100">
+          <TableHeader className="bg-gray-50">
             <TableRow>
               <TableHead
                 className="px-6 py-3 text-left cursor-pointer select-none"
@@ -132,25 +160,31 @@ export default function BanquetTable({ onAddClick, onEditClick }: Props) {
           <TableBody>
             {currentItems.length > 0 ? (
               currentItems.map((person, index) => (
-                <TableRow key={person.id} className="hover:bg-gray-50">
-                  <TableCell className="px-6 py-3">
+                <TableRow key={person.id} className="hover:bg-gray-50/50">
+                  <TableCell className="px-6 py-3 font-medium text-gray-900">
                     {startIndex + index + 1}
                   </TableCell>
-                  <TableCell className="px-6 py-3">{person.name}</TableCell>
-                  <TableCell className="px-6 py-3">{person.relation}</TableCell>
-                  <TableCell className="px-6 py-3">{person.age}</TableCell>
-                  <TableCell className="px-6 py-3">{person.gender}</TableCell>
+                  <TableCell className="px-6 py-3 font-medium">
+                    {person.name}
+                  </TableCell>
+                  <TableCell className="px-6 py-3 capitalize">
+                    {person.relation}
+                  </TableCell>
                   <TableCell className="px-6 py-3">
+                    {person.age} years
+                  </TableCell>
+                  <TableCell className="px-6 py-3">{person.gender}</TableCell>
+                  <TableCell className="px-6 py-3 capitalize">
                     {person.mealPreference}
                   </TableCell>
                   <TableCell className="px-6 py-3 text-right">
                     <Button
-                      variant="link"
+                      variant="ghost"
                       size="sm"
-                      className="text-blue-600 cursor-pointer"
+                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 cursor-pointer"
                       onClick={() => onEditClick(person.id)}
                     >
-                      {/* <Pencil className="w-4 h-4 mr-1" /> */}
+                      <Pencil className="w-4 h-4 mr-1" />
                       Edit
                     </Button>
                   </TableCell>
@@ -160,9 +194,21 @@ export default function BanquetTable({ onAddClick, onEditClick }: Props) {
               <TableRow>
                 <TableCell
                   colSpan={7}
-                  className="text-center py-6 text-gray-500"
+                  className="text-center py-8 text-gray-500"
                 >
-                  No Banquet persons to show
+                  <div className="flex flex-col items-center">
+                    <PlusCircle className="w-12 h-12 text-gray-300 mb-2" />
+                    <p className="text-gray-600">
+                      {hasRegistration
+                        ? "No banquet entries added yet"
+                        : "Complete registration to book banquet"}
+                    </p>
+                    {hasRegistration && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        Click "Book Banquet" to get started
+                      </p>
+                    )}
+                  </div>
                 </TableCell>
               </TableRow>
             )}
@@ -170,34 +216,40 @@ export default function BanquetTable({ onAddClick, onEditClick }: Props) {
         </Table>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t text-sm text-gray-600">
-          <span>
-            Showing {startIndex + 1}-
-            {Math.min(startIndex + itemsPerPage, sorted.length)} of{" "}
-            {sorted.length}
-          </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <span>
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+        {sorted.length > 0 && hasRegistration && (
+          <div className="flex items-center justify-between px-6 py-4 bg-gray-50 border-t">
+            <div className="text-sm text-gray-600">
+              Showing {startIndex + 1} to{" "}
+              {Math.min(startIndex + itemsPerPage, sorted.length)} of{" "}
+              {sorted.length} entries
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="border-gray-300 hover:bg-gray-50"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <span className="text-sm text-gray-600 mx-2">
+                Page {currentPage} of {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  setCurrentPage((p) => Math.min(p + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+                className="border-gray-300 hover:bg-gray-50"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

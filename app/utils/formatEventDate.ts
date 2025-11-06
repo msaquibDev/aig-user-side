@@ -43,11 +43,10 @@ export function formatSlabValidity(startISO?: string, endISO?: string) {
 
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "";
 
-  if (today < start) {
-    return `Valid from ${fmt.format(start)} to ${fmt.format(end)}`;
-  }
-  if (today >= start && today <= end) {
+  // Only two states now: valid or expired
+  if (today <= end) {
     return `Valid till ${fmt.format(end)}`;
   }
+
   return `Validity expired on ${fmt.format(end)}`;
 }

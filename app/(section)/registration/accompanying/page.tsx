@@ -128,8 +128,7 @@ function AccompanyingContent() {
               <p className="text-blue-600 text-sm mt-1">
                 {registrationNumber && (
                   <p className="text-blue-600 text-sm mt-1">
-                    Registration Number{" "}
-                    <strong>{registrationNumber}</strong>
+                    Registration Number <strong>{registrationNumber}</strong>
                   </p>
                 )}
               </p>

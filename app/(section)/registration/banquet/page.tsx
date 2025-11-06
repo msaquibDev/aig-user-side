@@ -1,36 +1,204 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
 import BanquetFormSidebar from "@/components/registrations/banquet/BanquetFormSidebar";
 import BanquetTable from "@/components/registrations/banquet/BanquetTable";
-import { useState } from "react";
+import Loading from "@/components/common/Loading";
 
-export default function BanquetPage() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+function BanquetContent() {
+  const searchParams = useSearchParams();
+  const eventId = searchParams.get("eventId");
+  const registrationId = searchParams.get("registrationId");
+
+  const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [hasRegistration, setHasRegistration] = useState(false);
+  const [eventName, setEventName] = useState("");
+  const [registrationNumber, setRegistrationNumber] = useState<string>("");
+
+  // Check if user has registration and get event details - SAME PATTERN AS ACCOMPANYING
+  useEffect(() => {
+    const checkRegistration = async () => {
+      if (!eventId) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        // Check if user has registration for this event
+        const token = localStorage.getItem("accessToken");
+        const registrationCheckRes = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/registrations/event/${eventId}/my-registration`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (registrationCheckRes.ok) {
+          const registrationData = await registrationCheckRes.json();
+          if (registrationData.success && registrationData.data) {
+            setHasRegistration(true);
+            setEventName(
+              registrationData.data.eventId?.eventName || "this event"
+            );
+            setRegistrationNumber(
+              registrationData.data.regNum || registrationId || ""
+            );
+          }
+        }
+
+        // If registrationId is provided, we already know user has registration
+        if (registrationId) {
+          setHasRegistration(true);
+
+          // Fetch registration details to get event name
+          const registrationRes = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/registrations/${registrationId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          if (registrationRes.ok) {
+            const regData = await registrationRes.json();
+            if (regData.success && regData.data) {
+              setEventName(regData.data.eventId?.eventName || "this event");
+              setRegistrationNumber(
+                regData.data.regNum || registrationId || ""
+              );
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error checking registration:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkRegistration();
+  }, [eventId, registrationId]);
 
   const handleAddClick = () => {
+    if (!hasRegistration) {
+      alert("Please complete your main registration first.");
+      return;
+    }
     setEditingId(null);
-    setIsSidebarOpen(true);
+    setOpen(true);
   };
 
   const handleEditClick = (id: number) => {
+    if (!hasRegistration) {
+      alert("Please complete your main registration first.");
+      return;
+    }
     setEditingId(id);
-    setIsSidebarOpen(true);
+    setOpen(true);
   };
 
   const handleCloseSidebar = () => {
-    setIsSidebarOpen(false);
+    setOpen(false);
     setEditingId(null);
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-64">
+        <Loading />
+      </div>
+    );
+  }
+
   return (
-    <>
-      <BanquetTable onAddClick={handleAddClick} onEditClick={handleEditClick} />
+    <div className="p-6">
+      {/* Header with context info - SAME PATTERN AS ACCOMPANYING */}
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-[#00509E] mb-2">
+          Banquet Registration
+        </h1>
+
+        {hasRegistration && eventName && (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-blue-700">
+              You are managing banquet registrations for your registration to{" "}
+              <strong>{eventName}</strong>
+            </p>
+            {registrationId && (
+              <p className="text-blue-600 text-sm mt-1">
+                {registrationNumber && (
+                  <span className="text-blue-600 text-sm">
+                    Registration Number <strong>{registrationNumber}</strong>
+                  </span>
+                )}
+              </p>
+            )}
+          </div>
+        )}
+
+        {!hasRegistration && eventId && (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-700">
+              You need to complete your main registration first before booking
+              banquet.
+            </p>
+            <div className="mt-2">
+              <a
+                href={`/registration/my-registration?eventId=${eventId}`}
+                className="text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Complete Registration →
+              </a>
+            </div>
+          </div>
+        )}
+
+        {!eventId && (
+          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <p className="text-yellow-700">
+              Please select an event to book banquet.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <BanquetTable
+        onAddClick={handleAddClick}
+        onEditClick={handleEditClick}
+        hasRegistration={hasRegistration}
+        eventId={eventId}
+      />
+
       <BanquetFormSidebar
-        open={isSidebarOpen}
+        eventId={eventId}
+        registrationId={registrationId}
+        open={open}
         onClose={handleCloseSidebar}
         editId={editingId}
+        hasRegistration={hasRegistration}
       />
-    </>
+    </div>
+  );
+}
+
+export default function BanquetPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex items-center justify-center min-h-64">
+          <Loading />
+        </div>
+      }
+    >
+      <BanquetContent />
+    </Suspense>
   );
 }

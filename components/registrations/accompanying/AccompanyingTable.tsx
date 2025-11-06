@@ -84,17 +84,14 @@ export default function AccompanyingTable({
       const token = localStorage.getItem("accessToken");
 
       // Add eventId to the API URL if provided
-      const url = eventId
-        ? `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/paid?eventId=${eventId}`
-        : `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/paid`;
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/paid/events/${eventId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
       const data = await response.json();
 
