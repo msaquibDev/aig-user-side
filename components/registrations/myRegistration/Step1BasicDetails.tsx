@@ -173,7 +173,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
 
         // Then fetch registration slabs
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${currentEvent._id}/slabs`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${currentEvent._id}/slabs/active`,
           {
             method: "GET",
             headers: {

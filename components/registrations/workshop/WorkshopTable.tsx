@@ -122,7 +122,7 @@ export default function WorkshopTable({
         );
         setApiWorkshops(workshopsData);
       } else {
-        setError("No registered workshops found for this event");
+        // setError("No registered workshops found for this event");
         setRegisteredWorkshops([]);
         setApiWorkshops([]);
       }
@@ -263,7 +263,7 @@ export default function WorkshopTable({
           )}
         </div>
         <div className="flex items-center gap-2">
-          <Button
+          {/* <Button
             variant="outline"
             onClick={handleRefresh}
             disabled={refreshing || !eventId}
@@ -273,7 +273,7 @@ export default function WorkshopTable({
               className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
             />
             Refresh
-          </Button>
+          </Button> */}
           <Button
             onClick={onAddClick}
             className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"

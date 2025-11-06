@@ -21,6 +21,7 @@ import {
   FolderOpen,
   CreditCard,
   Tag,
+  Clock,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -450,10 +451,10 @@ export default function WorkshopFormSidebar({
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md flex flex-col p-0 border-l border-gray-200"
+        className="w-full sm:w-[40vw] sm:max-w-[40vw] md:w-[35vw] md:max-w-[35vw] lg:w-[30vw] lg:max-w-[30vw] flex flex-col p-0 border-l border-gray-200 transition-all duration-300 ease-in-out"
       >
         <SheetHeader className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-white">
-          <SheetTitle className="text-lg font-semibold text-gray-900">
+          <SheetTitle className="text-lg font-semibold text-[#00509E]">
             Register for Workshops
           </SheetTitle>
         </SheetHeader>
@@ -629,8 +630,11 @@ export default function WorkshopFormSidebar({
                                           <div className="space-y-1">
                                             <div className="flex items-center gap-2">
                                               <Calendar className="w-3 h-3 text-gray-500" />
+                                              <span>{workshop.startDate}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <Clock className="w-3 h-3 text-gray-500" />
                                               <span>
-                                                {workshop.startDate} |{" "}
                                                 {workshop.startTime} -{" "}
                                                 {workshop.endTime}
                                               </span>
@@ -641,11 +645,11 @@ export default function WorkshopFormSidebar({
                                             </div>
                                             {workshop.maxRegAllowed > 0 && (
                                               <div className="flex items-center gap-2">
-                                                <Users className="w-3 h-3 text-gray-500" />
+                                                {/* <Users className="w-3 h-3 text-gray-500" />
                                                 <span>
                                                   Max: {workshop.maxRegAllowed}{" "}
                                                   participants
-                                                </span>
+                                                </span> */}
                                               </div>
                                             )}
                                           </div>

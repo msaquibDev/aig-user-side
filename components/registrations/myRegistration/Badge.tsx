@@ -21,7 +21,13 @@ export function Badge({ registration }: BadgeProps) {
     try {
       const imgData = await toPng(badgeRef.current, {
         quality: 1.0,
-        pixelRatio: 3, // Higher resolution for download
+        pixelRatio: 3,
+        backgroundColor: "#ffffff",
+        width: badgeRef.current.scrollWidth,
+        height: badgeRef.current.scrollHeight,
+        style: {
+          margin: "0 auto",
+        },
       });
       const link = document.createElement("a");
       link.href = imgData;
@@ -40,6 +46,12 @@ export function Badge({ registration }: BadgeProps) {
       const imgData = await toPng(badgeRef.current, {
         quality: 0.8,
         pixelRatio: 2,
+        backgroundColor: "#ffffff",
+        width: badgeRef.current.scrollWidth,
+        height: badgeRef.current.scrollHeight,
+        style: {
+          margin: "0 auto",
+        },
       });
 
       if (!imgData) return;
@@ -94,16 +106,11 @@ export function Badge({ registration }: BadgeProps) {
   // QR Code value - include essential registration info
   const qrValue = JSON.stringify({
     regNum: regNum,
-    // name: attendeeName,
-    // eventName: eventName,
-    // registrationId: registration._id,
-    // category: registrationCategory,
-    // eventId: registration.eventId?._id,
   });
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br p-4">
-      <div className="max-w-md w-full">
+      <div className="w-full">
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-[#00509E] mb-2">
@@ -117,51 +124,23 @@ export function Badge({ registration }: BadgeProps) {
         {/* Badge Card */}
         <div
           ref={badgeRef}
-          className="w-full max-w-sm mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden border-2 border-gray-300"
+          className="w-[400px] bg-white border-1 rounded-lg border-gray-300 mx-auto"
         >
-          {/* Event Banner */}
-          {/* <div className="relative h-32 bg-gradient-to-r from-[#00509E] to-[#003B73]">
-            <img
-              src={eventImage}
-              alt={eventName}
-              className="w-full h-full object-cover opacity-90"
-              onError={(e) => {
-                // Fallback if image fails to load
-                e.currentTarget.style.display = "none";
-                e.currentTarget.parentElement!.className =
-                  "relative h-32 bg-gradient-to-r from-[#00509E] to-[#003B73] flex items-center justify-center";
-                e.currentTarget.parentElement!.innerHTML = `<span class="text-white text-xl font-bold">${eventName}</span>`;
-              }}
-            />
-          </div> */}
-
-          <CardContent className="flex flex-col items-center p-6">
+          <CardContent className="flex flex-col items-center p-8">
             {/* Profile Section */}
-            <div className="flex items-center gap-4 mb-4 w-full">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                {attendeeName
-                  .split(" ")
-                  .map((n: string) => n[0])
-                  .join("")
-                  .toUpperCase()}
-              </div>
-              <div className="flex-1">
-                <h2 className="text-xl font-bold text-gray-900">
-                  {prefix} {attendeeName}
-                </h2>
-                <p className="text-sm text-gray-600">
-                  Reg No:{" "}
-                  <span className="font-mono font-semibold">{regNum}</span>
-                </p>
-              </div>
-            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-2">
+              {prefix} {attendeeName}
+            </h2>
+            <p className="text-sm text-gray-600 mb-6">
+              Reg No: <span className="font-mono font-semibold">{regNum}</span>
+            </p>
 
             {/* QR Code */}
-            <div className="bg-white p-4 rounded-xl border-2 border-gray-200 shadow-sm mb-4">
+            <div className="bg-white p-6 rounded-xl border-2 border-gray-200 shadow-sm mb-6">
               <QRCodeSVG
                 value={qrValue}
-                size={180}
-                level="H" // Higher error correction
+                size={200}
+                level="H"
                 includeMargin={true}
               />
             </div>
@@ -172,7 +151,8 @@ export function Badge({ registration }: BadgeProps) {
                 {eventName}
               </h3>
               <p className="text-sm text-gray-600">
-                {registration.eventId?.startDate || "Event Date"}
+                {registration.eventId?.startDate} {"-"}{" "}
+                {registration.eventId?.endDate || "Event Date"}
               </p>
             </div>
 
@@ -196,7 +176,7 @@ export function Badge({ registration }: BadgeProps) {
           <Button
             onClick={handleDownloadBadge}
             variant="default"
-            className="flex items-center gap-2 bg-[#00509E] hover:bg-[#003B73] px-6 py-2"
+            className="flex items-center gap-2 bg-[#00509E] hover:bg-[#003B73] px-6 py-2 cursor-pointer"
           >
             <Download className="w-4 h-4" />
             Download Badge
@@ -206,7 +186,7 @@ export function Badge({ registration }: BadgeProps) {
             onClick={handleShareBadge}
             variant="outline"
             disabled={isSharing}
-            className="flex items-center gap-2 border-[#00509E] text-[#00509E] hover:bg-[#00509E] hover:text-white px-6 py-2"
+            className="flex items-center gap-2 border-[#00509E] text-[#00509E] hover:bg-[#00509E] hover:text-white px-6 py-2 cursor-pointer"
           >
             <Share2 className="w-4 h-4" />
             {isSharing ? "Sharing..." : "Share"}

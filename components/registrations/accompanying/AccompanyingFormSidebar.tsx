@@ -619,10 +619,10 @@ export default function AccompanyingFormSidebar({
     <Sheet open={open} onOpenChange={onClose}>
       <SheetContent
         side="right"
-        className="w-full sm:max-w-md flex flex-col p-0 border-l border-gray-200"
+        className="w-full sm:w-[40vw] sm:max-w-[40vw] md:w-[35vw] md:max-w-[35vw] lg:w-[30vw] lg:max-w-[30vw] flex flex-col p-0 border-l border-gray-200 transition-all duration-300 ease-in-out"
       >
         <SheetHeader className="flex justify-between items-center px-6 py-4 border-b border-gray-200 bg-white">
-          <SheetTitle className="text-lg font-semibold text-gray-900">
+          <SheetTitle className="text-lg font-semibold text-[#00509E]">
             {editingPerson ? "Edit" : "Add"} Accompanying Person
             {fields.length > 1 ? "s" : ""}
           </SheetTitle>

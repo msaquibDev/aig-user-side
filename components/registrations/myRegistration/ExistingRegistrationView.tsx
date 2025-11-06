@@ -73,9 +73,9 @@ export default function ExistingRegistrationView({
               <Link
                 href={`/registration/accompanying?eventId=${actualEventId}&registrationId=${registrationId}`}
               >
-                <Button className="bg-[#00509E] hover:bg-[#004080] text-white cursor-pointer">
+                {/* <Button className="bg-[#00509E] hover:bg-[#004080] text-white cursor-pointer">
                   Manage Accompanying Persons
-                </Button>
+                </Button> */}
               </Link>
             )}
           </div>

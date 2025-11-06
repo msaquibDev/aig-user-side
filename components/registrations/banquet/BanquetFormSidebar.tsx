@@ -124,9 +124,9 @@ export default function BanquetFormSidebar({ open, onClose, editId }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
-      <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
+      <SheetContent className="w-full sm:w-[40vw] sm:max-w-[40vw] md:w-[35vw] md:max-w-[35vw] lg:w-[30vw] lg:max-w-[30vw] flex flex-col p-0 border-l border-gray-200 transition-all duration-300 ease-in-out">
         <SheetHeader className="flex justify-between items-center px-5 py-4 border-b">
-          <SheetTitle className="text-left">
+          <SheetTitle className="text-lg font-semibold text-[#00509E]">
             {editId ? "Edit" : "Book"} Banquet
           </SheetTitle>
         </SheetHeader>
