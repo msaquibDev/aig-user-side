@@ -27,7 +27,7 @@ type BanquetRegistration = {
   _id: string;
   banquet: {
     _id: string;
-    banquetName: string;
+    banquetslabName: string;
     date: string;
     time: string;
     venue: string;
@@ -85,6 +85,7 @@ export default function BanquetTable({
   const [banquetRegistrations, setBanquetRegistrations] = useState<
     BanquetRegistration[]
   >([]);
+  console.log("Banquet Registrations:", banquetRegistrations);
   const [refreshing, setRefreshing] = useState(false);
 
   const itemsPerPage = 10;
@@ -149,7 +150,7 @@ export default function BanquetTable({
     reg.paidBanquets.map((banquet) => ({
       ...banquet,
       registrationId: reg._id,
-      banquetName: reg.banquet.banquetName,
+      banquetName: reg.banquet.banquetslabName,
       eventName: reg.event.eventName,
       regNum: reg.registration.regNum,
       banquetDate: reg.banquet.date,
@@ -326,6 +327,9 @@ export default function BanquetTable({
               <TableHead className="font-semibold text-gray-900">
                 Relation
               </TableHead>
+              <TableHead className="font-semibold text-gray-900">
+                Banquet Name
+              </TableHead>
               {/* <TableHead className="font-semibold text-gray-900">
                 Details
               </TableHead> */}
@@ -370,6 +374,9 @@ export default function BanquetTable({
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       {getRelationValue(entry)}
                     </span>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {entry.banquetName} {/* Add Banquet Name */}
                   </TableCell>
                   {/* <TableCell className="text-sm text-gray-600">
                     {getPersonDetails(entry)}

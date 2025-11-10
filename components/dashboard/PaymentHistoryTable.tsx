@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Filter, ChevronLeft, ChevronRight, Eye, Download } from "lucide-react";
+import { formatEventDate, formatSingleDate } from "@/app/utils/formatEventDate";
 
 type PaymentStatus = "paid" | "failed" | "pending" | "initiated";
 
@@ -114,24 +115,34 @@ export default function PaymentHistoryTable() {
     return "Event";
   };
 
+  // Replace the existing getEventDate function with this:
   const getEventDate = (payment: any) => {
     // Check direct eventId first
     if (payment.eventId?.startDate && payment.eventId?.endDate) {
-      return `${payment.eventId.startDate} - ${payment.eventId.endDate}`;
+      return formatEventDate(
+        payment.eventId.startDate,
+        payment.eventId.endDate
+      );
     }
     // Check workshop registration
     if (
       payment.workshopRegistrationId?.eventId?.startDate &&
       payment.workshopRegistrationId?.eventId?.endDate
     ) {
-      return `${payment.workshopRegistrationId.eventId.startDate} - ${payment.workshopRegistrationId.eventId.endDate}`;
+      return formatEventDate(
+        payment.workshopRegistrationId.eventId.startDate,
+        payment.workshopRegistrationId.eventId.endDate
+      );
     }
     // Check event registration
     if (
       payment.eventRegistrationId?.eventId?.startDate &&
       payment.eventRegistrationId?.eventId?.endDate
     ) {
-      return `${payment.eventRegistrationId.eventId.startDate} - ${payment.eventRegistrationId.eventId.endDate}`;
+      return formatEventDate(
+        payment.eventRegistrationId.eventId.startDate,
+        payment.eventRegistrationId.eventId.endDate
+      );
     }
     return "Date not available";
   };
@@ -350,7 +361,7 @@ export default function PaymentHistoryTable() {
                       </div>
                     </td>
                     <td className="px-4 py-3">
-                      {new Date(payment.createdAt).toLocaleDateString()}
+                      {formatSingleDate(payment.createdAt)}
                       <div className="text-xs text-gray-500 mt-1">
                         {new Date(payment.createdAt).toLocaleTimeString()}
                       </div>

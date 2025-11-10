@@ -26,6 +26,7 @@ import {
   AlertCircle,
   RefreshCw,
 } from "lucide-react";
+import { formatEventDate } from "@/app/utils/formatEventDate";
 
 type Workshop = {
   _id: string;
@@ -82,6 +83,7 @@ export default function WorkshopTable({
   const [registeredWorkshops, setRegisteredWorkshops] = useState<
     RegisteredWorkshop[]
   >([]);
+
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -389,7 +391,9 @@ export default function WorkshopTable({
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <Calendar className="w-4 h-4 text-gray-400" />
-                          <span className="text-sm">{workshop.startDate}</span>
+                          <span className="text-sm">
+                            {formatEventDate(workshop.startDate)}
+                          </span>
                         </div>
                         <div className="text-xs text-gray-500">
                           {workshop.startTime} - {workshop.endTime}
