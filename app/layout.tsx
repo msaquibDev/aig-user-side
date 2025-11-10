@@ -6,6 +6,9 @@ import { Toaster } from "sonner";
 export const metadata: Metadata = {
   title: "AigUser",
   description: "AIG User Application",
+  icons: {
+    icon: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

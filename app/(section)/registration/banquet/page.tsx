@@ -12,13 +12,15 @@ function BanquetContent() {
   const registrationId = searchParams.get("registrationId");
 
   const [open, setOpen] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingData, setEditingData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [hasRegistration, setHasRegistration] = useState(false);
   const [eventName, setEventName] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState<string>("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Check if user has registration and get event details - SAME PATTERN AS ACCOMPANYING
+  // Check if user has registration and get event details
   useEffect(() => {
     const checkRegistration = async () => {
       if (!eventId) {
@@ -93,21 +95,28 @@ function BanquetContent() {
       return;
     }
     setEditingId(null);
+    setEditingData(null);
     setOpen(true);
   };
 
-  const handleEditClick = (id: number) => {
+  const handleEditClick = (id: string, banquetData: any) => {
     if (!hasRegistration) {
       alert("Please complete your main registration first.");
       return;
     }
     setEditingId(id);
+    setEditingData(banquetData);
     setOpen(true);
   };
 
   const handleCloseSidebar = () => {
     setOpen(false);
     setEditingId(null);
+    setEditingData(null);
+  };
+
+  const handleSuccess = () => {
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   if (loading) {
@@ -120,7 +129,7 @@ function BanquetContent() {
 
   return (
     <div className="p-6">
-      {/* Header with context info - SAME PATTERN AS ACCOMPANYING */}
+      {/* Header with context info */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-[#00509E] mb-2">
           Banquet Registration
@@ -175,6 +184,7 @@ function BanquetContent() {
         onEditClick={handleEditClick}
         hasRegistration={hasRegistration}
         eventId={eventId}
+        refreshTrigger={refreshTrigger}
       />
 
       <BanquetFormSidebar
@@ -182,8 +192,9 @@ function BanquetContent() {
         registrationId={registrationId}
         open={open}
         onClose={handleCloseSidebar}
-        editId={editingId}
+        editId={editingId ? Number(editingId) : null}
         hasRegistration={hasRegistration}
+        onSuccess={handleSuccess}
       />
     </div>
   );

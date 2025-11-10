@@ -22,22 +22,16 @@ import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEffect, useState } from "react";
-import { useBanquetStore } from "@/app/store/useBanquetStore";
-import {
-  PlusCircle,
-  AlertCircle,
-  IndianRupee,
-  X,
-  CheckCircle,
-} from "lucide-react";
+import { PlusCircle, AlertCircle, IndianRupee, X } from "lucide-react";
 import { toast } from "sonner";
 import { formatSlabValidity } from "@/app/utils/formatEventDate";
+import { useUserStore } from "@/app/store/useUserStore";
 
 // Types - Updated based on your API response
 type BanquetSlab = {
   _id: string;
   eventId: string;
-  banquetslabName: string; // Updated field name
+  banquetslabName: string;
   amount: number;
   startDate: string;
   endDate: string;
@@ -73,9 +67,8 @@ type PaidAccompany = {
 // Form Schemas
 const banquetEntrySchema = z.object({
   type: z.enum(["self", "accompany", "other"]),
-  accompanyId: z.string().optional(),
+  accompanySubId: z.string().optional(),
   otherName: z.string().optional(),
-  amount: z.number(),
 });
 
 const formSchema = z.object({
@@ -92,6 +85,29 @@ type Props = {
   onClose: () => void;
   editId: number | null;
   hasRegistration?: boolean;
+  onSuccess?: () => void;
+};
+
+// Razorpay script loading function
+const loadRazorpayScript = () => {
+  return new Promise((resolve, reject) => {
+    if (typeof window !== "undefined" && (window as any).Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+    script.async = true;
+    script.onload = () => {
+      resolve(true);
+    };
+    script.onerror = () => {
+      console.error("Failed to load Razorpay SDK");
+      reject(new Error("Failed to load Razorpay SDK"));
+    };
+    document.body.appendChild(script);
+  });
 };
 
 export default function BanquetFormSidebar({
@@ -101,16 +117,16 @@ export default function BanquetFormSidebar({
   onClose,
   editId,
   hasRegistration = false,
+  onSuccess,
 }: Props) {
-  const { addPerson, updatePerson, getPersonById } = useBanquetStore();
-
   // State for API data
+  const { id: userId } = useUserStore();
   const [banquetSlabs, setBanquetSlabs] = useState<BanquetSlab[]>([]);
   const [accompanyPersons, setAccompanyPersons] = useState<AccompanyPerson[]>(
     []
   );
   const [loading, setLoading] = useState(false);
-  const [selectedSlab, setSelectedSlab] = useState<BanquetSlab | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // Fetch banquet slabs
   const fetchBanquetSlabs = async () => {
@@ -153,7 +169,6 @@ export default function BanquetFormSidebar({
       );
 
       const data = await response.json();
-      console.log("Fetched accompany persons:", data);
       if (data.success && Array.isArray(data.data)) {
         // Extract all accompany persons from paid accompanies
         const allPersons = data.data.flatMap(
@@ -195,9 +210,8 @@ export default function BanquetFormSidebar({
       entries: [
         {
           type: "self",
-          accompanyId: "",
+          accompanySubId: "",
           otherName: "",
-          amount: 0,
         },
       ],
     },
@@ -217,23 +231,13 @@ export default function BanquetFormSidebar({
   );
 
   // Calculate total amount
-  const totalAmount = entries.reduce(
-    (sum, entry) => sum + (entry.amount || 0),
-    0
-  );
+  const totalAmount = selectedBanquetSlab
+    ? fields.length * selectedBanquetSlab.amount
+    : 0;
 
   // Handle banquet slab selection
   const handleBanquetSlabSelect = (slabId: string) => {
     setValue("selectedBanquetSlabId", slabId);
-    const slab = banquetSlabs.find((s) => s._id === slabId);
-    setSelectedSlab(slab || null);
-
-    // Update all entries with the new slab amount
-    if (slab) {
-      fields.forEach((_, index) => {
-        setValue(`entries.${index}.amount`, slab.amount);
-      });
-    }
   };
 
   // Handle type change
@@ -242,18 +246,13 @@ export default function BanquetFormSidebar({
     index: number
   ) => {
     setValue(`entries.${index}.type`, type);
-    setValue(`entries.${index}.accompanyId`, "");
+    setValue(`entries.${index}.accompanySubId`, "");
     setValue(`entries.${index}.otherName`, "");
-
-    // Update amount based on selected slab
-    if (selectedBanquetSlab) {
-      setValue(`entries.${index}.amount`, selectedBanquetSlab.amount);
-    }
   };
 
   // Handle accompany selection
-  const handleAccompanySelect = (accompanyId: string, index: number) => {
-    setValue(`entries.${index}.accompanyId`, accompanyId);
+  const handleAccompanySelect = (accompanySubId: string, index: number) => {
+    setValue(`entries.${index}.accompanySubId`, accompanySubId);
   };
 
   // Add new entry
@@ -265,10 +264,125 @@ export default function BanquetFormSidebar({
 
     append({
       type: "self",
-      accompanyId: "",
+      accompanySubId: "",
       otherName: "",
-      amount: selectedBanquetSlab?.amount || 0,
     });
+  };
+
+  // Payment initiation function
+  const initiateBanquetPayment = async (
+    banquetRegistrationId: string,
+    banquetItemIds: string[],
+    amount: number
+  ) => {
+    try {
+      // Load Razorpay script first
+      await loadRazorpayScript();
+
+      const token = localStorage.getItem("accessToken");
+
+      // Create payment order
+      const paymentResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/banquet/create-order/${eventId}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            banquetRegistrationId: banquetRegistrationId,
+            banquetItemIds: banquetItemIds,
+            amount: amount,
+          }),
+        }
+      );
+
+      const paymentData = await paymentResponse.json();
+
+      if (!paymentData.success) {
+        throw new Error(
+          paymentData.message || "Failed to create payment order"
+        );
+      }
+
+      // Double check if Razorpay is available
+      if (!(window as any).Razorpay) {
+        throw new Error("Razorpay SDK still not loaded after waiting");
+      }
+
+      // Initialize Razorpay payment
+      const options = {
+        key: paymentData.data.razorpayKeyId,
+        amount: paymentData.data.amount * 100,
+        currency: paymentData.data.currency || "INR",
+        name: "Banquet Registration",
+        description: "Banquet Fees",
+        order_id: paymentData.data.orderId,
+        handler: async function (response: any) {
+          await verifyBanquetPayment(response, paymentData.data.paymentId);
+        },
+        prefill: {
+          name: "Banquet Participant",
+          email: "participant@example.com",
+        },
+        theme: {
+          color: "#00509E",
+        },
+        modal: {
+          ondismiss: function () {
+            toast.info("Payment cancelled. You can complete payment later.");
+          },
+        },
+      };
+
+      const razorpay = new (window as any).Razorpay(options);
+      razorpay.open();
+    } catch (error) {
+      console.error("Payment initiation error:", error);
+      throw error;
+    }
+  };
+
+  // Payment verification function
+  const verifyBanquetPayment = async (
+    razorpayResponse: any,
+    paymentId: string
+  ) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const verifyResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/payments/banquet/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            razorpayOrderId: razorpayResponse.razorpay_order_id,
+            razorpayPaymentId: razorpayResponse.razorpay_payment_id,
+            razorpaySignature: razorpayResponse.razorpay_signature,
+            paymentId: paymentId,
+          }),
+        }
+      );
+
+      const verifyData = await verifyResponse.json();
+
+      if (verifyData.success) {
+        toast.success("Payment successful! Banquet registration completed.");
+        onClose();
+        reset();
+        if (onSuccess) onSuccess();
+      } else {
+        throw new Error(verifyData.message || "Payment verification failed");
+      }
+    } catch (error) {
+      console.error("Payment verification error:", error);
+      toast.error("Payment verification failed. Please contact support.");
+    }
   };
 
   const onSubmit = async (data: FormData) => {
@@ -283,26 +397,33 @@ export default function BanquetFormSidebar({
     }
 
     try {
-      setLoading(true);
+      setSubmitting(true);
 
-      // Prepare banquet registration data
+      // Prepare banquet registration data according to backend schema
       const banquetData = {
-        eventId,
-        registrationId,
-        banquetSlabId: data.selectedBanquetSlabId,
-        banquetEntries: data.entries.map((entry) => ({
-          type: entry.type,
-          accompanyId:
-            entry.type === "accompany" ? entry.accompanyId : undefined,
-          otherName: entry.type === "other" ? entry.otherName : undefined,
-          amount: entry.amount,
-        })),
+        banquetId: data.selectedBanquetSlabId,
+        banquets: data.entries.map((entry) => {
+          const baseEntry: any = {};
+
+          if (entry.type === "self") {
+            // Self booking - include userId
+            if (userId) {
+              baseEntry.userId = userId;
+            }
+          } else if (entry.type === "accompany" && entry.accompanySubId) {
+            baseEntry.accompanySubId = entry.accompanySubId;
+          } else if (entry.type === "other" && entry.otherName) {
+            baseEntry.otherName = entry.otherName.trim();
+          }
+
+          return baseEntry;
+        }),
       };
 
       // Call banquet registration API
       const token = localStorage.getItem("accessToken");
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/banquets/register`,
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/banquet-registrations/${eventId}/${registrationId}/register`,
         {
           method: "POST",
           headers: {
@@ -315,25 +436,42 @@ export default function BanquetFormSidebar({
 
       const result = await response.json();
 
-      if (result.success) {
+      if (!result.success) {
+        throw new Error(result.message || "Failed to register for banquet");
+      }
+
+      console.log("Banquet registration response:", result);
+
+      const banquetRegistrationId = result.data._id; // Main registration ID
+      const banquetItemIds = result.data.banquets.map(
+        (banquet: any) => banquet._id
+      ); // Individual banquet item IDs
+
+      console.log("Payment parameters:", {
+        banquetRegistrationId,
+        banquetItemIds,
+        totalAmount,
+      });
+
+      // Initiate payment if amount > 0
+      if (totalAmount > 0 && result.data && result.data._id) {
+        await initiateBanquetPayment(
+          banquetRegistrationId,
+          banquetItemIds,
+          totalAmount
+        );
+      } else {
+        // If no payment required, show success and close
         toast.success("Banquet registration successful!");
-
-        // If payment is required, initiate payment flow
-        if (totalAmount > 0) {
-          // TODO: Implement payment integration similar to workshop
-          toast.info("Payment integration to be implemented");
-        }
-
         onClose();
         reset();
-      } else {
-        throw new Error(result.message || "Failed to register for banquet");
+        if (onSuccess) onSuccess();
       }
     } catch (error: any) {
       console.error("Banquet registration error:", error);
       toast.error(error.message || "Failed to register for banquet");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
@@ -345,13 +483,11 @@ export default function BanquetFormSidebar({
         entries: [
           {
             type: "self",
-            accompanyId: "",
+            accompanySubId: "",
             otherName: "",
-            amount: 0,
           },
         ],
       });
-      setSelectedSlab(null);
     }
   }, [open, reset]);
 
@@ -422,9 +558,11 @@ export default function BanquetFormSidebar({
                         <p className="font-semibold text-green-600">
                           ₹ {slab.amount.toLocaleString("en-IN")}.00
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {formatSlabValidity(slab.startDate, slab.endDate)}
-                        </p>
+                        {slab.startDate && slab.endDate && (
+                          <p className="text-xs text-gray-500 mt-1">
+                            {formatSlabValidity(slab.startDate, slab.endDate)}
+                          </p>
+                        )}
                       </div>
                     </Label>
                   ))}
@@ -446,7 +584,6 @@ export default function BanquetFormSidebar({
                   Banquet Entries for {selectedBanquetSlab?.banquetslabName}
                 </Label>
                 <div className="flex items-center gap-2 text-sm text-green-600">
-                  <CheckCircle className="w-4 h-4" />
                   <span>
                     ₹{selectedBanquetSlab?.amount.toLocaleString("en-IN")} per
                     entry
@@ -521,7 +658,8 @@ export default function BanquetFormSidebar({
                               >
                                 <Checkbox
                                   checked={
-                                    entries[index]?.accompanyId === person._id
+                                    entries[index]?.accompanySubId ===
+                                    person._id
                                   }
                                   onCheckedChange={(checked) => {
                                     if (checked) {
@@ -571,21 +709,6 @@ export default function BanquetFormSidebar({
                           }
                           className="bg-white"
                         />
-                      </div>
-                    )}
-
-                    {/* Entry Amount Display */}
-                    {entries[index]?.amount > 0 && (
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex justify-between items-center text-green-700">
-                          <span className="text-sm font-medium">
-                            Entry Amount:
-                          </span>
-                          <span className="font-bold">
-                            <IndianRupee className="inline w-3 h-3 mr-1" />
-                            {entries[index]?.amount.toLocaleString("en-IN")}
-                          </span>
-                        </div>
                       </div>
                     )}
                   </div>
@@ -643,15 +766,15 @@ export default function BanquetFormSidebar({
               form="banquet-form"
               className="flex-1 bg-[#00509E] hover:bg-[#003B73]"
               disabled={
-                loading ||
+                submitting ||
                 !hasRegistration ||
                 !selectedBanquetSlabId ||
                 totalAmount === 0
               }
             >
-              {loading
+              {submitting
                 ? "Processing..."
-                : `Submit & Pay ₹${totalAmount.toLocaleString("en-IN")}`}
+                : `Register & Pay ₹${totalAmount.toLocaleString("en-IN")}`}
             </Button>
           </div>
         </div>
