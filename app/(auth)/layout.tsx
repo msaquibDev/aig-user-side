@@ -1,6 +1,4 @@
 // app/(auth)/layout.tsx
-// import { SessionProvider } from "next-auth/react";
-import { Toaster } from "sonner";
 import "../globals.css";
 
 export default function AuthLayout({

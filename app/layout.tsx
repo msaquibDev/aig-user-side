@@ -4,7 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 
 export const metadata: Metadata = {
-  title: "AIG User",
+  title: "AigUser",
   description: "AIG User Application",
 };
 

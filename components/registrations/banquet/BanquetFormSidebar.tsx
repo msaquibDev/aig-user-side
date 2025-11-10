@@ -536,12 +536,15 @@ export default function BanquetFormSidebar({
                                 >
                                   <div>
                                     <div className="font-medium">
-                                      {person.fullName}
+                                      {person.fullName}{" "}
+                                      <span className="text-gray-500 text-xs">
+                                        ({person.relation})
+                                      </span>
                                     </div>
-                                    <div className="text-gray-500 text-xs">
+                                    {/* <div className="text-gray-500 text-xs">
                                       {person.relation} • {person.age} years •{" "}
                                       {person.gender}
-                                    </div>
+                                    </div> */}
                                   </div>
                                 </Label>
                               </div>
