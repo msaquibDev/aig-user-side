@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Download, Share2 } from "lucide-react";
 import { useRef, useState } from "react";
 import { toPng } from "html-to-image";
+import { formatEventDate } from "@/app/utils/formatEventDate";
 
 interface BadgeProps {
   registration: any;
@@ -151,8 +152,12 @@ export function Badge({ registration }: BadgeProps) {
                 {eventName}
               </h3>
               <p className="text-sm text-gray-600">
-                {registration.eventId?.startDate} {"-"}{" "}
-                {registration.eventId?.endDate || "Event Date"}
+                {/* {registration.eventId?.startDate} {"-"}{" "}
+                {registration.eventId?.endDate || "Event Date"} */}
+                {formatEventDate(
+                  registration.eventId?.startDate,
+                  registration.eventId?.endDate
+                )}
               </p>
             </div>
 

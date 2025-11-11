@@ -81,9 +81,16 @@ export default function AccompanyingTable({
   const fetchPaidAccompanies = async () => {
     try {
       setLoading(true);
+
+      // guard: don't call API without eventId
+      if (!eventId) {
+        setPaidAccompanies([]);
+        setLoading(false);
+        return;
+      }
+
       const token = localStorage.getItem("accessToken");
 
-      // Add eventId to the API URL if provided
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/accompanies/paid/events/${eventId}`,
         {
@@ -93,9 +100,37 @@ export default function AccompanyingTable({
         }
       );
 
+      if (!response.ok) {
+        const text = await response.text();
+        // try to parse helpful error message from JSON body
+        try {
+          const body = JSON.parse(text);
+          if (
+            body &&
+            typeof body.message === "string" &&
+            /no paid accompanies/i.test(body.message)
+          ) {
+            // expected 404 for "no paid accompanies" — treat as empty result
+            setPaidAccompanies([]);
+            return;
+          }
+        } catch (e) {
+          // ignore JSON parse errors and fall through to logging
+        }
+
+        // unexpected error — log for debugging and return empty
+        console.error(
+          "Failed fetching paid accompanies - HTTP",
+          response.status,
+          text
+        );
+        setPaidAccompanies([]);
+        return;
+      }
+
       const data = await response.json();
 
-      if (data.success && Array.isArray(data.data)) {
+      if (data && data.success && Array.isArray(data.data)) {
         setPaidAccompanies(data.data);
       } else {
         console.error("Failed to fetch paid accompanies:", data);

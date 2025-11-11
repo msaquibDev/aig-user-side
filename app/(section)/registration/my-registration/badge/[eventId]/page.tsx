@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useEventStore } from "@/app/store/useEventStore";
+import React from "react";
 
 export default function BadgePage({ params }: { params: { eventId: string } }) {
   const searchParams = useSearchParams();
@@ -13,6 +14,7 @@ export default function BadgePage({ params }: { params: { eventId: string } }) {
   const [registration, setRegistration] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const { setCurrentEvent } = useEventStore();
+  const eventId = params.eventId;
 
   // Fetch event data when component mounts
   useEffect(() => {
@@ -20,7 +22,7 @@ export default function BadgePage({ params }: { params: { eventId: string } }) {
       try {
         const token = localStorage.getItem("accessToken");
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${params.eventId}`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}`,
           {
             method: "GET",
             headers: {
@@ -42,7 +44,7 @@ export default function BadgePage({ params }: { params: { eventId: string } }) {
     };
 
     fetchEventData();
-  }, [params.eventId, setCurrentEvent]);
+  }, [eventId, setCurrentEvent]);
 
   useEffect(() => {
     const fetchRegistrationDetails = async () => {

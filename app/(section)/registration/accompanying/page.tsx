@@ -124,13 +124,9 @@ function AccompanyingContent() {
               You are managing accompanying persons for your registration to{" "}
               <strong>{eventName}</strong>
             </p>
-            {registrationId && (
+            {registrationId && registrationNumber && (
               <p className="text-blue-600 text-sm mt-1">
-                {registrationNumber && (
-                  <p className="text-blue-600 text-sm mt-1">
-                    Registration Number <strong>{registrationNumber}</strong>
-                  </p>
-                )}
+                Registration Number <strong>{registrationNumber}</strong>
               </p>
             )}
           </div>

@@ -22,13 +22,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatSingleDate } from "@/app/utils/formatEventDate";
 
 type BanquetRegistration = {
   _id: string;
   banquet: {
     _id: string;
     banquetslabName: string;
-    date: string;
+    startDate: string;
     time: string;
     venue: string;
   };
@@ -153,7 +154,7 @@ export default function BanquetTable({
       banquetName: reg.banquet.banquetslabName,
       eventName: reg.event.eventName,
       regNum: reg.registration.regNum,
-      banquetDate: reg.banquet.date,
+      banquetStartDate: reg.banquet.startDate,
       banquetTime: reg.banquet.time,
       venue: reg.banquet.venue,
     }))
@@ -190,8 +191,8 @@ export default function BanquetTable({
           ? nameA.localeCompare(nameB)
           : nameB.localeCompare(nameA);
       } else {
-        const dateA = new Date(a.banquetDate).getTime();
-        const dateB = new Date(b.banquetDate).getTime();
+        const dateA = new Date(a.banquetStartDate).getTime();
+        const dateB = new Date(b.banquetStartDate).getTime();
         return sortOrder === "asc" ? dateA - dateB : dateB - dateA;
       }
     });
@@ -333,7 +334,7 @@ export default function BanquetTable({
               {/* <TableHead className="font-semibold text-gray-900">
                 Details
               </TableHead> */}
-              {/* <TableHead
+              <TableHead
                 className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
                 onClick={() => handleSort("date")}
               >
@@ -341,7 +342,7 @@ export default function BanquetTable({
                   Banquet Date
                   {getSortIcon("date")}
                 </div>
-              </TableHead> */}
+              </TableHead>
               {/* <TableHead className="font-semibold text-gray-900">
                 Venue
               </TableHead> */}
@@ -370,27 +371,28 @@ export default function BanquetTable({
                   <TableCell className="font-medium">
                     {getPersonName(entry)}
                   </TableCell>
+                  <TableCell className="font-sm">
+                    {/* <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800"> */}
+                    {getRelationValue(entry)}
+                    {/* </span> */}
+                  </TableCell>
                   <TableCell>
                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {getRelationValue(entry)}
+                      {entry.banquetName} {/* Add Banquet Name */}
                     </span>
-                  </TableCell>
-                  <TableCell className="font-medium">
-                    {entry.banquetName} {/* Add Banquet Name */}
                   </TableCell>
                   {/* <TableCell className="text-sm text-gray-600">
                     {getPersonDetails(entry)}
                   </TableCell> */}
-                  {/* <TableCell>
+                  <TableCell>
                     <div className="flex flex-col">
-                      <span className="text-sm">
-                        {new Date(entry.banquetDate).toLocaleDateString()}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {entry.banquetTime}
+                      <span className="fontsmedium text-gray-900">
+                        {entry.banquetStartDate
+                          ? formatSingleDate(entry.banquetStartDate)
+                          : "-"}
                       </span>
                     </div>
-                  </TableCell> */}
+                  </TableCell>
                   {/* <TableCell className="text-sm">{entry.venue}</TableCell> */}
                   {/* <TableCell className="font-mono text-sm">
                     {entry.regNum}

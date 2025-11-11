@@ -1,6 +1,7 @@
 // components/registrations/myRegistration/ExistingRegistrationView.tsx
 "use client";
 
+import { formatSingleDate } from "@/app/utils/formatEventDate";
 import { Button } from "@/components/ui/button";
 import { Badge, Download, FileText } from "lucide-react";
 import Link from "next/link";
@@ -89,10 +90,7 @@ export default function ExistingRegistrationView({
                 Registration Complete
               </h3>
               <p className="text-green-600 text-sm">
-                Your registration was completed on{" "}
-                {createdAt
-                  ? new Date(createdAt).toLocaleDateString()
-                  : "Unknown date"}
+                Your registration was completed on {formatSingleDate(createdAt)}.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -151,10 +149,10 @@ export default function ExistingRegistrationView({
               Registration Details
             </h3>
             <div className="space-y-3">
-              <div>
+              {/* <div>
                 <label className="text-sm text-gray-600">Registration ID</label>
                 <p className="font-medium text-sm">{registrationId}</p>
-              </div>
+              </div> */}
               <div>
                 <label className="text-sm text-gray-600">Event</label>
                 <p className="font-medium">{eventName}</p>
@@ -168,9 +166,7 @@ export default function ExistingRegistrationView({
                   Registration Date
                 </label>
                 <p className="font-medium">
-                  {createdAt
-                    ? new Date(createdAt).toLocaleDateString()
-                    : "Unknown date"}
+                  {formatSingleDate(createdAt)}
                 </p>
               </div>
               <div>

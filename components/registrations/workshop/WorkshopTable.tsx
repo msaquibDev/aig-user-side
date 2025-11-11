@@ -115,14 +115,20 @@ export default function WorkshopTable({
       const data = await response.json();
       console.log("Fetched registered workshops:", data);
 
-      if (data.success && Array.isArray(data.data)) {
-        setRegisteredWorkshops(data.data);
+      // Ensure we treat the incoming data as the expected shape before using it
+      if (data && (data as any).success && Array.isArray((data as any).data)) {
+        const regs = (data as { success: boolean; data: RegisteredWorkshop[] })
+          .data;
+        setRegisteredWorkshops(regs);
 
-        // Extract workshop details from registered workshops
-        const workshopsData = data.data.flatMap(
+        // Extract workshop details from registered workshops (and dedupe by _id)
+        const workshopsData = regs.flatMap(
           (reg: RegisteredWorkshop) => reg.workshopIds || []
         );
-        setApiWorkshops(workshopsData);
+        const uniqueWorkshops = Array.from(
+          new Map(workshopsData.map((w) => [w._id, w])).values()
+        ) as Workshop[]; // explicitly type as Workshop[]
+        setApiWorkshops(uniqueWorkshops);
       } else {
         // setError("No registered workshops found for this event");
         setRegisteredWorkshops([]);
@@ -367,7 +373,10 @@ export default function WorkshopTable({
                 );
 
                 return (
-                  <TableRow key={workshop._id} className="hover:bg-gray-50/50">
+                  <TableRow
+                    key={`${workshop._id}-${startIndex + index}`}
+                    className="hover:bg-gray-50/50"
+                  >
                     <TableCell className="font-medium text-gray-900">
                       {startIndex + index + 1}
                     </TableCell>
