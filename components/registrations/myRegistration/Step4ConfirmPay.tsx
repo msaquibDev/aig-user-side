@@ -167,7 +167,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
               Basic Details
             </h3>
             <Button
-              className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200"
+              className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200 cursor-pointer"
               size="sm"
               onClick={() => onBack()}
             >
@@ -286,7 +286,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200 px-8 py-3 text-lg min-w-40"
+            className="bg-[#00509E] hover:bg-[#003B73] text-white transition-all duration-200 px-8 py-3 text-lg min-w-40 cursor-pointer"
             size="lg"
           >
             {loading ? (

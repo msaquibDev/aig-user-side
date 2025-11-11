@@ -173,6 +173,10 @@ export default function AccompanyingFormSidebar({
         }
       );
 
+      if (!res.ok) {
+        throw new Error("Failed to fetch meal preferences");
+      }
+
       const data = await res.json();
 
       if (data.success && Array.isArray(data.data)) {

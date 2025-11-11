@@ -90,7 +90,8 @@ export default function ExistingRegistrationView({
                 Registration Complete
               </h3>
               <p className="text-green-600 text-sm">
-                Your registration was completed on {formatSingleDate(createdAt)}.
+                Your registration was completed on {formatSingleDate(createdAt)}
+                .
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -158,16 +159,10 @@ export default function ExistingRegistrationView({
                 <p className="font-medium">{eventName}</p>
               </div>
               <div>
-                <label className="text-sm text-gray-600">Category</label>
-                <p className="font-medium">{registrationSlabName}</p>
-              </div>
-              <div>
                 <label className="text-sm text-gray-600">
                   Registration Date
                 </label>
-                <p className="font-medium">
-                  {formatSingleDate(createdAt)}
-                </p>
+                <p className="font-medium">{formatSingleDate(createdAt)}</p>
               </div>
               <div>
                 <label className="text-sm text-gray-600">Meal Preference</label>

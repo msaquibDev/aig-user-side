@@ -115,7 +115,7 @@ export default function CheckoutSummary({
 
         <Button
           onClick={onPay}
-          className="w-full mt-6 bg-[#00509E] hover:bg-[#003B73] text-white text-base font-semibold rounded-lg py-3 transition-colors duration-200"
+          className="w-full mt-6 bg-[#00509E] hover:bg-[#003B73] text-white text-base font-semibold rounded-lg py-3 transition-colors duration-200 cursor-pointer"
           size="lg"
         >
           Proceed to Pay ₹ {total.toLocaleString("en-IN")}.00

@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { formatEventDate, formatSingleDate } from "@/app/utils/formatEventDate";
 
 export default function PaymentSuccessPage() {
   const searchParams = useSearchParams();
@@ -198,13 +199,13 @@ export default function PaymentSuccessPage() {
                     Start Date
                   </p>
                   <p className="font-medium text-gray-900">
-                    {registrationData.eventId.startDate}
+                    {formatEventDate(registrationData.eventId.startDate)}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-600 font-medium">End Date</p>
                   <p className="font-medium text-gray-900">
-                    {registrationData.eventId.endDate}
+                    {formatEventDate(registrationData.eventId.endDate)}
                   </p>
                 </div>
               </div>
@@ -250,8 +251,7 @@ export default function PaymentSuccessPage() {
                   <CheckCircle className="w-4 h-4 text-green-500" />
                   <Badge className="bg-green-100 text-green-800">Paid ✓</Badge>
                   <span className="text-sm text-gray-600">
-                    Completed on{" "}
-                    {new Date(registrationData.updatedAt).toLocaleDateString()}
+                    Completed on {formatSingleDate(registrationData.updatedAt)}
                   </span>
                 </div>
               </div>

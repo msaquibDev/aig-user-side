@@ -71,6 +71,9 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
   const [mealPreferences, setMealPreferences] = useState<MealPreference[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMeals, setLoadingMeals] = useState(false);
+  const [terms, setTerms] = useState<any[]>([]);
+  const [termsLoading, setTermsLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   const {
     register,
@@ -157,6 +160,41 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
     }
   };
 
+  const fetchTerms = async (eventId: string) => {
+    try {
+      setTermsLoading(true);
+      const token = localStorage.getItem("accessToken");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/terms-and-conditions`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        }
+      );
+
+      if (!res.ok) {
+        // treat 404 / not-found as empty list
+        setTerms([]);
+        return;
+      }
+
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.data)) {
+        setTerms(data.data);
+      } else {
+        setTerms([]);
+      }
+    } catch (err) {
+      console.error("GET terms error:", err);
+      setTerms([]);
+    } finally {
+      setTermsLoading(false);
+    }
+  };
+
   // Fetch registration slabs based on event ID
   useEffect(() => {
     async function fetchRegistrationSlabs() {
@@ -197,6 +235,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           }));
 
           setCategories(transformedCategories);
+          fetchTerms(currentEvent._id);
         } else {
           console.error("Invalid response format:", data);
           toast.error("Failed to load registration options");
@@ -502,11 +541,42 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
             ))}
           </RadioGroup>
         )}
-
         {errors.registrationCategory && (
           <p className="text-sm text-red-600">
             {errors.registrationCategory.message}
           </p>
+        )}
+      </div>
+
+      {/* Terms & Conditions */}
+      <div className="mt-4">
+        <button
+          type="button"
+          onClick={() => setShowTerms((s) => !s)}
+          className="text-sm text-blue-600 hover:underline"
+        >
+          {showTerms
+            ? "Hide Terms & Conditions"
+            : "Read All Terms & Conditions"}
+        </button>
+
+        {showTerms && (
+          <div className="mt-3 p-4 border rounded-lg bg-gray-50 text-sm text-gray-700">
+            {termsLoading ? (
+              <p>Loading terms & conditions...</p>
+            ) : terms.length > 0 ? (
+              terms.map((t) => (
+                <div
+                  key={t._id}
+                  // description contains HTML from API — render intentionally
+                  dangerouslySetInnerHTML={{ __html: t.description }}
+                  className="prose max-w-none"
+                />
+              ))
+            ) : (
+              <p>No terms & conditions found for this event.</p>
+            )}
+          </div>
         )}
       </div>
 
