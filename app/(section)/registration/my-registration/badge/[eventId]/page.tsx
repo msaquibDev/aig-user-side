@@ -8,13 +8,58 @@ import { toast } from "sonner";
 import { useEventStore } from "@/app/store/useEventStore";
 import React from "react";
 
+type RegistrationSettings = {
+  _id: string;
+  eventId: string;
+  attendeeRegistration: boolean;
+  accompanyRegistration: boolean;
+  workshopRegistration: boolean;
+  banquetRegistration: boolean;
+  eventRegistrationStartDate: string;
+  eventRegistrationEndDate: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+};
+
 export default function BadgePage({ params }: { params: { eventId: string } }) {
   const searchParams = useSearchParams();
   const registrationId = searchParams.get("registrationId");
   const [registration, setRegistration] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { setCurrentEvent } = useEventStore();
+  const [registrationSettings, setRegistrationSettings] =
+    useState<RegistrationSettings | null>(null);
+  const { setCurrentEvent, currentEvent } = useEventStore();
   const eventId = params.eventId;
+
+  // Fetch registration settings
+  const fetchRegistrationSettings = async (eventId: string) => {
+    try {
+      const token = localStorage.getItem("accessToken");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/registration-settings`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: token ? `Bearer ${token}` : "",
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data && data.data.length > 0) {
+          setRegistrationSettings(data.data[0]);
+          return data.data[0];
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error("Error fetching registration settings:", error);
+      return null;
+    }
+  };
 
   // Fetch event data when component mounts
   useEffect(() => {
@@ -36,6 +81,8 @@ export default function BadgePage({ params }: { params: { eventId: string } }) {
           const data = await response.json();
           if (data.success) {
             setCurrentEvent(data.data);
+            // Fetch registration settings after setting current event
+            await fetchRegistrationSettings(eventId);
           }
         }
       } catch (error) {
@@ -87,6 +134,18 @@ export default function BadgePage({ params }: { params: { eventId: string } }) {
 
     fetchRegistrationDetails();
   }, [registrationId]);
+
+  // Update the event store with registration settings
+  useEffect(() => {
+    if (registrationSettings && currentEvent) {
+      // You can extend your event store to include registration settings if needed
+      // For now, we'll just ensure the current event is set properly
+      console.log(
+        "Registration settings loaded for sidebar:",
+        registrationSettings
+      );
+    }
+  }, [registrationSettings, currentEvent]);
 
   if (loading) {
     return (

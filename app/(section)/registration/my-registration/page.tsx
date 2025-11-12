@@ -250,7 +250,8 @@ function RegistrationContent() {
               Registration Not Available
             </h2>
             <p className="text-gray-600 mb-2">
-              Main registration is currently closed for this event.
+              Main registration is currently closed for this event. or not
+              started yet.
             </p>
             <p className="text-gray-500 text-sm mb-6">
               Please check back later or contact the event organizers for more

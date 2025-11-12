@@ -1,4 +1,4 @@
-// app/(section)/layout.tsx (Keep this one, delete the other)
+// app/(section)/layout.tsx
 "use client";
 
 import "@/app/globals.css";
@@ -9,7 +9,7 @@ import { MobileSectionSidebar } from "@/components/dashboard/MobileSectionSideba
 import { MobileSubSidebar } from "@/components/dashboard/MobileSubSidebar";
 import { SubSidebar } from "@/components/dashboard/SubSidebar";
 import { PanelRight } from "lucide-react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useState, useMemo } from "react";
 
 export default function SectionLayout({
@@ -19,6 +19,7 @@ export default function SectionLayout({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   // Determine initial section from pathname
   const initialSection = useMemo(() => {
@@ -28,6 +29,19 @@ export default function SectionLayout({
     if (pathname.includes("/presentation")) return "presentation";
     return "registrations";
   }, [pathname]);
+
+  // Extract eventId from URL for badge pages and regular pages
+  const eventId = useMemo(() => {
+    // For badge pages: /registration/my-registration/badge/[eventId]
+    if (pathname.includes("/badge/")) {
+      const pathParts = pathname.split("/");
+      const eventIdIndex = pathParts.findIndex((part) => part === "badge") + 1;
+      return pathParts[eventIdIndex] || null;
+    }
+
+    // For regular pages: ?eventId=...
+    return searchParams.get("eventId");
+  }, [pathname, searchParams]);
 
   const [activeSection, setActiveSection] = useState(initialSection);
   const [subSidebarOpen, setSubSidebarOpen] = useState(true);
@@ -67,6 +81,7 @@ export default function SectionLayout({
         section={activeSection}
         isOpen={mobileSubSidebarOpen}
         onClose={() => setMobileSubSidebarOpen(false)}
+        eventId={eventId}
       />
 
       <div className="flex pt-[60px] h-screen overflow-hidden bg-gradient-to-br from-gray-50/50 to-blue-50/30">
@@ -78,11 +93,12 @@ export default function SectionLayout({
           isOpen={subSidebarOpen}
         />
 
-        {/* Desktop Sub Sidebar - Direct component without wrapper div */}
+        {/* Desktop Sub Sidebar - Pass eventId prop */}
         <SubSidebar
           section={activeSection}
           isOpen={subSidebarOpen}
           onToggle={() => setSubSidebarOpen((prev) => !prev)}
+          eventId={eventId} // Pass the extracted eventId
         />
 
         {/* Mobile Sub Sidebar Toggle Button - Enhanced */}

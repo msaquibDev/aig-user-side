@@ -68,10 +68,12 @@ export function SubSidebar({
   section,
   isOpen,
   onToggle,
+  eventId: propEventId,
 }: {
   section: string;
   isOpen: boolean;
   onToggle: () => void;
+  eventId?: string | null;
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -81,26 +83,31 @@ export function SubSidebar({
   const [settingsFetched, setSettingsFetched] = useState(false); // Add this state
 
   const items = sidebarMap[section] || [];
-  const eventId = searchParams.get("eventId");
+  const eventId = propEventId || searchParams.get("eventId");
 
   const isBadgePage = pathname.startsWith(
     "/registration/my-registration/badge"
   );
   const urlEventId = isBadgePage
-    ? pathname.split("/").pop()
+    ? pathname.split("/").pop() // This should extract the eventId from the URL
     : searchParams.get("eventId");
   const registrationId = searchParams.get("registrationId");
 
   // Fetch registration settings
   useEffect(() => {
     const fetchRegistrationSettings = async () => {
-      if (!eventId) return;
+      const targetEventId = eventId || urlEventId;
+
+      if (!targetEventId) {
+        setRegistrationSettings(null);
+        return;
+      }
 
       try {
         setLoadingSettings(true);
         const token = localStorage.getItem("accessToken");
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/registration-settings`,
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${targetEventId}/registration-settings`,
           {
             method: "GET",
             headers: {
@@ -112,29 +119,24 @@ export function SubSidebar({
 
         if (response.ok) {
           const data = await response.json();
-          console.log("Setting data : ", data);
-
-          // ✅ FIXED: Check if data array has items, otherwise set to empty object
           if (data.success && data.data && data.data.length > 0) {
             setRegistrationSettings(data.data[0]);
           } else {
-            // ✅ IMPORTANT: Set to empty object when no settings found
-            // This will hide all menu items since all settings will be undefined/false
             setRegistrationSettings({} as RegistrationSettings);
           }
+        } else {
+          setRegistrationSettings({} as RegistrationSettings);
         }
       } catch (error) {
         console.error("Error fetching registration settings:", error);
-        // ✅ Set to empty object on error as well
         setRegistrationSettings({} as RegistrationSettings);
       } finally {
         setLoadingSettings(false);
-        setSettingsFetched(true); // Mark that settings fetch is complete
       }
     };
 
     fetchRegistrationSettings();
-  }, [eventId]);
+  }, [eventId, urlEventId]);
 
   // ✅ FIXED: Filter sidebar items based on registration settings
   const filteredItems = items.filter((item) => {

@@ -62,19 +62,36 @@ export interface Event {
   updatedAt: string;
 }
 
+type RegistrationSettings = {
+  _id: string;
+  eventId: string;
+  attendeeRegistration: boolean;
+  accompanyRegistration: boolean;
+  workshopRegistration: boolean;
+  banquetRegistration: boolean;
+  eventRegistrationStartDate: string;
+  eventRegistrationEndDate: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
+};
+
 interface EventState {
   events: Event[];
   currentEvent: Event | null;
+  registrationSettings: RegistrationSettings | null;
   loading: boolean;
   error: string | null;
   fetchEvents: () => Promise<void>;
   setCurrentEvent: (event: Event | null) => void;
+  setRegistrationSettings: (settings: RegistrationSettings | null) => void;
   clearCurrentEvent: () => void;
 }
 
 export const useEventStore = create<EventState>((set, get) => ({
   events: [],
   currentEvent: null,
+  registrationSettings: null,
   loading: false,
   error: null,
 
@@ -110,6 +127,8 @@ export const useEventStore = create<EventState>((set, get) => ({
   },
 
   setCurrentEvent: (event) => set({ currentEvent: event }),
+  setRegistrationSettings: (settings) =>
+    set({ registrationSettings: settings }),
   clearCurrentEvent: () => set({ currentEvent: null }),
 
   getEventById: (id: string) => {

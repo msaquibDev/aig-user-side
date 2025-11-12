@@ -65,10 +65,12 @@ export const MobileSubSidebar = ({
   section,
   isOpen,
   onClose,
+  eventId,
 }: {
   section: string;
   isOpen: boolean;
   onClose: () => void;
+  eventId?: string | null;
 }) => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -77,7 +79,7 @@ export const MobileSubSidebar = ({
   const [loadingSettings, setLoadingSettings] = useState(false);
 
   const items = sidebarMap[section] || [];
-  const eventId = searchParams.get("eventId");
+  // const eventId = searchParams.get("eventId");
 
   const isBadgePage = pathname.startsWith(
     "/registration/my-registration/badge"
