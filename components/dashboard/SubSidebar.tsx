@@ -11,13 +11,14 @@ import {
   Utensils,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Loading from "../common/Loading";
 
 type SidebarItem = {
   label: string;
   path: string;
   icon: React.ElementType;
+  settingKey: string;
 };
 
 const sidebarMap: Record<string, SidebarItem[]> = {
@@ -26,19 +27,41 @@ const sidebarMap: Record<string, SidebarItem[]> = {
       label: "My Registration",
       path: "/registration/my-registration",
       icon: User,
+      settingKey: "attendeeRegistration",
     },
-    { label: "Accompanying", path: "/registration/accompanying", icon: Users },
+    {
+      label: "Accompanying",
+      path: "/registration/accompanying",
+      icon: Users,
+      settingKey: "accompanyRegistration",
+    },
     {
       label: "Workshop",
       path: "/registration/workshop",
       icon: MonitorPlay,
+      settingKey: "workshopRegistration",
     },
     {
       label: "Banquet",
       path: "/registration/banquet",
       icon: Utensils,
+      settingKey: "banquetRegistration",
     },
   ],
+};
+
+type RegistrationSettings = {
+  _id: string;
+  eventId: string;
+  attendeeRegistration: boolean;
+  accompanyRegistration: boolean;
+  workshopRegistration: boolean;
+  banquetRegistration: boolean;
+  eventRegistrationStartDate: string;
+  eventRegistrationEndDate: string;
+  createdAt: string;
+  updatedAt: string;
+  __v: number;
 };
 
 export function SubSidebar({
@@ -52,26 +75,92 @@ export function SubSidebar({
 }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const [registrationSettings, setRegistrationSettings] =
+    useState<RegistrationSettings | null>(null);
+  const [loadingSettings, setLoadingSettings] = useState(false);
+  const [settingsFetched, setSettingsFetched] = useState(false); // Add this state
+
   const items = sidebarMap[section] || [];
+  const eventId = searchParams.get("eventId");
 
   const isBadgePage = pathname.startsWith(
     "/registration/my-registration/badge"
   );
-
-  // Get parameters from current URL
-  const eventId = isBadgePage
+  const urlEventId = isBadgePage
     ? pathname.split("/").pop()
     : searchParams.get("eventId");
   const registrationId = searchParams.get("registrationId");
 
+  // Fetch registration settings
+  useEffect(() => {
+    const fetchRegistrationSettings = async () => {
+      if (!eventId) return;
+
+      try {
+        setLoadingSettings(true);
+        const token = localStorage.getItem("accessToken");
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/events/${eventId}/registration-settings`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: token ? `Bearer ${token}` : "",
+            },
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Setting data : ", data);
+
+          // ✅ FIXED: Check if data array has items, otherwise set to empty object
+          if (data.success && data.data && data.data.length > 0) {
+            setRegistrationSettings(data.data[0]);
+          } else {
+            // ✅ IMPORTANT: Set to empty object when no settings found
+            // This will hide all menu items since all settings will be undefined/false
+            setRegistrationSettings({} as RegistrationSettings);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching registration settings:", error);
+        // ✅ Set to empty object on error as well
+        setRegistrationSettings({} as RegistrationSettings);
+      } finally {
+        setLoadingSettings(false);
+        setSettingsFetched(true); // Mark that settings fetch is complete
+      }
+    };
+
+    fetchRegistrationSettings();
+  }, [eventId]);
+
+  // ✅ FIXED: Filter sidebar items based on registration settings
+  const filteredItems = items.filter((item) => {
+    // If settings are still loading, show nothing or loading state
+    if (loadingSettings) return false;
+
+    // If settings fetch completed but no settings object, hide all items
+    if (settingsFetched && !registrationSettings) return false;
+
+    // If we have settings but the specific key doesn't exist or is false, hide the item
+    if (registrationSettings) {
+      const settingValue =
+        registrationSettings[item.settingKey as keyof RegistrationSettings];
+      return settingValue === true;
+    }
+
+    // Default: hide items if no settings available
+    return false;
+  });
+
   // Function to build URLs with preserved parameters
   const buildUrl = (basePath: string) => {
     const params = new URLSearchParams();
-
-    if (eventId) params.set("eventId", eventId);
+    if (urlEventId) params.set("eventId", urlEventId);
     if (registrationId) params.set("registrationId", registrationId);
     if (isBadgePage) params.set("fromBadge", "true");
-
     const queryString = params.toString();
     return queryString ? `${basePath}?${queryString}` : basePath;
   };
@@ -83,9 +172,7 @@ export function SubSidebar({
         onClick={onToggle}
         className={cn(
           "hidden lg:flex fixed top-[93px] z-[70] bg-white border-2 border-blue-100 shadow-lg rounded-full w-10 h-10 items-center justify-center transition-all duration-300 cursor-pointer group hover:shadow-xl hover:scale-105 hover:border-blue-200",
-          isOpen
-            ? "left-[336px]" // 80px (main) + 256px (sub) - adjust as needed
-            : "left-[88px]" // 80px (main) + 8px margin
+          isOpen ? "left-[336px]" : "left-[88px]"
         )}
         aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
       >
@@ -117,44 +204,68 @@ export function SubSidebar({
             <p className="text-sm text-gray-600 mt-1">
               Manage your registration
             </p>
+            {loadingSettings && (
+              <p className="text-xs text-blue-600 mt-1">Loading settings...</p>
+            )}
+            {settingsFetched && filteredItems.length === 0 && (
+              <p className="text-xs text-gray-500 mt-1">No options available</p>
+            )}
           </div>
 
           {/* Navigation */}
           <nav className="flex-1 p-4 space-y-2">
-            {items.map(({ label, path, icon: Icon }) => {
-              const url = buildUrl(path);
-              const isActive =
-                pathname === path || pathname.startsWith(path + "/");
+            {loadingSettings ? (
+              // Show loading state
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                <p className="text-xs text-gray-500">Loading options...</p>
+              </div>
+            ) : (
+              // Show filtered items
+              <>
+                {filteredItems.map(({ label, path, icon: Icon }) => {
+                  const url = buildUrl(path);
+                  const isActive =
+                    pathname === path || pathname.startsWith(path + "/");
 
-              return (
-                <Link key={path} href={url}>
-                  <div
-                    className={cn(
-                      "flex items-center gap-3 text-sm rounded-xl px-4 py-3 font-medium w-full transition-all duration-200 group cursor-pointer border border-transparent",
-                      isActive
-                        ? "bg-white text-blue-700 shadow-md border-blue-200 shadow-blue-100"
-                        : "text-gray-700 hover:bg-white hover:text-blue-600 hover:shadow-md hover:border-blue-100"
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "p-2 rounded-lg transition-colors",
-                        isActive
-                          ? "bg-blue-100 text-blue-600"
-                          : "bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
-                      )}
-                    >
-                      <Icon size={18} />
-                    </div>
-                    <span className="font-medium">{label}</span>
+                  return (
+                    <Link key={path} href={url}>
+                      <div
+                        className={cn(
+                          "flex items-center gap-3 text-sm rounded-xl px-4 py-3 font-medium w-full transition-all duration-200 group cursor-pointer border border-transparent",
+                          isActive
+                            ? "bg-white text-blue-700 shadow-md border-blue-200 shadow-blue-100"
+                            : "text-gray-700 hover:bg-white hover:text-blue-600 hover:shadow-md hover:border-blue-100"
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "p-2 rounded-lg transition-colors",
+                            isActive
+                              ? "bg-blue-100 text-blue-600"
+                              : "bg-gray-100 text-gray-600 group-hover:bg-blue-100 group-hover:text-blue-600"
+                          )}
+                        >
+                          <Icon size={18} />
+                        </div>
+                        <span className="font-medium">{label}</span>
 
-                    {isActive && (
-                      <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
-                    )}
+                        {isActive && (
+                          <div className="ml-auto w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+
+                {/* Show message if no items are available after settings are loaded */}
+                {filteredItems.length === 0 && settingsFetched && (
+                  <div className="text-center py-8 text-gray-500 text-sm">
+                    No registration options available for this event
                   </div>
-                </Link>
-              );
-            })}
+                )}
+              </>
+            )}
           </nav>
         </div>
       </aside>
