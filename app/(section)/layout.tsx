@@ -10,13 +10,11 @@ import { MobileSubSidebar } from "@/components/dashboard/MobileSubSidebar";
 import { SubSidebar } from "@/components/dashboard/SubSidebar";
 import { PanelRight } from "lucide-react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { useState, useMemo } from "react";
+import { useState, useMemo, Suspense } from "react";
+import Loading from "@/components/common/Loading";
 
-export default function SectionLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+// Client component that uses the hooks
+function SectionLayoutContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -120,5 +118,18 @@ export default function SectionLayout({
         </main>
       </div>
     </ProtectedRoute>
+  );
+}
+
+// Main layout component with Suspense
+export default function SectionLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={<Loading />}>
+      <SectionLayoutContent>{children}</SectionLayoutContent>
+    </Suspense>
   );
 }

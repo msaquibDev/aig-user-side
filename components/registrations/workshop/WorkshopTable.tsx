@@ -18,13 +18,10 @@ import {
   PlusCircle,
   ChevronUp,
   ChevronDown,
-  Edit,
   Calendar,
   MapPin,
-  Clock,
   CheckCircle,
   AlertCircle,
-  RefreshCw,
 } from "lucide-react";
 import { formatEventDate } from "@/app/utils/formatEventDate";
 
@@ -46,19 +43,31 @@ type Workshop = {
   __v: number;
 };
 
+// Update the types to match the actual API response structure
+type WorkshopRegistrationItem = {
+  _id: string;
+  workshopIds: Workshop;
+};
+
 type RegisteredWorkshop = {
   _id: string;
   eventId: {
     _id: string;
     eventName: string;
+    city: string;
+    country: string;
+    startDate: string;
+    endDate: string;
     // other event fields
   };
-  workshopIds: Workshop[]; // Array of workshops
+  workshops: WorkshopRegistrationItem[];
   registrationType: "Paid" | "Free";
   totalAmount: number;
   paymentStatus: "Pending" | "Completed";
   createdAt: string;
   updatedAt: string;
+  userId: string;
+  __v: number;
 };
 
 type Props = {
@@ -66,7 +75,7 @@ type Props = {
   registrationId?: string | null;
   onAddClick: () => void;
   onEditClick: (workshopId: number) => void;
-  refreshTrigger?: number; // Add this prop to trigger refresh
+  refreshTrigger?: number;
 };
 
 export default function WorkshopTable({
@@ -74,7 +83,7 @@ export default function WorkshopTable({
   registrationId,
   onAddClick,
   onEditClick,
-  refreshTrigger = 0, // Default value
+  refreshTrigger = 0,
 }: Props) {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -83,11 +92,9 @@ export default function WorkshopTable({
   const [registeredWorkshops, setRegisteredWorkshops] = useState<
     RegisteredWorkshop[]
   >([]);
-
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Sorting state
   const [sortBy, setSortBy] = useState<"name" | "date" | "price" | "category">(
     "name"
   );
@@ -102,7 +109,6 @@ export default function WorkshopTable({
       setError(null);
 
       const token = localStorage.getItem("accessToken");
-      // In WorkshopTable component, use the new endpoint:
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/my-registrations/event/${eventId}`,
         {
@@ -115,22 +121,21 @@ export default function WorkshopTable({
       const data = await response.json();
       console.log("Fetched registered workshops:", data);
 
-      // Ensure we treat the incoming data as the expected shape before using it
-      if (data && (data as any).success && Array.isArray((data as any).data)) {
-        const regs = (data as { success: boolean; data: RegisteredWorkshop[] })
-          .data;
+      if (data && data.success && Array.isArray(data.data)) {
+        const regs: RegisteredWorkshop[] = data.data;
         setRegisteredWorkshops(regs);
 
-        // Extract workshop details from registered workshops (and dedupe by _id)
+        // ✅ CORRECT: Extract workshop details from the API response structure
         const workshopsData = regs.flatMap(
-          (reg: RegisteredWorkshop) => reg.workshopIds || []
+          (reg) =>
+            reg.workshops?.map((workshopItem) => workshopItem.workshopIds) || []
         );
+
         const uniqueWorkshops = Array.from(
           new Map(workshopsData.map((w) => [w._id, w])).values()
-        ) as Workshop[]; // explicitly type as Workshop[]
+        );
         setApiWorkshops(uniqueWorkshops);
       } else {
-        // setError("No registered workshops found for this event");
         setRegisteredWorkshops([]);
         setApiWorkshops([]);
       }
@@ -154,7 +159,7 @@ export default function WorkshopTable({
   // Fetch data when eventId changes or refreshTrigger updates
   useEffect(() => {
     fetchRegisteredWorkshops();
-  }, [eventId, refreshTrigger]); // Add refreshTrigger to dependencies
+  }, [eventId, refreshTrigger]);
 
   const toggleSort = (column: "name" | "date" | "price" | "category") => {
     if (sortBy === column) {
@@ -167,24 +172,23 @@ export default function WorkshopTable({
 
   // Check if a workshop is registered
   const isWorkshopRegistered = (workshopId: string): boolean => {
-    return registeredWorkshops.some(
-      (reg) =>
-        Array.isArray(reg.workshopIds) &&
-        reg.workshopIds.some((w) => w._id === workshopId)
+    return registeredWorkshops.some((reg) =>
+      reg.workshops?.some(
+        (workshopItem) => workshopItem.workshopIds._id === workshopId
+      )
     );
   };
 
   // Get workshop registration status
   const getWorkshopRegistrationStatus = (workshopId: string): string => {
-    const registration = registeredWorkshops.find(
-      (reg) =>
-        Array.isArray(reg.workshopIds) &&
-        reg.workshopIds.some((w) => w._id === workshopId)
+    const registration = registeredWorkshops.find((reg) =>
+      reg.workshops?.some(
+        (workshopItem) => workshopItem.workshopIds._id === workshopId
+      )
     );
+
     if (!registration) return "Not Registered";
-    // Prefer explicit paymentStatus when available, otherwise infer from registrationType
-    if (registration.paymentStatus) return registration.paymentStatus;
-    return registration.registrationType === "Paid" ? "Pending" : "Completed";
+    return registration.paymentStatus || "Pending";
   };
 
   const getSortedWorkshops = () => {
@@ -209,10 +213,9 @@ export default function WorkshopTable({
             ? a.amount - b.amount
             : b.amount - a.amount;
         } else if (sortBy === "category") {
-          // Change from "type" to "category"
           return sortOrder === "asc"
-            ? a.workshopCategory.localeCompare(b.workshopCategory) // Use workshopCategory
-            : b.workshopCategory.localeCompare(a.workshopCategory); // Use workshopCategory
+            ? a.workshopCategory.localeCompare(b.workshopCategory)
+            : b.workshopCategory.localeCompare(a.workshopCategory);
         }
         return 0;
       });
@@ -236,7 +239,6 @@ export default function WorkshopTable({
   }, [search, sortBy, sortOrder]);
 
   const getSortIcon = (column: "name" | "date" | "price" | "category") => {
-    // Change from "type" to "category"
     if (sortBy !== column) return null;
     return sortOrder === "asc" ? (
       <ChevronUp className="w-4 h-4" />
@@ -271,17 +273,6 @@ export default function WorkshopTable({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {/* <Button
-            variant="outline"
-            onClick={handleRefresh}
-            disabled={refreshing || !eventId}
-            className="flex items-center gap-2"
-          >
-            <RefreshCw
-              className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
-            />
-            Refresh
-          </Button> */}
           <Button
             onClick={onAddClick}
             className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"
@@ -330,7 +321,7 @@ export default function WorkshopTable({
               </TableHead>
               <TableHead
                 className="font-semibold text-gray-900 cursor-pointer hover:bg-gray-100 transition-colors"
-                onClick={() => toggleSort("category")} // Change from "type" to "category"
+                onClick={() => toggleSort("category")}
               >
                 <div className="flex items-center gap-1">
                   Category
@@ -385,15 +376,11 @@ export default function WorkshopTable({
                         <div className="font-semibold">
                           {workshop.workshopName}
                         </div>
-                        {/* <div className="text-xs text-gray-500 mt-1">
-                          Max Participants: {workshop.maxRegAllowed}
-                        </div> */}
                       </div>
                     </TableCell>
                     <TableCell>
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {workshop.workshopCategory || "General"}{" "}
-                        {/* Show workshopCategory with fallback */}
+                        {workshop.workshopCategory || "General"}
                       </span>
                     </TableCell>
                     <TableCell>
@@ -423,15 +410,10 @@ export default function WorkshopTable({
                     <TableCell>
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                          registrationStatus === "Completed" ||
-                          registrationStatus === "confirmed" ||
-                          registrationStatus === "registered"
+                          registrationStatus === "Completed"
                             ? "bg-green-100 text-green-800"
-                            : registrationStatus === "Pending" ||
-                              registrationStatus === "pending"
+                            : registrationStatus === "Pending"
                             ? "bg-yellow-100 text-yellow-800"
-                            : registrationStatus === "cancelled"
-                            ? "bg-red-100 text-red-800"
                             : "bg-gray-100 text-gray-800"
                         }`}
                       >
@@ -440,8 +422,7 @@ export default function WorkshopTable({
                         ) : (
                           <AlertCircle className="w-3 h-3 mr-1" />
                         )}
-                        {registrationStatus.charAt(0).toUpperCase() +
-                          registrationStatus.slice(1)}
+                        {registrationStatus}
                       </span>
                     </TableCell>
                   </TableRow>
