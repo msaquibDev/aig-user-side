@@ -45,6 +45,11 @@ const schema = z.object({
   pincode: z.string().min(1, "Pincode is required"),
   gender: z.string().min(1, "Gender is required"),
   mealPreference: z.string().min(1, "Meal preference is required"),
+  // add near the end of your schema object
+  acceptedTerms: z.boolean().refine((v) => v === true, {
+    message: "You must accept the terms and conditions",
+  }),
+
   registrationCategory: z.object({
     _id: z.string(),
     slabName: z.string(), // ✅ Changed from categoryName to slabName
@@ -548,35 +553,46 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         )}
       </div>
 
-      {/* Terms & Conditions */}
-      <div className="mt-4">
-        <button
-          type="button"
-          onClick={() => setShowTerms((s) => !s)}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          {showTerms
-            ? "Hide Terms & Conditions"
-            : "Read All Terms & Conditions"}
-        </button>
-
-        {showTerms && (
-          <div className="mt-3 p-4 border rounded-lg bg-gray-50 text-sm text-gray-700">
-            {termsLoading ? (
-              <p>Loading terms & conditions...</p>
-            ) : terms.length > 0 ? (
-              terms.map((t) => (
-                <div
-                  key={t._id}
-                  // description contains HTML from API — render intentionally
-                  dangerouslySetInnerHTML={{ __html: t.description }}
-                  className="prose max-w-none"
+      {/* Terms & Conditions - Compact Version */}
+      <div className="mt-6">
+        <div className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg">
+          <Controller
+            name="acceptedTerms"
+            control={control}
+            render={({ field }) => (
+              <label className="flex items-start gap-3 cursor-pointer flex-1">
+                <input
+                  type="checkbox"
+                  checked={!!field.value}
+                  onChange={(e) => field.onChange(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 text-[#00509E] border-gray-300 rounded focus:ring-[#00509E]"
                 />
-              ))
-            ) : (
-              <p>No terms & conditions found for this event.</p>
+                <div className="flex-1">
+                  <span className="text-sm text-gray-900">
+                    I accept the{" "}
+                    <a
+                      href={
+                        currentEvent?._id
+                          ? `/events/${currentEvent._id}/terms`
+                          : "#"
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#00509E] hover:text-[#003B73] font-medium underline transition-colors"
+                    >
+                      Terms & Conditions
+                    </a>{" "}
+                    and Cancellation Policy
+                  </span>
+                </div>
+              </label>
             )}
-          </div>
+          />
+        </div>
+
+        {/* Validation Error */}
+        {errors.acceptedTerms && (
+          <p className="text-sm text-red-600">{errors.acceptedTerms.message}</p>
         )}
       </div>
 

@@ -24,6 +24,7 @@ import {
   Clock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { formatEventDate } from "@/app/utils/formatEventDate";
 
 type Workshop = {
   _id: string;
@@ -630,7 +631,11 @@ export default function WorkshopFormSidebar({
                                           <div className="space-y-1">
                                             <div className="flex items-center gap-2">
                                               <Calendar className="w-3 h-3 text-gray-500" />
-                                              <span>{workshop.startDate}</span>
+                                              <span>
+                                                {formatEventDate(
+                                                  workshop.startDate
+                                                )}
+                                              </span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                               <Clock className="w-3 h-3 text-gray-500" />
