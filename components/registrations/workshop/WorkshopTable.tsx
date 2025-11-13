@@ -24,6 +24,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { formatEventDate } from "@/app/utils/formatEventDate";
+import { SkeletonTable } from "@/components/common/skeleton-table";
 
 type Workshop = {
   _id: string;
@@ -247,16 +248,16 @@ export default function WorkshopTable({
     );
   };
 
-  if (loading && !refreshing) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading registered workshops...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading && !refreshing) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-64">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+  //         <p className="text-gray-600">Loading registered workshops...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
@@ -356,7 +357,9 @@ export default function WorkshopTable({
           </TableHeader>
 
           <TableBody>
-            {currentItems.length > 0 ? (
+            {loading && !refreshing ? (
+              <SkeletonTable rows={5} columns={7} />
+            ) : currentItems.length > 0 ? (
               currentItems.map((workshop, index) => {
                 const isRegistered = isWorkshopRegistered(workshop._id);
                 const registrationStatus = getWorkshopRegistrationStatus(

@@ -23,6 +23,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { formatSingleDate } from "@/app/utils/formatEventDate";
+import { SkeletonTable } from "@/components/common/skeleton-table";
 
 type BanquetRegistration = {
   _id: string;
@@ -237,16 +238,16 @@ export default function BanquetTable({
     return "";
   };
 
-  if (loading && !refreshing) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading banquet registrations...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading && !refreshing) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-64">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+  //         <p className="text-gray-600">Loading banquet registrations...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
@@ -359,7 +360,9 @@ export default function BanquetTable({
           </TableHeader>
 
           <TableBody>
-            {currentItems.length > 0 ? (
+            {loading && !refreshing ? (
+              <SkeletonTable rows={5} columns={6} />
+            ) : currentItems.length > 0 ? (
               currentItems.map((entry, index) => (
                 <TableRow
                   key={`${entry.registrationId}-${entry._id}`}

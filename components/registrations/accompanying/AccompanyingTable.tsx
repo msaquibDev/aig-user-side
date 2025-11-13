@@ -21,6 +21,7 @@ import {
   Edit,
   AlertCircle,
 } from "lucide-react";
+import { SkeletonTable } from "@/components/common/skeleton-table";
 
 type AccompanyPerson = {
   _id: string;
@@ -240,16 +241,16 @@ export default function AccompanyingTable({
     );
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-          <p className="text-gray-600">Loading accompanying persons...</p>
-        </div>
-      </div>
-    );
-  }
+  // if (loading) {
+  //   return (
+  //     <div className="flex items-center justify-center min-h-64">
+  //       <div className="text-center">
+  //         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+  //         <p className="text-gray-600">Loading accompanying persons...</p>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-6">
@@ -346,7 +347,9 @@ export default function AccompanyingTable({
           </TableHeader>
 
           <TableBody>
-            {currentItems.length > 0 ? (
+            {loading ? (
+              <SkeletonTable rows={5} columns={9} />
+            ) : currentItems.length > 0 ? (
               currentItems.map((person, index) => (
                 <TableRow key={person._id} className="hover:bg-gray-50/50">
                   <TableCell className="font-medium text-gray-900">
