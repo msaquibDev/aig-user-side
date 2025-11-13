@@ -153,6 +153,7 @@ function AccompanyingContent() {
       <AccompanyingTable
         eventId={eventId}
         registrationId={registrationId}
+        hasRegistration={hasRegistration}
         onAddClick={() => {
           if (!hasRegistration) {
             alert("Please complete your main registration first.");

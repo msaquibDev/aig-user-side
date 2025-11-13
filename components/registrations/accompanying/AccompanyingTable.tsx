@@ -19,6 +19,7 @@ import {
   ChevronUp,
   ChevronDown,
   Edit,
+  AlertCircle,
 } from "lucide-react";
 
 type AccompanyPerson = {
@@ -53,6 +54,7 @@ type PaidAccompany = {
 type Props = {
   eventId?: string | null;
   registrationId?: string | null;
+  hasRegistration?: boolean;
   onAddClick: () => void;
   onEditClick: (
     person: AccompanyPerson,
@@ -63,6 +65,7 @@ type Props = {
 export default function AccompanyingTable({
   eventId,
   registrationId,
+  hasRegistration = false,
   onAddClick,
   onEditClick,
 }: Props) {
@@ -262,13 +265,20 @@ export default function AccompanyingTable({
             </p>
           )}
         </div>
-        <Button
-          onClick={onAddClick}
-          className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"
-        >
-          <PlusCircle className="w-4 h-4 mr-2" />
-          Add Accompanying Person
-        </Button>
+        {hasRegistration ? (
+          <Button
+            onClick={onAddClick}
+            className="bg-[#00509E] hover:bg-[#003B73] transition-colors cursor-pointer whitespace-nowrap"
+          >
+            <PlusCircle className="w-4 h-4 mr-2" />
+            Add Accompanying Person
+          </Button>
+        ) : (
+          <div className="flex items-center gap-2 text-yellow-600 text-sm">
+            <AlertCircle className="w-4 h-4" />
+            Complete registration to add accompanying persons
+          </div>
+        )}
       </div>
 
       {/* Search */}
