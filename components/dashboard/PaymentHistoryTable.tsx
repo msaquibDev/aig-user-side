@@ -194,13 +194,15 @@ export default function PaymentHistoryTable() {
   const getPaymentCategoryColor = (category: string) => {
     switch (category) {
       case "Event Registration":
-        return "bg-[#023e8a]/10 text-[#023e8a] border border-[#023e8a]/30";
+        return "bg-[#001BB7]/10 text-[#001BB7] border border-[#001BB7]/30";
       case "Workshop":
-        return "bg-[#0077b6]/10 text-[#0077b6] border border-[#0077b6]/30";
+        return "bg-[#F87B1B]/10 text-[#F87B1B] border border-[#F87B1B]/30";
       case "Accompany":
-        return "bg-[#0096c7]/10 text-[#0096c7] border border-[#0096c7]/30";
+        return "bg-[#0A400C]/10 text-[#0A400C] border border-[#0A400C]/30";
+      case "Banquet":
+        return "bg-[#03A6A1]/10 text-[#03A6A1] border border-[#03A6A1]/30";
       default:
-        return "bg-[#00b4d8]/10 text-[#00b4d8] border border-[#00b4d8]/30";
+        return "bg-[#393E46]/10 text-[#393E46] border border-[#393E46]/30";
     }
   };
 
