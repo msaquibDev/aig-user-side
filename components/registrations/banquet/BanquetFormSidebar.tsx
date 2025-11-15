@@ -65,11 +65,23 @@ type PaidAccompany = {
 };
 
 // Form Schemas
-const banquetEntrySchema = z.object({
-  type: z.enum(["self", "accompany", "other"]),
-  accompanySubId: z.string().optional(),
-  otherName: z.string().optional(),
-});
+const banquetEntrySchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("self"),
+    accompanySubId: z.string().optional(),
+    otherName: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal("accompany"),
+    accompanySubId: z.string().min(1, "Please select an accompany person"),
+    otherName: z.string().optional(),
+  }),
+  z.object({
+    type: z.literal("other"),
+    accompanySubId: z.string().optional(),
+    otherName: z.string().min(1, "Person name is required"),
+  }),
+]);
 
 const formSchema = z.object({
   selectedBanquetSlabId: z.string().min(1, "Please select a banquet slab"),
@@ -637,6 +649,7 @@ export default function BanquetFormSidebar({
                     </div>
 
                     {/* Accompany Person Selection */}
+                    {/* Accompany Person Selection */}
                     {entries[index]?.type === "accompany" && (
                       <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-700">
@@ -679,15 +692,16 @@ export default function BanquetFormSidebar({
                                         ({person.relation})
                                       </span>
                                     </div>
-                                    {/* <div className="text-gray-500 text-xs">
-                                      {person.relation} • {person.age} years •{" "}
-                                      {person.gender}
-                                    </div> */}
                                   </div>
                                 </Label>
                               </div>
                             ))}
                           </div>
+                        )}
+                        {errors.entries?.[index]?.accompanySubId && (
+                          <p className="text-red-500 text-xs">
+                            {errors.entries[index]?.accompanySubId?.message}
+                          </p>
                         )}
                       </div>
                     )}
@@ -709,6 +723,11 @@ export default function BanquetFormSidebar({
                           }
                           className="bg-white"
                         />
+                        {errors.entries?.[index]?.otherName && (
+                          <p className="text-red-500 text-xs">
+                            {errors.entries[index]?.otherName?.message}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
