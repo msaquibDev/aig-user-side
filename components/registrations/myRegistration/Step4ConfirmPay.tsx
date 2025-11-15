@@ -96,6 +96,7 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
         mealPreference: basicDetails.mealPreference,
         country: basicDetails.country,
         city: basicDetails.city,
+        pincode: basicDetails.pincode,
         state: basicDetails.state,
         address: basicDetails.address,
         // Note: pincode is not in backend payload but is in user profile
