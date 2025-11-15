@@ -110,14 +110,14 @@ export function Badge({ registration }: BadgeProps) {
   });
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br p-4">
-      <div className="w-full">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-br p-4 sm:p-6">
+      <div className="w-full max-w-2xl">
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-[#00509E] mb-2">
+        <div className="text-center mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-[#00509E] mb-2">
             Your Event Badge
           </h1>
-          <p className="text-gray-600">
+          <p className="text-sm sm:text-base text-gray-600">
             Show this badge at the event venue for entry
           </p>
         </div>
@@ -125,22 +125,22 @@ export function Badge({ registration }: BadgeProps) {
         {/* Badge Card */}
         <div
           ref={badgeRef}
-          className="w-[400px] bg-white border-1 rounded-lg border-gray-300 mx-auto"
+          className="w-full max-w-[400px] bg-white border-1 rounded-lg border-gray-300 mx-auto"
         >
-          <CardContent className="flex flex-col items-center p-8">
+          <CardContent className="flex flex-col items-center p-4 sm:p-6 md:p-8">
             {/* Profile Section */}
-            <h2 className="text-xl font-bold text-gray-900 mb-2">
+            <h2 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 text-center">
               {prefix} {attendeeName}
             </h2>
-            <p className="text-sm text-gray-600 mb-6">
+            <p className="text-xs sm:text-sm text-gray-600 mb-4 sm:mb-6 text-center">
               Reg No: <span className="font-mono font-semibold">{regNum}</span>
             </p>
 
             {/* QR Code */}
-            <div className="bg-white p-6 rounded-xl border-2 border-gray-200 shadow-sm mb-6">
+            <div className="bg-white p-4 sm:p-6 rounded-xl border-2 border-gray-200 shadow-sm mb-4 sm:mb-6">
               <QRCodeSVG
                 value={qrValue}
-                size={200}
+                size={window.innerWidth < 640 ? 150 : 200}
                 level="H"
                 includeMargin={true}
               />
@@ -148,12 +148,10 @@ export function Badge({ registration }: BadgeProps) {
 
             {/* Event Info */}
             <div className="text-center mb-4 w-full">
-              <h3 className="font-semibold text-gray-900 text-lg mb-1">
+              <h3 className="font-semibold text-gray-900 text-base sm:text-lg mb-1">
                 {eventName}
               </h3>
-              <p className="text-sm text-gray-600">
-                {/* {registration.eventId?.startDate} {"-"}{" "}
-                {registration.eventId?.endDate || "Event Date"} */}
+              <p className="text-xs sm:text-sm text-gray-600">
                 {formatEventDate(
                   registration.eventId?.startDate,
                   registration.eventId?.endDate
@@ -163,13 +161,13 @@ export function Badge({ registration }: BadgeProps) {
 
             {/* Category Footer */}
             <div className="w-full">
-              <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold text-center py-3 rounded-xl shadow-lg">
+              <div className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white font-bold text-center py-2 sm:py-3 rounded-xl shadow-lg text-sm sm:text-base">
                 {registrationCategory.toUpperCase()}
               </div>
             </div>
 
             {/* Additional Info */}
-            <div className="mt-4 text-xs text-gray-500 text-center w-full">
+            <div className="mt-3 sm:mt-4 text-xs text-gray-500 text-center w-full">
               <p>Scan QR code for verification</p>
               <p className="mt-1">Valid for event entry only</p>
             </div>
@@ -177,11 +175,11 @@ export function Badge({ registration }: BadgeProps) {
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-4 mt-8 justify-center">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-6 sm:mt-8 justify-center">
           <Button
             onClick={handleDownloadBadge}
             variant="default"
-            className="flex items-center gap-2 bg-[#00509E] hover:bg-[#003B73] px-6 py-2 cursor-pointer"
+            className="flex items-center gap-2 bg-[#00509E] hover:bg-[#003B73] px-4 sm:px-6 py-2 cursor-pointer text-sm sm:text-base"
           >
             <Download className="w-4 h-4" />
             Download Badge
@@ -191,7 +189,7 @@ export function Badge({ registration }: BadgeProps) {
             onClick={handleShareBadge}
             variant="outline"
             disabled={isSharing}
-            className="flex items-center gap-2 border-[#00509E] text-[#00509E] hover:bg-[#00509E] hover:text-white px-6 py-2 cursor-pointer"
+            className="flex items-center gap-2 border-[#00509E] text-[#00509E] hover:bg-[#00509E] hover:text-white px-4 sm:px-6 py-2 cursor-pointer text-sm sm:text-base"
           >
             <Share2 className="w-4 h-4" />
             {isSharing ? "Sharing..." : "Share"}
@@ -199,7 +197,7 @@ export function Badge({ registration }: BadgeProps) {
         </div>
 
         {/* Instructions */}
-        <div className="mt-6 text-center text-sm text-gray-600">
+        <div className="mt-4 sm:mt-6 text-center text-xs sm:text-sm text-gray-600 space-y-1">
           <p>• Save or screenshot this badge for offline access</p>
           <p>• Present at event registration desk</p>
           <p>• Keep your registration number handy</p>

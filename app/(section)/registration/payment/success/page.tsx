@@ -360,7 +360,7 @@ export default function PaymentSuccessPage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
           <Button
             onClick={handleViewBadge}
-            className="bg-[#00509E] hover:bg-[#003B73] text-white px-8 py-3 text-lg"
+            className="bg-[#00509E] hover:bg-[#003B73] text-white px-8 py-3 text-lg cursor-pointer"
             size="lg"
           >
             <Download className="w-5 h-5 mr-2" />
@@ -370,7 +370,7 @@ export default function PaymentSuccessPage() {
           <Button
             onClick={handleViewAllRegistrations}
             variant="outline"
-            className="border-[#00509E] text-[#00509E] hover:bg-[#00509E] hover:text-white px-8 py-3 text-lg"
+            className="border-[#00509E] text-[#00509E] hover:bg-[#00509E] hover:text-white px-8 py-3 text-lg cursor-pointer"
             size="lg"
           >
             View All Registrations
@@ -379,7 +379,7 @@ export default function PaymentSuccessPage() {
           <Button
             onClick={handleBackToEvents}
             variant="outline"
-            className="border-gray-400 text-gray-700 hover:bg-gray-100 px-8 py-3 text-lg"
+            className="border-gray-400 text-gray-700 hover:bg-gray-100 px-8 py-3 text-lg cursor-pointer"
             size="lg"
           >
             Back to Events

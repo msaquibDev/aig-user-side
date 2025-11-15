@@ -5,6 +5,7 @@ import MyProfileForm from "@/components/dashboard/MyProfileForm";
 import { Profile } from "@/app/data/profile";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import Loading from "@/components/common/Loading";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -95,7 +96,8 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col justify-center items-center space-y-4 p-6">
-        <Loader2 className="w-12 h-12 animate-spin text-[#00509E]" />
+        {/* <Loader2 className="w-12 h-12 animate-spin text-[#00509E]" /> */}
+        <Loading />
         <div className="text-center">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             Loading Profile

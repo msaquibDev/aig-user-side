@@ -6,6 +6,7 @@ import AnnouncementCard from "@/components/dashboard/Announcement";
 import { useAnnouncementStore } from "@/app/store/useAnnouncementStore";
 import { Loader2, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Loading from "@/components/common/Loading";
 
 export default function AnnouncementsPage() {
   const { announcements, loading, error, fetchAnnouncements, clearError } =
@@ -33,7 +34,8 @@ export default function AnnouncementsPage() {
 
       {loading ? (
         <div className="flex flex-col items-center justify-center py-12">
-          <Loader2 className="w-8 h-8 animate-spin text-[#00509E] mb-4" />
+          {/* <Loader2 className="w-8 h-8 animate-spin text-[#00509E] mb-4" /> */}
+          <Loading />
           <p className="text-gray-600">Loading announcements...</p>
         </div>
       ) : error ? (
