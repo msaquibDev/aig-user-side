@@ -56,6 +56,7 @@ type Props = {
   eventId?: string | null;
   registrationId?: string | null;
   hasRegistration?: boolean;
+  refreshTrigger?: number;
   onAddClick: () => void;
   onEditClick: (
     person: AccompanyPerson,
@@ -67,6 +68,7 @@ export default function AccompanyingTable({
   eventId,
   registrationId,
   hasRegistration = false,
+  refreshTrigger = 0,
   onAddClick,
   onEditClick,
 }: Props) {
@@ -149,9 +151,12 @@ export default function AccompanyingTable({
   };
 
   // Update the useEffect to include eventId as dependency
+  // In accompanying table component
   useEffect(() => {
-    fetchPaidAccompanies();
-  }, [eventId]); // Add eventId as dependency
+    if (eventId && hasRegistration) {
+      fetchPaidAccompanies();
+    }
+  }, [eventId, hasRegistration, refreshTrigger]); // Add refreshTrigger dependency
 
   // Also filter the paidAccompanies by eventId on the client side as additional safety
   const filteredPaidAccompanies = eventId

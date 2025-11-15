@@ -52,6 +52,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   editId?: number | null;
+  onSuccess?: () => void;
 };
 
 // Razorpay script loading function
@@ -81,6 +82,7 @@ export default function WorkshopFormSidebar({
   registrationId,
   open,
   onClose,
+  onSuccess,
   editId,
 }: Props) {
   const [submitting, setSubmitting] = useState(false);
@@ -338,8 +340,8 @@ export default function WorkshopFormSidebar({
         setSelectedWorkshopIds([]);
         setSelectedWorkshopType(null);
         onClose();
-        // Refresh the page to show updated registrations
-        window.location.reload();
+        if (onSuccess) onSuccess();
+        // window.location.reload();
       } else {
         throw new Error(verifyData.message || "Payment verification failed");
       }
@@ -366,8 +368,8 @@ export default function WorkshopFormSidebar({
         setSelectedWorkshopIds([]);
         setSelectedWorkshopType(null);
         onClose();
-        // Refresh the page to show updated registrations
-        window.location.reload();
+        if (onSuccess) onSuccess();
+        // window.location.reload();
       } else if (isPaidWorkshopSelected) {
         // Initiate payment for paid workshops
         await initiateWorkshopPayment();

@@ -94,12 +94,14 @@ function WorkshopContent() {
     setRefreshTrigger((prev) => prev + 1);
   };
 
+  const handleSuccess = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
   // Handle sidebar close with refresh
-  const handleSidebarClose = () => {
+  const handleCloseSidebar = () => {
     setOpen(false);
     setEditId(null);
-    // Refresh table when sidebar closes (after registration)
-    handleRefreshTable();
   };
 
   if (loading) {
@@ -169,8 +171,9 @@ function WorkshopContent() {
         eventId={eventId}
         registrationId={registrationId}
         open={open}
-        onClose={handleSidebarClose} // Use the new close handler
+        onClose={handleCloseSidebar} // Use the new close handler
         editId={editId}
+        onSuccess={handleSuccess}
       />
     </div>
   );

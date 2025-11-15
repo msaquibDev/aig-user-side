@@ -74,6 +74,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   editingPerson?: AccompanyPerson | null;
+  onSuccess?: () => void;
 };
 
 // Razorpay script loading function
@@ -105,6 +106,7 @@ export default function AccompanyingFormSidebar({
   open,
   onClose,
   editingPerson,
+  onSuccess,
 }: Props) {
   const { people, addPerson, updatePerson } = useAccompanyingStore();
   const { basicDetails } = useRegistrationStore();
@@ -345,7 +347,8 @@ export default function AccompanyingFormSidebar({
       if (verifyData.success) {
         toast.success("Payment successful! Accompanying persons added.");
         onClose();
-        window.location.reload();
+        if (onSuccess) onSuccess();
+        // window.location.reload();
       } else {
         throw new Error(verifyData.message || "Payment verification failed");
       }
@@ -525,7 +528,8 @@ export default function AccompanyingFormSidebar({
           console.log("Accompany update response:", result);
           toast.success("Person updated successfully!");
           onClose();
-          window.location.reload(); // Reload to reflect changes
+          if (onSuccess) onSuccess();
+          // window.location.reload(); // Reload to reflect changes
         } else {
           // ADD NEW PERSON - Use the add endpoint (no mainAccompanyId validation needed)
           const response = await fetch(
@@ -582,6 +586,7 @@ export default function AccompanyingFormSidebar({
             // If no payment required, show success and close
             toast.success("Persons added successfully!");
             onClose();
+            if (onSuccess) onSuccess();
           }
         }
       } else {

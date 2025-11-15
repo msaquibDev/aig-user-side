@@ -357,7 +357,7 @@ export default function WorkshopTable({
           </TableHeader>
 
           <TableBody>
-            {loading && !refreshing ? (
+            {loading ? (
               <SkeletonTable rows={5} columns={7} />
             ) : currentItems.length > 0 ? (
               currentItems.map((workshop, index) => {

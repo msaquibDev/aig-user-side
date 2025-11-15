@@ -32,6 +32,7 @@ function AccompanyingContent() {
   const [hasRegistration, setHasRegistration] = useState(false);
   const [eventName, setEventName] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState<string>("");
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Check if user has registration and get event details
   useEffect(() => {
@@ -102,6 +103,10 @@ function AccompanyingContent() {
     checkRegistration();
   }, [eventId, registrationId]);
 
+  const handleSuccess = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-64">
@@ -154,6 +159,7 @@ function AccompanyingContent() {
         eventId={eventId}
         registrationId={registrationId}
         hasRegistration={hasRegistration}
+        refreshTrigger={refreshTrigger}
         onAddClick={() => {
           if (!hasRegistration) {
             alert("Please complete your main registration first.");
@@ -164,13 +170,6 @@ function AccompanyingContent() {
           setOpen(true);
         }}
         onEditClick={(person, mainId) => {
-          // Updated to accept mainAccompanyId
-          console.log(
-            "Received from table - Person:",
-            person?._id,
-            "Main ID:",
-            mainId
-          );
           setEditingPerson(person);
           setMainAccompanyId(mainId);
           setOpen(true);
@@ -188,6 +187,7 @@ function AccompanyingContent() {
           setMainAccompanyId(null); // Clear main accompany ID
         }}
         editingPerson={editingPerson}
+        onSuccess={handleSuccess}
       />
     </div>
   );
