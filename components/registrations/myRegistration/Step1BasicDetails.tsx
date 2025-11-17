@@ -44,7 +44,7 @@ const schema = z.object({
   city: z.string().min(1, "City is required"),
   pincode: z.string().min(1, "Pincode is required"),
   gender: z.string().min(1, "Gender is required"),
-  mealPreference: z.string().min(1, "Meal preference is required"),
+  mealPreference: z.string().min(1, "Please select a meal preference"),
   // add near the end of your schema object
   acceptedTerms: z.boolean().refine((v) => v === true, {
     message: "You must accept the terms and conditions",
@@ -374,6 +374,7 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
           <Controller
             name="mealPreference"
             control={control}
+            defaultValue=""
             render={({ field }) => (
               <Select
                 onValueChange={field.onChange}

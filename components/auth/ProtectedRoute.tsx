@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import Loading from "../common/Loading";
 
 export default function ProtectedRoute({
   children,
@@ -29,7 +30,8 @@ export default function ProtectedRoute({
     // ⏳ Loading screen while checking auth
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+        {/* <Loader2 className="w-6 h-6 animate-spin text-blue-600" /> */}
+        <Loading />
         <p className="ml-2 text-gray-600">Checking authentication...</p>
       </div>
     );

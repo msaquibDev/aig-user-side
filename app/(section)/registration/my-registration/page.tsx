@@ -260,13 +260,13 @@ function RegistrationContent() {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={() => window.history.back()}
-                className="bg-[#00509E] hover:bg-[#003B73] text-white px-6 py-2 rounded-lg transition-colors"
+                className="bg-[#00509E] hover:bg-[#003B73] text-white px-6 py-2 rounded-lg transition-colors cursor-pointer"
               >
                 Go Back
               </button>
               <button
                 onClick={() => (window.location.href = "/dashboard/events")}
-                className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2 rounded-lg transition-colors"
+                className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-2 rounded-lg transition-colors cursor-pointer"
               >
                 View Other Events
               </button>
