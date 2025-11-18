@@ -43,9 +43,7 @@ export default function Header() {
               credentials: "include",
             }
           );
-        } catch (error) {
-          console.log("Backend logout optional - frontend cleared");
-        }
+        } catch (error) {}
       }
 
       // Clear client-side storage

@@ -120,7 +120,6 @@ export default function WorkshopTable({
       );
 
       const data = await response.json();
-      console.log("Fetched registered workshops:", data);
 
       if (data && data.success && Array.isArray(data.data)) {
         const regs: RegisteredWorkshop[] = data.data;

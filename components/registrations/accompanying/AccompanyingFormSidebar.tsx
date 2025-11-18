@@ -283,7 +283,7 @@ export default function AccompanyingFormSidebar({
         key: paymentData.data.razorpayKeyId,
         amount: paymentData.data.amount * 100,
         currency: paymentData.data.currency || "INR",
-        name: "Event Registration",
+        name: "Accompanying Registration",
         description: "Accompanying Persons Payment",
         order_id: paymentData.data.orderId,
         handler: async function (response: any) {
@@ -525,7 +525,6 @@ export default function AccompanyingFormSidebar({
             );
           }
 
-          console.log("Accompany update response:", result);
           toast.success("Person updated successfully!");
           onClose();
           if (onSuccess) onSuccess();
@@ -560,8 +559,6 @@ export default function AccompanyingFormSidebar({
             );
           }
 
-          console.log("Accompany save response:", result);
-
           // Only initiate payment for NEW additions when amount > 0
           if (
             accompanyAmount &&
@@ -576,7 +573,6 @@ export default function AccompanyingFormSidebar({
               (acc: any) => acc._id
             );
 
-            console.log("Newly added accompanyItemIds:", accompanyItemIds);
             await initiateAccompanyPayment(
               result.data._id,
               accompanyItemIds,

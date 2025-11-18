@@ -33,7 +33,6 @@ import ReCAPTCHA from "react-google-recaptcha";
 import { cn } from "@/lib/utils";
 
 countries.registerLocale(enLocale);
-// console.log("Saquib: .................", process.env.NEXT_PUBLIC_API_BASE_URL);
 
 const schema = z
   .object({

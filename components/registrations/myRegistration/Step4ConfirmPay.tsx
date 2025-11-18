@@ -102,8 +102,6 @@ export default function Step4ConfirmPay({ onBack }: { onBack: () => void }) {
         // Note: pincode is not in backend payload but is in user profile
       };
 
-      console.log("Submitting Registration Payload:", payload);
-
       const token = localStorage.getItem("accessToken");
 
       // ✅ Fixed API endpoint - using events route not user route

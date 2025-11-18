@@ -60,7 +60,6 @@ function RegistrationContent() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Registration settings response:", data);
         if (data.success && data.data && data.data.length > 0) {
           setRegistrationSettings(data.data[0]);
           return data.data[0];

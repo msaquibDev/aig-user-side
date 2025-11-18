@@ -87,7 +87,6 @@ export default function BanquetTable({
   const [banquetRegistrations, setBanquetRegistrations] = useState<
     BanquetRegistration[]
   >([]);
-  console.log("Banquet Registrations:", banquetRegistrations);
   const [refreshing, setRefreshing] = useState(false);
 
   const itemsPerPage = 10;
@@ -109,7 +108,6 @@ export default function BanquetTable({
       );
 
       const data = await response.json();
-      console.log("Fetched paid banquets:", data);
 
       if (data.success && Array.isArray(data.data)) {
         setBanquetRegistrations(data.data);

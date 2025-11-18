@@ -117,7 +117,6 @@ export default function BadgePage({ params }: { params: { eventId: string } }) {
         }
 
         const data = await res.json();
-        console.log("Fetched registration:", data);
 
         if (data.success && data.data) {
           setRegistration(data.data);
@@ -138,12 +137,6 @@ export default function BadgePage({ params }: { params: { eventId: string } }) {
   // Update the event store with registration settings
   useEffect(() => {
     if (registrationSettings && currentEvent) {
-      // You can extend your event store to include registration settings if needed
-      // For now, we'll just ensure the current event is set properly
-      console.log(
-        "Registration settings loaded for sidebar:",
-        registrationSettings
-      );
     }
   }, [registrationSettings, currentEvent]);
 

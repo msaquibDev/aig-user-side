@@ -151,7 +151,6 @@ export default function BanquetFormSidebar({
       );
 
       const data = await response.json();
-      console.log("Fetched banquet slabs:", data);
       if (data.success && Array.isArray(data.data)) {
         setBanquetSlabs(data.data);
       } else {
@@ -452,18 +451,10 @@ export default function BanquetFormSidebar({
         throw new Error(result.message || "Failed to register for banquet");
       }
 
-      console.log("Banquet registration response:", result);
-
       const banquetRegistrationId = result.data._id; // Main registration ID
       const banquetItemIds = result.data.banquets.map(
         (banquet: any) => banquet._id
       ); // Individual banquet item IDs
-
-      console.log("Payment parameters:", {
-        banquetRegistrationId,
-        banquetItemIds,
-        totalAmount,
-      });
 
       // Initiate payment if amount > 0
       if (totalAmount > 0 && result.data && result.data._id) {

@@ -42,15 +42,12 @@ export default function PaymentHistoryTable() {
           }
         );
 
-        console.log("Fetch payments response status:", res.status);
-
         if (!res.ok) {
           const errorData = await res.json();
           throw new Error(errorData.message || "Failed to fetch payments");
         }
 
         const data = await res.json();
-        console.log("Fetched payments data:", data); // Debug log
 
         if (data.success && Array.isArray(data.data)) {
           setAllPayments(data.data);
@@ -100,7 +97,6 @@ export default function PaymentHistoryTable() {
     if (typeof payment.eventRegistrationId === "string") {
       return "Event";
     }
-    console.log("No event data found for payment:", payment._id);
     return "Event";
   };
 

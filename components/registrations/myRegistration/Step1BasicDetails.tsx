@@ -121,7 +121,6 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
       );
 
       const data = await res.json();
-      console.log("Meal Preferences Response:", data);
 
       if (data.success && Array.isArray(data.data)) {
         setMealPreferences(data.data);
@@ -204,7 +203,6 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
   useEffect(() => {
     async function fetchRegistrationSlabs() {
       if (!currentEvent?._id) {
-        console.log("No event ID available");
         return;
       }
 
@@ -226,7 +224,6 @@ export default function Step1BasicDetails({ onNext }: { onNext: () => void }) {
         );
 
         const data = await res.json();
-        console.log("Registration Slabs Response:", data);
 
         if (data.success && Array.isArray(data.data)) {
           // Transform the data to match your existing structure

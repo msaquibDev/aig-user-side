@@ -174,10 +174,7 @@ export default function AccompanyingTable({
       accompany.paidAccompanies.some((p) => p._id === person._id)
     );
 
-    console.log("Found main accompany:", mainAccompany);
-
     if (mainAccompany) {
-      console.log("Main accompany ID to use:", mainAccompany._id);
       onEditClick(person, mainAccompany._id);
     } else {
       console.error("Could not find main accompany document");

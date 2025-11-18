@@ -108,7 +108,6 @@ export default function WorkshopFormSidebar({
         );
 
         const data = await response.json();
-        console.log("Fetched workshops:", data);
 
         if (data.success && Array.isArray(data.data)) {
           setApiWorkshops(data.data);
